@@ -62,7 +62,7 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
   <button class="nav" data-view="lessons"><span class="nav-icon">◷</span>Aulas e presenças</button>
   <button class="nav" data-view="baptism"><span class="nav-icon">✧</span>Ordem de batismo</button>
   <button class="nav" data-view="shirts"><span class="nav-icon">♧</span>Camisetas</button>
-  <button class="nav" data-view="payments"><span class="nav-icon">R$</span>Pagamentos</button>
+  <button class="nav" data-view="payments"><span class="nav-icon">•</span>Apontamentos financeiros</button>
   <button class="nav" data-view="reports"><span class="nav-icon">▥</span>Relatórios</button>
  </nav>
  <div class="side-note">Área administrativa<br>Dados reais ainda não conectados<br>© Sistema de Gestão de Batismo</div>
@@ -75,17 +75,17 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
  </header>
  <div class="content">
   <section id="overview" class="overview-view" aria-labelledby="welcomeTitle">
-   <div class="heading"><div><div class="eyebrow">Painel administrativo</div><h1 id="welcomeTitle">Acompanhe o programa de batismo</h1><p class="sub">Uma visão organizada das pessoas, turmas e preparação para o batismo.</p></div><button id="connectionStatus" class="btn btn-secondary" type="button">Ver status da conexão</button></div>
+   <div class="heading"><div><div class="eyebrow">Painel administrativo</div><h1 id="welcomeTitle">Acompanhe o programa de batismo</h1><p class="sub">Acompanhe a jornada das pessoas, a preparação e a organização dos próximos batismos.</p></div><button id="connectionStatus" class="btn btn-secondary" type="button">Ver status da conexão</button></div>
    <div class="notice" id="prototypeNotice" tabindex="-1"><strong>Modo de preparação</strong>Este painel ainda não está conectado ao banco de dados. Os indicadores permanecem sem números para não apresentar dados fictícios. Não insira informações pessoais nesta versão pública.</div>
    <div class="grid">
-    <article class="card"><div class="metric-top"><span class="metric-label">Pessoas cadastradas</span><span class="metric-symbol">♙</span></div><div class="metric">—</div><div class="metric-foot">Disponível após conexão segura</div></article>
-    <article class="card"><div class="metric-top"><span class="metric-label">Turmas ativas</span><span class="metric-symbol">▤</span></div><div class="metric">—</div><div class="metric-foot">Disponível após conexão segura</div></article>
-    <article class="card"><div class="metric-top"><span class="metric-label">Batismos confirmados</span><span class="metric-symbol">✧</span></div><div class="metric">—</div><div class="metric-foot">Resultado real por evento</div></article>
-    <article class="card"><div class="metric-top"><span class="metric-label">Pendências em aberto</span><span class="metric-symbol">!</span></div><div class="metric">—</div><div class="metric-foot">Pessoas e itens serão contados separadamente</div></article>
+    <article class="card"><div class="metric-top"><span class="metric-label">Pessoas em acompanhamento</span><span class="metric-symbol">♙</span></div><div class="metric">—</div><div class="metric-foot">Cadastro e jornada</div></article>
+    <article class="card"><div class="metric-top"><span class="metric-label">Turmas em andamento</span><span class="metric-symbol">▤</span></div><div class="metric">—</div><div class="metric-foot">Organização das aulas</div></article>
+    <article class="card"><div class="metric-top"><span class="metric-label">Preparação para batismo</span><span class="metric-symbol">✧</span></div><div class="metric">—</div><div class="metric-foot">Acompanhamento da preparação</div></article>
+    <article class="card"><div class="metric-top"><span class="metric-label">Pendências de acompanhamento</span><span class="metric-symbol">!</span></div><div class="metric">—</div><div class="metric-foot">Aulas, confirmações e outros apontamentos</div></article>
    </div>
    <div class="lower">
     <article class="card"><div class="card-head"><div><h2 class="section-title">Próximo evento de batismo</h2><p class="section-sub">Resumo do evento e da ordem de participantes</p></div><span class="metric-foot">Sem dados</span></div><div class="empty">Nenhum evento conectado.<br>Quando o banco estiver configurado, o evento e sua ordem aparecerão aqui.</div></article>
-    <article class="card"><div class="card-head"><div><h2 class="section-title">Segurança e conexão</h2><p class="section-sub">Preparação para uso real</p></div></div><div class="security-list"><div class="security-row"><span class="status-dot"></span><span>Interface pública sem dados pessoais embutidos</span></div><div class="security-row"><span class="status-dot"></span><span>Autenticação e permissões ainda precisam ser configuradas</span></div><div class="security-row"><span class="status-dot"></span><span>Firebase e regras de acesso ainda não validados</span></div><div class="security-row"><span class="status-dot"></span><span>Importação de dados reais bloqueada até os testes</span></div></div></article>
+    <article class="card"><div class="card-head"><div><h2 class="section-title">Preparação do sistema</h2><p class="section-sub">O que falta para uso real</p></div></div><div class="security-list"><div class="security-row"><span class="status-dot"></span><span>Interface pública sem dados pessoais embutidos</span></div><div class="security-row"><span class="status-dot"></span><span>Autenticação e permissões ainda precisam ser configuradas</span></div><div class="security-row"><span class="status-dot"></span><span>Firebase e regras de acesso ainda não validados</span></div><div class="security-row"><span class="status-dot"></span><span>Importação de dados reais bloqueada até os testes</span></div></div></article>
    </div>
    <div style="margin-top:25px"><div class="card-head"><div><h2 class="section-title">Acesso rápido</h2><p class="section-sub">Escolha uma área para visualizar a próxima etapa de preparação.</p></div></div>
     <div class="modules">
@@ -94,7 +94,7 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
      <button class="module" data-view="lessons"><span class="module-icon">◷</span><span><strong>Aulas e presenças</strong><small>Jornada e reposições</small></span></button>
      <button class="module" data-view="baptism"><span class="module-icon">✧</span><span><strong>Ordem de batismo</strong><small>Participantes e sequência</small></span></button>
      <button class="module" data-view="shirts"><span class="module-icon">♧</span><span><strong>Camisetas</strong><small>Tamanhos e distribuição</small></span></button>
-     <button class="module" data-view="payments"><span class="module-icon">R$</span><span><strong>Pagamentos</strong><small>Situação e conferência</small></span></button>
+     <button class="module" data-view="payments"><span class="module-icon">•</span><span><strong>Apontamentos financeiros</strong><small>Registro complementar, quando necessário</small></span></button>
      <button class="module" data-view="reports"><span class="module-icon">▥</span><span><strong>Relatórios</strong><small>Consultas e resumos</small></span></button>
     </div>
    </div>
@@ -504,7 +504,7 @@ document.getElementById("cancelOrderEdit").addEventListener("click",resetOrderFo
 document.getElementById("eventSearch").addEventListener("input",renderBaptismEvents);
 document.getElementById("orderSearch").addEventListener("input",renderOrderEntries);
 
-const descriptions={people:"Cadastro e acompanhamento individual, com identificador próprio e dados pessoais protegidos.",classes:"Organização de turmas, inscrições e vínculo com a jornada.",lessons:"Acompanhamento da jornada, aulas concluídas, presença e aulas a repor.",baptism:"Criação de eventos demonstrativos, lista ordenável por participante e histórico separado por evento.",shirts:"Controle de tamanhos, distribuição e situação de pagamento das camisetas.",payments:"Conferência das situações financeiras sem confundir valores não informados com valores não pagos.",reports:"Resumos calculados a partir dos registros reais autorizados, sem indicadores fictícios."};
+const descriptions={people:"Cadastro e acompanhamento individual, com identificador próprio e dados pessoais protegidos.",classes:"Organização de turmas, inscrições e vínculo com a jornada.",lessons:"Acompanhamento da jornada, aulas concluídas, presença e aulas a repor.",baptism:"Criação de eventos demonstrativos, lista ordenável por participante e histórico separado por evento.",shirts:"Controle de tamanhos e distribuição das camisetas. A situação de pagamento é apenas um apontamento complementar.",payments:"Registro financeiro complementar para consulta quando necessário, sem ser o foco do painel principal nem um módulo de gestão financeira completa.",reports:"Resumos calculados a partir dos registros reais autorizados, sem indicadores fictícios."};
 const sidebar=document.getElementById("sidebar"),mobileMenu=document.getElementById("mobileMenu"),mobileScrim=document.getElementById("mobileScrim");
 function closeMobileMenu(){sidebar.classList.remove("open");mobileScrim.classList.remove("open");mobileMenu.setAttribute("aria-expanded","false");mobileMenu.setAttribute("aria-label","Abrir menu");}
 function showView(view){
