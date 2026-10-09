@@ -1,6 +1,6 @@
 # Fase 4 — Ordem de batismo por evento (demonstração)
 
-**Status:** módulo demonstrativo implementado em `index.html`; publicação e testes manuais ainda precisam ser confirmados.
+**Status:** módulo demonstrativo implementado em `index.html`. O workflow mais recente do GitHub Actions concluiu com sucesso; os testes manuais em navegador ainda precisam ser realizados.
 
 ## O que está incluído
 - Criar eventos fictícios com nome e data opcional.
@@ -37,4 +37,11 @@
 - [ ] Verificar layout em desktop e celular.
 - [ ] Confirmar que atualizar a página apaga os dados de demonstração, deixando claro que ainda não existe persistência.
 
-A conferência estática do código não substitui os testes manuais. Não declarar esta fase pronta para uso real antes de concluir o checklist e configurar a camada segura de dados.
+## Verificação técnica realizada
+
+- Confirmada a presença dos formulários de evento e participante, seleção de evento, ordenação manual, pesquisas, cancelamento de edição e confirmações de exclusão.
+- Confirmado que o módulo é alternado pela navegação existente.
+- Confirmados os avisos para usar apenas dados fictícios e a ausência de referências ao SDK Firebase e a `localStorage` neste protótipo.
+- O workflow de publicação do GitHub Actions para a revisão mais recente concluiu com sucesso: https://github.com/falcaoguitarcrt-blip/SistemaGestaoBatismo/actions
+
+A conferência estática e o workflow bem-sucedido não substituem os testes manuais da lista acima. A Fase 4 está concluída como protótipo demonstrativo, não como ferramenta pronta para um evento real. Antes do uso real, é obrigatório concluir os testes manuais e configurar a camada segura de dados.
