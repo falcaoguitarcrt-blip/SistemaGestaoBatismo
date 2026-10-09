@@ -1,47 +1,71 @@
-# Fase 3 — Cadastro demonstrativo de participantes
+# Fase 3 — Cadastro de participantes (demonstração)
 
-**Status:** primeira implementação visual e interativa, exclusivamente em memória do navegador. Não é cadastro oficial e não deve receber dados reais.
+**Status:** formulário e ciclo de cadastro demonstrativo implementados no `index.html`. Os registros existem somente na memória da página e não constituem cadastro oficial.
 
-## Entregas implementadas
+## Campos cobertos
 
-- Formulário de demonstração com nome, turma, situação da jornada, entrada no grupo, tamanho de camiseta e situação de pagamento.
-- Validação dos campos obrigatórios de nome, turma e situação da jornada.
-- Adição de registros temporários à lista da sessão.
-- Edição e remoção de registros demonstrativos.
-- Pesquisa temporária por nome, turma ou situação da jornada.
-- Mensagens de validação e confirmação.
-- Lista criada usando APIs de elementos de texto, sem inserir os valores digitados como HTML.
-- Formulário e lista adaptados a telas menores.
-- Aviso explícito para não usar dados reais nesta versão.
+- Nome de demonstração e turma.
+- Situação da jornada.
+- Aulas a repor.
+- Aula de preparação para batismo.
+- Entrada no grupo de batismo.
+- Tamanho da camiseta e situação do pagamento.
+- Participação no próximo evento, separada do resultado final.
+- Pendências em texto para demonstração.
+- Observação administrativa não confidencial para demonstração.
 
-## Limites e proteção dos dados
+Não foram incluídos telefone nem notas de investigação/confidenciais. Os dados reais não devem ser inseridos na página pública.
 
-- Os registros existem apenas na memória JavaScript desta aba.
-- Recarregar ou fechar a página apaga os registros demonstrativos.
-- Não foi implementado localStorage, Firebase, Google Sheets ou outro armazenamento.
-- Não foi implementada autenticação nem autorização.
-- Não foram adicionados campos de telefone ou observações confidenciais nesta demonstração.
-- Não foram importados dados da planilha original.
-- A lista não altera os indicadores do painel, pois não é uma fonte oficial de dados.
+## Operações disponíveis
 
-## Testes manuais necessários
+- Adicionar registros fictícios.
+- Validar nome, turma e situação da jornada.
+- Editar registros.
+- Remover registros.
+- Pesquisar por nome, turma, jornada, pendências, aulas a repor e participação.
+- Mostrar campos sem informação como “Não informado”.
+- Exibir mensagens de validação e confirmação.
+- Renderizar valores digitados como texto, sem interpretar entradas como HTML.
 
-1. Abrir Pessoas e verificar que a mensagem de demonstração está visível.
-2. Tentar enviar o formulário vazio e confirmar a validação.
-3. Adicionar um registro fictício e conferir sua exibição.
-4. Pesquisar pelo nome e pela turma.
-5. Editar um registro e confirmar que os dados atualizados aparecem.
-6. Remover um registro e confirmar que desaparece da lista.
-7. Recarregar a página e confirmar que a lista temporária é reiniciada.
-8. Repetir os passos em viewport de celular.
-9. Confirmar que os outros módulos continuam exibindo o estado de preparação e que o painel não apresenta métricas fictícias.
+## Regras de negócio separadas
 
-## Próximos requisitos antes do uso real
+- Conclusão da jornada não implica participação no evento.
+- Participação confirmada não implica que o batismo foi realizado.
+- Resultado final fica em campo separado e começa como “Não informado”.
+- Campos vazios opcionais permanecem como “Não informado”.
+- As pendências nesta versão são um campo de demonstração. A modelagem definitiva deve permitir múltiplas pendências independentes por pessoa.
 
-- Confirmar o dicionário final de campos com os responsáveis.
-- Configurar autenticação, autorização e regras do banco.
-- Criar IDs internos estáveis no armazenamento definitivo.
-- Implementar operações persistentes somente após testar o acesso negado para usuários não autorizados.
-- Planejar e validar a migração em cópia privada, sem alterar a planilha original.
+## Limites
 
-**Resultado:** o fluxo de cadastro pode ser avaliado visualmente com dados fictícios. A Fase 3 funcional com persistência e dados reais continua pendente da configuração segura do Firebase.
+- Sem Firebase, autenticação, autorização ou persistência.
+- Sem armazenamento em localStorage.
+- Os registros desaparecem ao recarregar ou fechar a página.
+- Sem importação de planilha ou dados reais.
+- A lista temporária não alimenta os indicadores do painel.
+- Não é apropriado para uso real.
+
+## Validação de código realizada
+
+Foi relido o `index.html` após a atualização e conferida a presença dos campos de aulas a repor, aula de preparação, participação, resultado final, pendências e observação. A confirmação por leitura do código não substitui teste manual completo em navegadores/dispositivos.
+
+## Testes manuais restantes
+
+- [ ] Adicionar registro fictício preenchendo todos os campos.
+- [ ] Validar obrigatórios vazios.
+- [ ] Editar e confirmar que todos os campos preservam os valores.
+- [ ] Buscar por campos adicionais e conferir os resultados.
+- [ ] Remover um registro.
+- [ ] Recarregar e confirmar que os dados temporários desaparecem.
+- [ ] Conferir layout em desktop e celular.
+- [ ] Confirmar que os demais módulos e o painel seguem sem métricas inventadas.
+
+## Para liberar uso real posteriormente
+
+1. Aprovar o dicionário final de dados.
+2. Configurar Firebase Authentication e autorização.
+3. Definir regras de acesso restritivas e testá-las com usuários não autorizados.
+4. Criar IDs internos estáveis e entidades separadas para pendências e eventos.
+5. Testar backup, restauração e migração em cópia privada.
+6. Aprovar a migração somente após conferência dos registros e das ambiguidades.
+
+**Conclusão:** a etapa de cadastro demonstrativo está implementada. A conclusão da Fase 3 para uso real permanece condicionada ao Firebase, à segurança, à persistência e aos testes manuais listados acima.
