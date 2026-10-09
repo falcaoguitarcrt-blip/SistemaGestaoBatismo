@@ -47,7 +47,7 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
 .module-placeholder{margin-top:20px}.back-button{margin-top:18px}
 @media(max-width:1120px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.modules{grid-template-columns:repeat(2,minmax(0,1fr))}.shell{grid-template-columns:220px minmax(0,1fr)}.content{padding:22px}.topbar{padding:0 22px}}
 @media(max-width:760px){.shell{grid-template-columns:1fr}aside{display:none;position:fixed;z-index:6;inset:0 auto 0 0;width:min(290px,85vw);overflow:auto;box-shadow:10px 0 35px #102c2030}aside.open{display:flex}.mobile-scrim.open{display:block;position:fixed;inset:0;background:#0b2119a6;z-index:5;border:0;width:100%;height:100%;padding:0}.topbar{min-height:68px;padding:12px 15px}.mobile-menu{display:block}.content{padding:21px 15px}.heading{align-items:start;flex-direction:column}.lower{grid-template-columns:1fr}.pill{font-size:10px}.brand{font-size:14px}.heading .btn{width:100%}}
-@media(max-width:430px){.grid{gap:9px}.card{padding:14px}.metric{font-size:24px}.modules{grid-template-columns:1fr}.pill{display:none}.metric-label{font-size:11px}.metric-foot{font-size:10px}.event-placeholder{grid-template-columns:40px minmax(0,1fr);padding:11px}.event-icon{height:40px}}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}.person-row{align-items:flex-start;flex-direction:column}.person-actions{width:100%}.person-actions button{flex:1}.people-toolbar{align-items:stretch}.people-toolbar .search-input{max-width:none}}@media(max-width:430px){.grid{gap:9px}.card{padding:14px}.metric{font-size:24px}.modules{grid-template-columns:1fr}.pill{display:none}.metric-label{font-size:11px}.metric-foot{font-size:10px}.event-placeholder{grid-template-columns:40px minmax(0,1fr);padding:11px}.event-icon{height:40px}}
 </style>
 </head>
 <body>
@@ -101,7 +101,28 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
   </section>
   <section id="moduleView" class="module-view" aria-labelledby="moduleTitle" aria-live="polite">
    <div class="eyebrow">Módulo em preparação</div><h1 id="moduleTitle">Pessoas</h1><p class="sub" id="moduleDescription">Esta área será implementada após validar o armazenamento e as permissões.</p>
-   <article class="card module-placeholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
+   <section id="peopleWorkspace" class="people-workspace" hidden>
+    <div class="people-private-note"><strong>Modo de demonstração.</strong> Os registros ficam somente na memória desta aba, desaparecem ao recarregar a página e não são enviados ao servidor. Use apenas dados fictícios. Não cadastre pessoas reais nesta versão pública.</div>
+    <article class="card">
+     <div class="card-head"><div><h2 class="section-title" id="personFormTitle">Adicionar pessoa demonstrativa</h2><p class="section-sub">Cadastro visual para validar os campos antes da integração segura.</p></div></div>
+     <form id="personForm" novalidate>
+      <div class="form-grid">
+       <div class="field"><label for="personName">Nome de demonstração *</label><input id="personName" name="name" maxlength="100" autocomplete="off" required placeholder="Ex.: Pessoa de teste"></div>
+       <div class="field"><label for="personClass">Turma *</label><select id="personClass" name="className" required><option value="">Selecione uma turma</option><option>Turma A</option><option>Turma B</option><option>Turma C</option><option>A definir</option></select></div>
+       <div class="field"><label for="personJourney">Situação da jornada *</label><select id="personJourney" name="journey" required><option value="">Selecione</option><option value="Não informado">Não informado</option><option value="Em andamento">Em andamento</option><option value="Concluída">Concluída</option><option value="Precisa repor aula">Precisa repor aula</option></select></div>
+       <div class="field"><label for="personGroup">Entrou no grupo de batismo?</label><select id="personGroup" name="group"><option value="Não informado">Não informado</option><option value="Sim">Sim</option><option value="Não">Não</option></select></div>
+       <div class="field"><label for="personShirt">Tamanho da camiseta</label><select id="personShirt" name="shirt"><option value="Não informado">Não informado</option><option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XGG</option><option>Não precisa</option></select></div>
+       <div class="field"><label for="personShirtPaid">Pagamento da camiseta</label><select id="personShirtPaid" name="shirtPaid"><option value="Não informado">Não informado</option><option value="Pago">Pago</option><option value="Pendente">Pendente</option><option value="Não se aplica">Não se aplica</option></select></div>
+      </div>
+      <div class="form-actions"><button class="btn" id="savePerson" type="submit">Adicionar à demonstração</button><button class="btn btn-secondary" id="cancelPersonEdit" type="button" hidden>Cancelar edição</button></div>
+      <p id="personFormMessage" class="form-error" role="status" aria-live="polite"></p>
+     </form>
+    </article>
+    <div class="people-toolbar"><div><h2 class="section-title">Pessoas desta sessão</h2><p class="section-sub">A lista é temporária e não representa dados oficiais.</p></div><input id="peopleSearch" class="search-input" type="search" placeholder="Buscar nome ou turma..." aria-label="Buscar pessoas demonstrativas"></div>
+    <div id="peopleCount" class="people-count">Nenhuma pessoa adicionada nesta sessão.</div>
+    <div id="peopleList" class="people-list" aria-live="polite" style="margin-top:10px"><div class="empty">Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.</div></div>
+   </section>
+   <article class="card module-placeholder" id="genericModulePlaceholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
    <button class="btn back-button" id="backOverview" type="button">← Voltar à visão geral</button>
   </section>
   <div class="footer">Protótipo visual · Não armazena nem exibe dados reais.</div>
@@ -110,6 +131,59 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
 </div>
 <script>
 const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscrições",lessons:"Aulas e presenças",baptism:"Ordem de batismo",shirts:"Camisetas",payments:"Pagamentos",reports:"Relatórios"};
+let demoPeople=[];let editingDemoId=null;let nextDemoId=1;
+function renderDemoPeople(){
+ const query=document.getElementById("peopleSearch").value.trim().toLocaleLowerCase("pt-BR");
+ const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.journey).toLocaleLowerCase("pt-BR").includes(query));
+ document.getElementById("peopleCount").textContent=demoPeople.length===0?"Nenhuma pessoa adicionada nesta sessão.":demoPeople.length+" registro(s) temporário(s) · "+visible.length+" exibido(s)";
+ const list=document.getElementById("peopleList");
+ if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum resultado para esta busca.":"Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.")+'</div>';return;}
+ list.replaceChildren();
+ visible.forEach(p=>{
+  const row=document.createElement("article");row.className="person-row";
+  const main=document.createElement("div");main.className="person-main";
+  const name=document.createElement("strong");name.textContent=p.name;
+  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Jornada: "+p.journey+" · Grupo: "+p.group+" · Camiseta: "+p.shirt+" · Pagamento: "+p.shirtPaid;
+  main.append(name,detail);
+  const actions=document.createElement("div");actions.className="person-actions";
+  const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="Editar";edit.addEventListener("click",()=>editDemoPerson(p.id));
+  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover";remove.addEventListener("click",()=>removeDemoPerson(p.id));
+  actions.append(edit,remove);row.append(main,actions);list.append(row);
+ });
+}
+function resetDemoForm(){
+ document.getElementById("personForm").reset();editingDemoId=null;
+ document.getElementById("personFormTitle").textContent="Adicionar pessoa demonstrativa";
+ document.getElementById("savePerson").textContent="Adicionar à demonstração";
+ document.getElementById("cancelPersonEdit").hidden=true;
+ document.getElementById("personFormMessage").textContent="";
+}
+function editDemoPerson(id){
+ const p=demoPeople.find(x=>x.id===id);if(!p)return;editingDemoId=id;
+ document.getElementById("personName").value=p.name;document.getElementById("personClass").value=p.className;
+ document.getElementById("personJourney").value=p.journey;document.getElementById("personGroup").value=p.group;
+ document.getElementById("personShirt").value=p.shirt;document.getElementById("personShirtPaid").value=p.shirtPaid;
+ document.getElementById("personFormTitle").textContent="Editar pessoa demonstrativa";
+ document.getElementById("savePerson").textContent="Salvar alteração temporária";
+ document.getElementById("cancelPersonEdit").hidden=false;document.getElementById("personFormMessage").textContent="";
+ document.getElementById("personName").focus();document.getElementById("personForm").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function removeDemoPerson(id){
+ demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();
+}
+document.getElementById("personForm").addEventListener("submit",e=>{
+ e.preventDefault();const name=document.getElementById("personName").value.trim();
+ const className=document.getElementById("personClass").value;const journey=document.getElementById("personJourney").value;
+ const message=document.getElementById("personFormMessage");
+ if(!name||!className||!journey){message.className="form-error";message.textContent="Preencha o nome de demonstração, a turma e a situação da jornada.";return;}
+ const item={name,className,journey,group:document.getElementById("personGroup").value,shirt:document.getElementById("personShirt").value,shirtPaid:document.getElementById("personShirtPaid").value};
+ if(editingDemoId!==null){const i=demoPeople.findIndex(p=>p.id===editingDemoId);if(i>=0)demoPeople[i]={...demoPeople[i],...item};}
+ else demoPeople.push({id:nextDemoId++,...item});
+ resetDemoForm();message.className="form-success";message.textContent="Registro atualizado apenas nesta sessão de demonstração.";
+ renderDemoPeople();
+});
+document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
+document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
 const descriptions={people:"Cadastro e acompanhamento individual, com identificador próprio e dados pessoais protegidos.",classes:"Organização de turmas, inscrições e vínculo com a jornada.",lessons:"Acompanhamento da jornada, aulas concluídas, presença e aulas a repor.",baptism:"Organização por evento, confirmação de participação, ordem manual e resultado final separado.",shirts:"Controle de tamanhos, distribuição e situação de pagamento das camisetas.",payments:"Conferência das situações financeiras sem confundir valores não informados com valores não pagos.",reports:"Resumos calculados a partir dos registros reais autorizados, sem indicadores fictícios."};
 const sidebar=document.getElementById("sidebar"),mobileMenu=document.getElementById("mobileMenu"),mobileScrim=document.getElementById("mobileScrim");
 function closeMobileMenu(){sidebar.classList.remove("open");mobileScrim.classList.remove("open");mobileMenu.setAttribute("aria-expanded","false");mobileMenu.setAttribute("aria-label","Abrir menu");}
@@ -120,6 +194,8 @@ function showView(view){
  document.querySelectorAll(".nav").forEach(n=>{const active=n.dataset.view===view;n.classList.toggle("active",active);if(active)n.setAttribute("aria-current","page");else n.removeAttribute("aria-current");});
  document.getElementById("overview").classList.toggle("hidden",view!=="overview");
  document.getElementById("moduleView").classList.toggle("active",view!=="overview");
+ document.getElementById("peopleWorkspace").hidden=view!=="people";
+ document.getElementById("genericModulePlaceholder").hidden=view==="people";
  if(view!=="overview"){
   document.getElementById("moduleTitle").textContent=labels[view];
   document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
