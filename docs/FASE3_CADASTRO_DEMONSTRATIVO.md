@@ -22,9 +22,10 @@ Não foram incluídos telefone nem notas de investigação/confidenciais. Os dad
 - Validar nome, turma e situação da jornada.
 - Editar registros.
 - Remover registros.
-- Pesquisar por nome, turma, jornada, pendências, aulas a repor e participação.
+- Pesquisar em tempo real por nome, turma, jornada, pendências, aulas a repor, preparação, participação, resultado, grupo, camiseta, pagamento e observação.
 - Mostrar campos sem informação como “Não informado”.
-- Exibir mensagens de validação e confirmação.
+- Exibir mensagens de validação e confirmação antes da remoção.
+- Cancelar a edição e voltar ao formulário limpo.
 - Renderizar valores digitados como texto, sem interpretar entradas como HTML.
 
 ## Regras de negócio separadas
@@ -46,7 +47,7 @@ Não foram incluídos telefone nem notas de investigação/confidenciais. Os dad
 
 ## Validação de código realizada
 
-Foi relido o `index.html` após a atualização e conferida a presença dos campos de aulas a repor, aula de preparação, participação, resultado final, pendências e observação. A confirmação por leitura do código não substitui teste manual completo em navegadores/dispositivos.
+Foi relido o `index.html` após a atualização e conferida a presença dos campos, edição, remoção com confirmação, pesquisa em tempo real e cancelamento da edição. Também foi verificado que o protótipo não usa `localStorage` nem SDK do Firebase. A execução do workflow de publicação para o commit mais recente foi iniciada, mas ainda estava na fila no momento da consulta. A leitura do código não substitui teste manual completo em navegadores/dispositivos.
 
 ## Testes manuais restantes
 
