@@ -31,7 +31,7 @@ Transformar a primeira aba da planilha original em uma lista operacional de toda
 - `BATIZADO` vazio permanece “Não informado”.
 - `PG CAMISETA` é um apontamento sobre camiseta, não gestão financeira completa.
 - Não deduplicar por nome. Cada linha recebe ID interno e referência à aba/linha de origem.
-- Linhas sem nome não são importadas.
+- Linhas sem nome e linhas que repetem o cabeçalho `NOME` no meio da planilha não são importadas.
 - Importação idempotente: repetir não deve duplicar as mesmas linhas da mesma origem.
 - Não apagar histórico de eventos ao remover uma pessoa; usar exclusão lógica quando houver vínculo de origem.
 
