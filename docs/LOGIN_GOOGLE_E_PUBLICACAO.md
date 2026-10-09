@@ -1,7 +1,7 @@
-# Login Google e publicação
+# Autenticação futura e publicação
 
 ## Importante
-O botão "Continuar com Google" da versão inicial é intencionalmente demonstrativo. Ele **não autentica ninguém**. Não devemos fingir uma sessão no frontend nem permitir que o navegador acesse diretamente a planilha.
+O acesso pelo botão Google foi removido temporariamente da interface, conforme solicitado. A autenticação ainda não está implementada. Não devemos fingir uma sessão no frontend nem permitir que o navegador acesse diretamente a planilha.
 
 GitHub Pages serve conteúdo estático. O código HTML/CSS/JS fica público; portanto, não coloque dados de membros, identificadores privados de planilhas, client secrets, service-account keys ou tokens neste repositório.
 
@@ -19,4 +19,4 @@ GitHub Pages serve conteúdo estático. O código HTML/CSS/JS fica público; por
 Na página do repositório, abra Settings > Pages e configure a publicação a partir da branch main, pasta raiz. Salve e aguarde a URL do Pages. A prévia é pública e não deve ser usada para dados pessoais até que exista backend autenticado.
 
 ## Escopo desta versão
-A página atual é uma prévia da interface com navegação demonstrativa. O login real, o backend de autorização, a persistência e os módulos de dados ainda não estão implementados. A publicação da página não significa que o sistema esteja pronto para uso real.
+A página atual é uma prévia da interface com navegação demonstrativa e sem tela de login. A autenticação real, o backend de autorização, a persistência e os módulos de dados ainda não estão implementados. A publicação da página não significa que o sistema esteja pronto para uso real.
