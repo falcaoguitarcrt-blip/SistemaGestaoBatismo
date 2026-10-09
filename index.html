@@ -124,7 +124,7 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
       <p id="personFormMessage" class="form-error" role="status" aria-live="polite"></p>
      </form>
     </article>
-    <div class="people-toolbar"><div><h2 class="section-title">Pessoas desta sessão</h2><p class="section-sub">A lista é temporária e não representa dados oficiais.</p></div><input id="peopleSearch" class="search-input" type="search" placeholder="Buscar nome ou turma..." aria-label="Buscar pessoas demonstrativas"></div>
+    <div class="people-toolbar"><div><h2 class="section-title">Pessoas desta sessão</h2><p class="section-sub">A lista é temporária e não representa dados oficiais.</p></div><input id="peopleSearch" class="search-input" type="search" placeholder="Buscar nome, turma ou acompanhamento..." aria-label="Buscar pessoas demonstrativas"></div>
     <div id="peopleCount" class="people-count">Nenhuma pessoa adicionada nesta sessão.</div>
     <div id="peopleList" class="people-list" aria-live="polite" style="margin-top:10px"><div class="empty">Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.</div></div>
    </section>
@@ -140,7 +140,7 @@ const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscri�
 let demoPeople=[];let editingDemoId=null;let nextDemoId=1;
 function renderDemoPeople(){
  const query=document.getElementById("peopleSearch").value.trim().toLocaleLowerCase("pt-BR");
- const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.journey+" "+p.pending+" "+p.lessonsToMakeUp+" "+p.baptismParticipation).toLocaleLowerCase("pt-BR").includes(query));
+ const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.journey+" "+p.pending+" "+p.lessonsToMakeUp+" "+p.baptismParticipation+" "+p.baptismClass+" "+p.baptismResult+" "+p.group+" "+p.shirt+" "+p.shirtPaid+" "+p.notes).toLocaleLowerCase("pt-BR").includes(query));
  document.getElementById("peopleCount").textContent=demoPeople.length===0?"Nenhuma pessoa adicionada nesta sessão.":demoPeople.length+" registro(s) temporário(s) · "+visible.length+" exibido(s)";
  const list=document.getElementById("peopleList");
  if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum resultado para esta busca.":"Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.")+'</div>';return;}
@@ -178,8 +178,12 @@ function editDemoPerson(id){
  document.getElementById("personName").focus();document.getElementById("personForm").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function removeDemoPerson(id){
+ const person=demoPeople.find(p=>p.id===id);if(!person)return;
+ if(!window.confirm("Remover o registro demonstrativo de "+person.name+" desta sessão?"))return;
  demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();
 }
+document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
+document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
 document.getElementById("personForm").addEventListener("submit",e=>{
  e.preventDefault();const name=document.getElementById("personName").value.trim();
  const className=document.getElementById("personClass").value;const journey=document.getElementById("personJourney").value;
