@@ -110,9 +110,15 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
        <div class="field"><label for="personName">Nome de demonstração *</label><input id="personName" name="name" maxlength="100" autocomplete="off" required placeholder="Ex.: Pessoa de teste"></div>
        <div class="field"><label for="personClass">Turma *</label><select id="personClass" name="className" required><option value="">Selecione uma turma</option><option>Turma A</option><option>Turma B</option><option>Turma C</option><option>A definir</option></select></div>
        <div class="field"><label for="personJourney">Situação da jornada *</label><select id="personJourney" name="journey" required><option value="">Selecione</option><option value="Não informado">Não informado</option><option value="Em andamento">Em andamento</option><option value="Concluída">Concluída</option><option value="Precisa repor aula">Precisa repor aula</option></select></div>
+       <div class="field"><label for="personLessonsToMakeUp">Aulas a repor</label><input id="personLessonsToMakeUp" name="lessonsToMakeUp" maxlength="180" placeholder="Ex.: aula 2, aula 4 ou Não informado"></div>
+       <div class="field"><label for="personBaptismClass">Aula de preparação para batismo</label><select id="personBaptismClass" name="baptismClass"><option value="Não informado">Não informado</option><option value="Não realizada">Não realizada</option><option value="Realizada">Realizada</option><option value="Precisa confirmar">Precisa confirmar</option></select></div>
+       <div class="field"><label for="personBaptismParticipation">Participação no próximo batismo</label><select id="personBaptismParticipation" name="baptismParticipation"><option value="Não informado">Não informado</option><option value="Em avaliação">Em avaliação</option><option value="Confirmada">Confirmada</option><option value="Não participará">Não participará</option></select></div>
+       <div class="field"><label for="personBaptismResult">Resultado final do batismo</label><select id="personBaptismResult" name="baptismResult"><option value="Não informado">Não informado</option><option value="Batizado">Batizado</option><option value="Não realizado">Não realizado</option></select></div>
+       <div class="field"><label for="personPending">Pendências (demonstração)</label><input id="personPending" name="pending" maxlength="240" placeholder="Ex.: confirmar presença, Não informado"></div>
        <div class="field"><label for="personGroup">Entrou no grupo de batismo?</label><select id="personGroup" name="group"><option value="Não informado">Não informado</option><option value="Sim">Sim</option><option value="Não">Não</option></select></div>
        <div class="field"><label for="personShirt">Tamanho da camiseta</label><select id="personShirt" name="shirt"><option value="Não informado">Não informado</option><option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XGG</option><option>Não precisa</option></select></div>
        <div class="field"><label for="personShirtPaid">Pagamento da camiseta</label><select id="personShirtPaid" name="shirtPaid"><option value="Não informado">Não informado</option><option value="Pago">Pago</option><option value="Pendente">Pendente</option><option value="Não se aplica">Não se aplica</option></select></div>
+       <div class="field"><label for="personNotes">Observação administrativa não confidencial</label><input id="personNotes" name="notes" maxlength="240" placeholder="Somente dados fictícios nesta demonstração"></div>
       </div>
       <div class="form-actions"><button class="btn" id="savePerson" type="submit">Adicionar à demonstração</button><button class="btn btn-secondary" id="cancelPersonEdit" type="button" hidden>Cancelar edição</button></div>
       <p id="personFormMessage" class="form-error" role="status" aria-live="polite"></p>
@@ -134,7 +140,7 @@ const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscri�
 let demoPeople=[];let editingDemoId=null;let nextDemoId=1;
 function renderDemoPeople(){
  const query=document.getElementById("peopleSearch").value.trim().toLocaleLowerCase("pt-BR");
- const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.journey).toLocaleLowerCase("pt-BR").includes(query));
+ const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.journey+" "+p.pending+" "+p.lessonsToMakeUp+" "+p.baptismParticipation).toLocaleLowerCase("pt-BR").includes(query));
  document.getElementById("peopleCount").textContent=demoPeople.length===0?"Nenhuma pessoa adicionada nesta sessão.":demoPeople.length+" registro(s) temporário(s) · "+visible.length+" exibido(s)";
  const list=document.getElementById("peopleList");
  if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum resultado para esta busca.":"Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.")+'</div>';return;}
@@ -143,7 +149,7 @@ function renderDemoPeople(){
   const row=document.createElement("article");row.className="person-row";
   const main=document.createElement("div");main.className="person-main";
   const name=document.createElement("strong");name.textContent=p.name;
-  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Jornada: "+p.journey+" · Grupo: "+p.group+" · Camiseta: "+p.shirt+" · Pagamento: "+p.shirtPaid;
+  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Jornada: "+p.journey+" · Aulas a repor: "+p.lessonsToMakeUp+" · Aula de batismo: "+p.baptismClass+" · Grupo: "+p.group+" · Participação: "+p.baptismParticipation+" · Resultado: "+p.baptismResult+" · Camiseta: "+p.shirt+" · Pagamento: "+p.shirtPaid+" · Pendências: "+p.pending+" · Observação: "+p.notes;
   main.append(name,detail);
   const actions=document.createElement("div");actions.className="person-actions";
   const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="Editar";edit.addEventListener("click",()=>editDemoPerson(p.id));
@@ -162,6 +168,9 @@ function editDemoPerson(id){
  const p=demoPeople.find(x=>x.id===id);if(!p)return;editingDemoId=id;
  document.getElementById("personName").value=p.name;document.getElementById("personClass").value=p.className;
  document.getElementById("personJourney").value=p.journey;document.getElementById("personGroup").value=p.group;
+ document.getElementById("personLessonsToMakeUp").value=p.lessonsToMakeUp==="Não informado"?"":p.lessonsToMakeUp;
+ document.getElementById("personBaptismClass").value=p.baptismClass;document.getElementById("personBaptismParticipation").value=p.baptismParticipation;document.getElementById("personBaptismResult").value=p.baptismResult;
+ document.getElementById("personPending").value=p.pending==="Não informado"?"":p.pending;document.getElementById("personNotes").value=p.notes==="Não informado"?"":p.notes;
  document.getElementById("personShirt").value=p.shirt;document.getElementById("personShirtPaid").value=p.shirtPaid;
  document.getElementById("personFormTitle").textContent="Editar pessoa demonstrativa";
  document.getElementById("savePerson").textContent="Salvar alteração temporária";
@@ -176,7 +185,7 @@ document.getElementById("personForm").addEventListener("submit",e=>{
  const className=document.getElementById("personClass").value;const journey=document.getElementById("personJourney").value;
  const message=document.getElementById("personFormMessage");
  if(!name||!className||!journey){message.className="form-error";message.textContent="Preencha o nome de demonstração, a turma e a situação da jornada.";return;}
- const item={name,className,journey,group:document.getElementById("personGroup").value,shirt:document.getElementById("personShirt").value,shirtPaid:document.getElementById("personShirtPaid").value};
+ const item={name,className,journey,group:document.getElementById("personGroup").value,lessonsToMakeUp:document.getElementById("personLessonsToMakeUp").value.trim()||"Não informado",baptismClass:document.getElementById("personBaptismClass").value,baptismParticipation:document.getElementById("personBaptismParticipation").value,baptismResult:document.getElementById("personBaptismResult").value,pending:document.getElementById("personPending").value.trim()||"Não informado",shirt:document.getElementById("personShirt").value,shirtPaid:document.getElementById("personShirtPaid").value,notes:document.getElementById("personNotes").value.trim()||"Não informado"};
  if(editingDemoId!==null){const i=demoPeople.findIndex(p=>p.id===editingDemoId);if(i>=0)demoPeople[i]={...demoPeople[i],...item};}
  else demoPeople.push({id:nextDemoId++,...item});
  resetDemoForm();message.className="form-success";message.textContent="Registro atualizado apenas nesta sessão de demonstração.";
