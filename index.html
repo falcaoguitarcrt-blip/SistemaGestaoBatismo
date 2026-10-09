@@ -161,6 +161,20 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
      <div id="orderList" class="people-list" aria-live="polite"><div class="empty">Adicione nomes fictícios para testar a ordem.</div></div>
     </article>
    </section>
+   <section id="shirtsWorkspace" class="people-workspace" hidden>
+    <div class="people-private-note"><strong>Modo de demonstração.</strong> Esta área usa apenas participantes fictícios criados na aba Pessoas. Alterações existem somente nesta sessão e desaparecem ao recarregar a página. Não cadastre dados reais.</div>
+    <div class="grid">
+     <article class="card"><div class="metric-top"><span class="metric-label">Participantes na demonstração</span><span class="metric-icon">♙</span></div><div class="metric-value" id="shirtTotal">0</div><div class="metric-foot">Registros temporários</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Tamanho informado</span><span class="metric-icon">♧</span></div><div class="metric-value" id="shirtSizeKnown">0</div><div class="metric-foot">Não inclui “Não precisa”</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Pagamento pendente</span><span class="metric-icon">R$</span></div><div class="metric-value" id="shirtPaymentPending">0</div><div class="metric-foot">Camisetas com pendência declarada</div></article>
+    </div>
+    <article class="card">
+     <div class="card-head"><div><h2 class="section-title">Controle de camisetas</h2><p class="section-sub">Edite tamanho e situação do pagamento. Os indicadores são calculados a partir dos registros fictícios desta sessão.</p></div></div>
+     <div class="people-toolbar"><div><h2 class="section-title">Lista de participantes</h2><p class="section-sub">Cadastre primeiro em Pessoas para que apareçam aqui.</p></div><input id="shirtsSearch" class="search-input" type="search" placeholder="Buscar nome, turma, tamanho..." aria-label="Buscar registros de camisetas"></div>
+     <div id="shirtsCount" class="people-count">Nenhum registro demonstrativo.</div>
+     <div id="shirtsList" class="people-list" aria-live="polite"><div class="empty">Nenhuma pessoa demonstrativa cadastrada. Acesse Pessoas e crie um registro fictício.</div></div>
+    </article>
+   </section>
    <article class="card module-placeholder" id="genericModulePlaceholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
    <button class="btn back-button" id="backOverview" type="button">← Voltar à visão geral</button>
   </section>
@@ -213,7 +227,7 @@ function editDemoPerson(id){
 function removeDemoPerson(id){
  const person=demoPeople.find(p=>p.id===id);if(!person)return;
  if(!window.confirm("Remover o registro demonstrativo de "+person.name+" desta sessão?"))return;
- demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();
+ demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();renderShirts();
 }
 document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
 document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
@@ -226,13 +240,37 @@ document.getElementById("personForm").addEventListener("submit",e=>{
  if(editingDemoId!==null){const i=demoPeople.findIndex(p=>p.id===editingDemoId);if(i>=0)demoPeople[i]={...demoPeople[i],...item};}
  else demoPeople.push({id:nextDemoId++,...item});
  resetDemoForm();message.className="form-success";message.textContent="Registro atualizado apenas nesta sessão de demonstração.";
- renderDemoPeople();
+ renderDemoPeople();renderShirts();
 });
 document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
 document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
 
 let demoBaptismEvents=[];let selectedBaptismEventId=null;let nextBaptismEventId=1;let nextOrderEntryId=1;let editingOrderEntryId=null;
 function selectedBaptismEvent(){return demoBaptismEvents.find(e=>e.id===selectedBaptismEventId)||null;}
+
+function renderShirts(){
+ const q=document.getElementById("shirtsSearch").value.trim().toLocaleLowerCase("pt-BR");
+ const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.shirt+" "+p.shirtPaid).toLocaleLowerCase("pt-BR").includes(q));
+ document.getElementById("shirtTotal").textContent=String(demoPeople.length);
+ document.getElementById("shirtSizeKnown").textContent=String(demoPeople.filter(p=>p.shirt!=="Não informado"&&p.shirt!=="Não precisa").length);
+ document.getElementById("shirtPaymentPending").textContent=String(demoPeople.filter(p=>p.shirtPaid==="Pendente").length);
+ document.getElementById("shirtsCount").textContent=demoPeople.length+" registro(s) demonstrativo(s) · "+visible.length+" exibido(s)";
+ const list=document.getElementById("shirtsList");list.replaceChildren();
+ if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum registro corresponde à busca.":"Nenhuma pessoa demonstrativa cadastrada. Acesse Pessoas e crie um registro fictício.")+'</div>';return;}
+ visible.forEach(p=>{
+  const row=document.createElement("article");row.className="person-row";
+  const main=document.createElement("div");main.className="person-main";
+  const title=document.createElement("strong");title.textContent=p.name;
+  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Tamanho: "+p.shirt+" · Pagamento: "+p.shirtPaid;
+  main.append(title,detail);
+  const controls=document.createElement("div");controls.className="person-actions";
+  const size=document.createElement("select");size.setAttribute("aria-label","Tamanho da camiseta de "+p.name);["Não informado","PP","P","M","G","GG","XGG","Não precisa"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;size.append(o);});size.value=p.shirt;size.addEventListener("change",()=>{p.shirt=size.value;renderShirts();renderDemoPeople();});
+  const paid=document.createElement("select");paid.setAttribute("aria-label","Pagamento da camiseta de "+p.name);["Não informado","Pago","Pendente","Não se aplica"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;paid.append(o);});paid.value=p.shirtPaid;paid.addEventListener("change",()=>{p.shirtPaid=paid.value;renderShirts();renderDemoPeople();});
+  size.style.maxWidth="115px";paid.style.maxWidth="145px";controls.append(size,paid);row.append(main,controls);list.append(row);
+ });
+}
+document.getElementById("shirtsSearch").addEventListener("input",renderShirts);
+
 function renderBaptismEvents(){
  const q=document.getElementById("eventSearch").value.trim().toLocaleLowerCase("pt-BR");
  const list=document.getElementById("eventList");list.replaceChildren();
@@ -317,7 +355,8 @@ function showView(view){
  document.getElementById("moduleView").classList.toggle("active",view!=="overview");
  document.getElementById("peopleWorkspace").hidden=view!=="people";
  document.getElementById("baptismWorkspace").hidden=view!=="baptism";
- document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism";
+ document.getElementById("shirtsWorkspace").hidden=view!=="shirts";
+ document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism"||view==="shirts";
  if(view!=="overview"){
   document.getElementById("moduleTitle").textContent=labels[view];
   document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
