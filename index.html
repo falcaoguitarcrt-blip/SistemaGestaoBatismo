@@ -357,6 +357,7 @@ function showView(view){
  document.getElementById("baptismWorkspace").hidden=view!=="baptism";
  document.getElementById("shirtsWorkspace").hidden=view!=="shirts";
  document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism"||view==="shirts";
+ if(view==="shirts")renderShirts();
  if(view!=="overview"){
   document.getElementById("moduleTitle").textContent=labels[view];
   document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
