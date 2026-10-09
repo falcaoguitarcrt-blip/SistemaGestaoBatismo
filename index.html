@@ -47,7 +47,7 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
 .module-placeholder{margin-top:20px}.back-button{margin-top:18px}
 @media(max-width:1120px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.modules{grid-template-columns:repeat(2,minmax(0,1fr))}.shell{grid-template-columns:220px minmax(0,1fr)}.content{padding:22px}.topbar{padding:0 22px}}
 @media(max-width:760px){.shell{grid-template-columns:1fr}aside{display:none;position:fixed;z-index:6;inset:0 auto 0 0;width:min(290px,85vw);overflow:auto;box-shadow:10px 0 35px #102c2030}aside.open{display:flex}.mobile-scrim.open{display:block;position:fixed;inset:0;background:#0b2119a6;z-index:5;border:0;width:100%;height:100%;padding:0}.topbar{min-height:68px;padding:12px 15px}.mobile-menu{display:block}.content{padding:21px 15px}.heading{align-items:start;flex-direction:column}.lower{grid-template-columns:1fr}.pill{font-size:10px}.brand{font-size:14px}.heading .btn{width:100%}}
-@media(max-width:560px){.form-grid{grid-template-columns:1fr}.person-row{align-items:flex-start;flex-direction:column}.person-actions{width:100%}.person-actions button{flex:1}.people-toolbar{align-items:stretch}.people-toolbar .search-input{max-width:none}}@media(max-width:430px){.grid{gap:9px}.card{padding:14px}.metric{font-size:24px}.modules{grid-template-columns:1fr}.pill{display:none}.metric-label{font-size:11px}.metric-foot{font-size:10px}.event-placeholder{grid-template-columns:40px minmax(0,1fr);padding:11px}.event-icon{height:40px}}
+.people-list-compact{display:grid;gap:8px}.person-row.person-row-compact{padding:12px 14px;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s,background .15s}.person-row-compact:hover{border-color:#9fc4af;background:#f8fcf9}.person-row-compact .person-main{gap:5px}.person-row-compact .person-main strong{font-size:14px}.person-row-compact .person-main small{font-size:11px;line-height:1.5}.person-row-compact .person-actions{align-items:center}.person-row-compact .small-btn{white-space:nowrap}.person-row-compact .row-open{color:#286149;font-weight:700;font-size:12px}.person-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.detail-field{border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}.detail-field small{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.detail-field strong{font-size:13px;overflow-wrap:anywhere}.person-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.person-detail-actions button{flex:0 0 auto}@media(max-width:560px){.person-detail-grid{grid-template-columns:1fr}.person-row.person-row-compact{align-items:flex-start;flex-direction:row}.person-row-compact .person-actions{width:auto}.person-detail-actions button{flex:1}}@media(max-width:560px){.form-grid{grid-template-columns:1fr}.person-row{align-items:flex-start;flex-direction:column}.person-actions{width:100%}.person-actions button{flex:1}.people-toolbar{align-items:stretch}.people-toolbar .search-input{max-width:none}}@media(max-width:430px){.grid{gap:9px}.card{padding:14px}.metric{font-size:24px}.modules{grid-template-columns:1fr}.pill{display:none}.metric-label{font-size:11px}.metric-foot{font-size:10px}.event-placeholder{grid-template-columns:40px minmax(0,1fr);padding:11px}.event-icon{height:40px}}
 </style>
 </head>
 <body>
@@ -103,8 +103,14 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
    <div class="eyebrow">Módulo em preparação</div><h1 id="moduleTitle">Pessoas</h1><p class="sub" id="moduleDescription">Esta área será implementada após validar o armazenamento e as permissões.</p>
    <section id="peopleWorkspace" class="people-workspace" hidden>
     <div class="people-private-note"><strong>Modo de demonstração.</strong> Os registros ficam somente na memória desta aba, desaparecem ao recarregar a página e não são enviados ao servidor. Use apenas dados fictícios. Não cadastre pessoas reais nesta versão pública.</div>
-    <article class="card">
-     <div class="card-head"><div><h2 class="section-title" id="personFormTitle">Adicionar pessoa demonstrativa</h2><p class="section-sub">Cadastro visual para validar os campos antes da integração segura.</p></div></div>
+    <div id="peopleListView">
+     <div class="people-toolbar"><div><h2 class="section-title">Pessoas</h2><p class="section-sub">Clique em uma pessoa para abrir a ficha completa.</p></div><button class="btn" id="showPersonForm" type="button">+ Adicionar pessoa</button></div>
+     <input id="peopleSearch" class="search-input" type="search" placeholder="Buscar nome, turma, presença ou pendência..." aria-label="Buscar pessoas demonstrativas" style="width:100%;max-width:none;margin:12px 0">
+     <div id="peopleCount" class="people-count">Nenhuma pessoa adicionada nesta sessão.</div>
+     <div id="peopleList" class="people-list people-list-compact" aria-live="polite" style="margin-top:10px"><div class="empty">Nenhum registro de demonstração ainda.<br>Use “Adicionar pessoa” para testar a ficha.</div></div>
+    </div>
+    <article class="card" id="personFormCard" hidden>
+     <div class="card-head"><div><h2 class="section-title" id="personFormTitle">Adicionar pessoa demonstrativa</h2><p class="section-sub">Cadastro visual para validar os campos antes da integração segura.</p></div><button class="btn btn-secondary" id="backFromPersonForm" type="button">Voltar</button></div>
      <form id="personForm" novalidate>
       <div class="form-grid">
        <div class="field"><label for="personName">Nome de demonstração *</label><input id="personName" name="name" maxlength="100" autocomplete="off" required placeholder="Ex.: Pessoa de teste"></div>
@@ -124,9 +130,11 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
       <p id="personFormMessage" class="form-error" role="status" aria-live="polite"></p>
      </form>
     </article>
-    <div class="people-toolbar"><div><h2 class="section-title">Pessoas desta sessão</h2><p class="section-sub">A lista é temporária e não representa dados oficiais.</p></div><input id="peopleSearch" class="search-input" type="search" placeholder="Buscar nome, turma ou acompanhamento..." aria-label="Buscar pessoas demonstrativas"></div>
-    <div id="peopleCount" class="people-count">Nenhuma pessoa adicionada nesta sessão.</div>
-    <div id="peopleList" class="people-list" aria-live="polite" style="margin-top:10px"><div class="empty">Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.</div></div>
+    <article class="card" id="personDetailView" hidden>
+     <div class="card-head"><div><h2 class="section-title" id="personDetailName">Ficha da pessoa</h2><p class="section-sub" id="personDetailSubtitle">Dados de acompanhamento</p></div></div>
+     <div id="personDetailFields" class="person-detail-grid"></div>
+     <div class="person-detail-actions"><button class="btn btn-secondary" id="backToPeople" type="button">← Voltar à lista</button><button class="btn" id="editPersonFromDetail" type="button">Editar ficha</button><button class="btn btn-secondary" id="removePersonFromDetail" type="button">Remover registro de teste</button></div>
+    </article>
    </section>
    <section id="baptismWorkspace" class="people-workspace" hidden>
     <div class="people-private-note"><strong>Modo de demonstração.</strong> Use apenas nomes fictícios. Eventos e ordem ficam na memória desta aba e desaparecem ao recarregar. Não cadastre pessoas reais nesta versão pública.</div>
@@ -239,23 +247,54 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
 <script>
 const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscrições",lessons:"Aulas e presenças",baptism:"Ordem de batismo",shirts:"Camisetas",payments:"Apontamentos financeiros",reports:"Relatórios"};
 let demoPeople=[];let editingDemoId=null;let nextDemoId=1;
+let selectedDemoPersonId=null;
+function openPeopleList(){
+ document.getElementById("peopleListView").hidden=false;
+ document.getElementById("personFormCard").hidden=true;
+ document.getElementById("personDetailView").hidden=true;
+ selectedDemoPersonId=null;
+}
+function openPersonForm(){
+ document.getElementById("peopleListView").hidden=true;
+ document.getElementById("personDetailView").hidden=true;
+ document.getElementById("personFormCard").hidden=false;
+ document.getElementById("personForm").scrollIntoView({behavior:"smooth",block:"start"});
+ document.getElementById("personName").focus();
+}
+function openPersonDetail(id){
+ const p=demoPeople.find(x=>x.id===id);if(!p)return;
+ selectedDemoPersonId=id;
+ document.getElementById("peopleListView").hidden=true;
+ document.getElementById("personFormCard").hidden=true;
+ document.getElementById("personDetailView").hidden=false;
+ document.getElementById("personDetailName").textContent=p.name;
+ document.getElementById("personDetailSubtitle").textContent="Turma: "+p.className+" · Jornada: "+p.journey;
+ const fields=[
+  ["Turma",p.className],["Situação da jornada",p.journey],["Aulas para repor",p.lessonsToMakeUp],
+  ["Aula de preparação para batismo",p.baptismClass],["Participação no próximo batismo",p.baptismParticipation],
+  ["Resultado final do batismo",p.baptismResult],["Entrou no grupo",p.group],["Pendências",p.pending],
+  ["Tamanho da camiseta",p.shirt],["Apontamento da camiseta",p.shirtPaid],["Observação administrativa",p.notes]
+ ];
+ const box=document.getElementById("personDetailFields");box.replaceChildren();
+ fields.forEach(([label,value])=>{const cell=document.createElement("div");cell.className="detail-field";const small=document.createElement("small");small.textContent=label;const strong=document.createElement("strong");strong.textContent=value||"Não informado";cell.append(small,strong);box.append(cell);});
+}
 function renderDemoPeople(){
  const query=document.getElementById("peopleSearch").value.trim().toLocaleLowerCase("pt-BR");
  const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.journey+" "+p.pending+" "+p.lessonsToMakeUp+" "+p.baptismParticipation+" "+p.baptismClass+" "+p.baptismResult+" "+p.group+" "+p.shirt+" "+p.shirtPaid+" "+p.notes).toLocaleLowerCase("pt-BR").includes(query));
- document.getElementById("peopleCount").textContent=demoPeople.length===0?"Nenhuma pessoa adicionada nesta sessão.":demoPeople.length+" registro(s) temporário(s) · "+visible.length+" exibido(s)";
+ document.getElementById("peopleCount").textContent=demoPeople.length===0?"Nenhuma pessoa adicionada nesta sessão.":demoPeople.length+" pessoa(s) · "+visible.length+" exibida(s)";
  const list=document.getElementById("peopleList");
- if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum resultado para esta busca.":"Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.")+'</div>';return;}
+ if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum resultado para esta busca.":"Nenhum registro de demonstração ainda.<br>Use “Adicionar pessoa” para testar a ficha.")+'</div>';return;}
  list.replaceChildren();
  visible.forEach(p=>{
-  const row=document.createElement("article");row.className="person-row";
+  const row=document.createElement("article");row.className="person-row person-row-compact";row.tabIndex=0;row.setAttribute("role","button");row.setAttribute("aria-label","Abrir ficha de "+p.name);
   const main=document.createElement("div");main.className="person-main";
   const name=document.createElement("strong");name.textContent=p.name;
-  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Jornada: "+p.journey+" · Aulas a repor: "+p.lessonsToMakeUp+" · Aula de batismo: "+p.baptismClass+" · Grupo: "+p.group+" · Participação: "+p.baptismParticipation+" · Resultado: "+p.baptismResult+" · Camiseta: "+p.shirt+" · Pagamento: "+p.shirtPaid+" · Pendências: "+p.pending+" · Observação: "+p.notes;
-  main.append(name,detail);
-  const actions=document.createElement("div");actions.className="person-actions";
-  const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="Editar";edit.addEventListener("click",()=>editDemoPerson(p.id));
-  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover";remove.addEventListener("click",()=>removeDemoPerson(p.id));
-  actions.append(edit,remove);row.append(main,actions);list.append(row);
+  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Jornada: "+p.journey+" · Presença/participação: "+p.baptismParticipation+" · Pendências: "+p.pending;
+  const open=document.createElement("span");open.className="row-open";open.textContent="Ver ficha →";
+  main.append(name,detail);row.append(main,open);
+  row.addEventListener("click",()=>openPersonDetail(p.id));
+  row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPersonDetail(p.id);}});
+  list.append(row);
  });
 }
 function resetDemoForm(){
@@ -274,6 +313,7 @@ function editDemoPerson(id){
  document.getElementById("personPending").value=p.pending==="Não informado"?"":p.pending;document.getElementById("personNotes").value=p.notes==="Não informado"?"":p.notes;
  document.getElementById("personShirt").value=p.shirt;document.getElementById("personShirtPaid").value=p.shirtPaid;
  document.getElementById("personFormTitle").textContent="Editar pessoa demonstrativa";
+ openPersonForm();
  document.getElementById("savePerson").textContent="Salvar alteração temporária";
  document.getElementById("cancelPersonEdit").hidden=false;document.getElementById("personFormMessage").textContent="";
  document.getElementById("personName").focus();document.getElementById("personForm").scrollIntoView({behavior:"smooth",block:"start"});
@@ -284,6 +324,11 @@ function removeDemoPerson(id){
  demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();renderShirts();renderPayments();renderReports();renderPayments();
 }
 document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
+document.getElementById("showPersonForm").addEventListener("click",()=>{resetDemoForm();openPersonForm();});
+document.getElementById("backFromPersonForm").addEventListener("click",()=>{resetDemoForm();openPeopleList();});
+document.getElementById("backToPeople").addEventListener("click",()=>{openPeopleList();renderDemoPeople();});
+document.getElementById("editPersonFromDetail").addEventListener("click",()=>{if(selectedDemoPersonId!==null)editDemoPerson(selectedDemoPersonId);});
+document.getElementById("removePersonFromDetail").addEventListener("click",()=>{if(selectedDemoPersonId!==null)removeDemoPerson(selectedDemoPersonId);openPeopleList();});
 document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
 document.getElementById("personForm").addEventListener("submit",e=>{
  e.preventDefault();const name=document.getElementById("personName").value.trim();
