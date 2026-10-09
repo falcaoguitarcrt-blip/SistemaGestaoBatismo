@@ -207,6 +207,28 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
      <div id="paymentsList" class="people-list" aria-live="polite"><div class="empty">Nenhum lançamento criado nesta sessão.</div></div>
     </article>
    </section>
+   <section id="reportsWorkspace" class="people-workspace" hidden>
+    <div class="people-private-note"><strong>Relatórios demonstrativos.</strong> Os números são calculados somente a partir dos registros fictícios criados nesta sessão. Não representam dados oficiais. Recarregar a página apaga esses registros.</div>
+    <div class="grid">
+     <article class="card"><div class="metric-top"><span class="metric-label">Pessoas na demonstração</span><span class="metric-icon">♙</span></div><div class="metric-value" id="reportPeopleTotal">0</div><div class="metric-foot">Registros temporários</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Eventos demonstrativos</span><span class="metric-icon">✧</span></div><div class="metric-value" id="reportEventsTotal">0</div><div class="metric-foot">Eventos criados nesta sessão</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Participantes na ordem</span><span class="metric-icon">☷</span></div><div class="metric-value" id="reportOrderTotal">0</div><div class="metric-foot">Somados entre os eventos demonstrativos</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Pagamentos recebidos</span><span class="metric-icon">✓</span></div><div class="metric-value" id="reportReceivedTotal">R$ 0,00</div><div class="metric-foot">Somente lançamentos marcados como pagos</div></article>
+    </div>
+    <article class="card">
+     <div class="card-head"><div><h2 class="section-title">Filtros do relatório</h2><p class="section-sub">Escolha qual resumo demonstrativo deseja consultar.</p></div></div>
+     <div class="form-grid">
+      <div class="field"><label for="reportType">Tipo de relatório</label><select id="reportType"><option value="people">Pessoas por turma e jornada</option><option value="payments">Lançamentos por situação</option><option value="shirts">Camisetas por tamanho e pagamento</option><option value="events">Eventos e resultados de batismo</option></select></div>
+      <div class="field"><label for="reportSearch">Pesquisar no relatório</label><input id="reportSearch" type="search" placeholder="Digite para filtrar as linhas..." aria-label="Pesquisar no relatório demonstrativo"></div>
+     </div>
+     <div class="form-actions"><button type="button" class="btn btn-secondary" id="refreshReport">Atualizar relatório</button><button type="button" class="btn btn-secondary" id="printReport">Imprimir / salvar PDF</button></div>
+    </article>
+    <article class="card">
+     <div class="card-head"><div><h2 class="section-title" id="reportTableTitle">Pessoas por turma e jornada</h2><p class="section-sub" id="reportTableDescription">Resumo calculado a partir dos registros fictícios desta sessão.</p></div></div>
+     <div id="reportSummary" class="grid" style="margin-bottom:14px"></div>
+     <div id="reportTable" class="people-list" aria-live="polite"><div class="empty">Nenhum dado demonstrativo para exibir.</div></div>
+    </article>
+   </section>
    <article class="card module-placeholder" id="genericModulePlaceholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
    <button class="btn back-button" id="backOverview" type="button">← Voltar à visão geral</button>
   </section>
@@ -259,7 +281,7 @@ function editDemoPerson(id){
 function removeDemoPerson(id){
  const person=demoPeople.find(p=>p.id===id);if(!person)return;
  if(!window.confirm("Remover o registro demonstrativo de "+person.name+" desta sessão?"))return;
- demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();renderShirts();renderPayments();renderPayments();
+ demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();renderShirts();renderPayments();renderReports();renderPayments();
 }
 document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
 document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
@@ -293,6 +315,61 @@ function fillPaymentPersonOptions(){
  if([...filter.options].some(o=>o.value===oldFilter))filter.value=oldFilter;
 }
 function resetPaymentForm(){document.getElementById("paymentForm").reset();editingPaymentId=null;document.getElementById("savePayment").textContent="Adicionar lançamento";document.getElementById("cancelPaymentEdit").hidden=true;document.getElementById("paymentFormMessage").textContent="";}
+
+function reportRow(title,detail){
+ const row=document.createElement("article");row.className="person-row";
+ const main=document.createElement("div");main.className="person-main";
+ const strong=document.createElement("strong");strong.textContent=title;
+ const small=document.createElement("small");small.textContent=detail;
+ main.append(strong,small);row.append(main);return row;
+}
+function reportMetric(label,value){
+ const card=document.createElement("article");card.className="card";
+ const title=document.createElement("div");title.className="metric-label";title.textContent=label;
+ const val=document.createElement("div");val.className="metric-value";val.textContent=String(value);
+ card.append(title,val);return card;
+}
+function renderReports(){
+ const received=demoPayments.filter(p=>p.status==="Pago").reduce((s,p)=>s+p.amount,0);
+ const entries=demoBaptismEvents.reduce((sum,e)=>sum+e.entries.length,0);
+ document.getElementById("reportPeopleTotal").textContent=String(demoPeople.length);
+ document.getElementById("reportEventsTotal").textContent=String(demoBaptismEvents.length);
+ document.getElementById("reportOrderTotal").textContent=String(entries);
+ document.getElementById("reportReceivedTotal").textContent=moneyBR(received);
+ const type=document.getElementById("reportType").value,q=document.getElementById("reportSearch").value.trim().toLocaleLowerCase("pt-BR");
+ const title=document.getElementById("reportTableTitle"),desc=document.getElementById("reportTableDescription"),summary=document.getElementById("reportSummary"),table=document.getElementById("reportTable");
+ summary.replaceChildren();table.replaceChildren();
+ let rows=[];
+ if(type==="people"){
+  title.textContent="Pessoas por turma e jornada";desc.textContent="Somente pessoas fictícias cadastradas nesta sessão.";
+  const groups={};demoPeople.forEach(p=>{const k=p.className+" · "+p.journey;groups[k]=(groups[k]||0)+1;});
+  rows=Object.entries(groups).map(([k,n])=>({title:k,detail:n+" pessoa(s)"}));
+  summary.append(reportMetric("Pessoas cadastradas",demoPeople.length),reportMetric("Com jornada concluída",demoPeople.filter(p=>p.journey==="Concluída").length),reportMetric("Precisam repor aula",demoPeople.filter(p=>p.journey==="Precisa repor aula").length));
+ }else if(type==="payments"){
+  title.textContent="Lançamentos por situação";desc.textContent="Pendente não é recebido; Cancelado fica fora dos totais financeiros.";
+  const statuses=["Pendente","Pago","Cancelado"];
+  rows=statuses.map(s=>{const list=demoPayments.filter(p=>p.status===s);return{title:s,detail:list.length+" lançamento(s) · "+moneyBR(list.reduce((sum,p)=>sum+p.amount,0))};});
+  summary.append(reportMetric("Em aberto",moneyBR(demoPayments.filter(p=>p.status==="Pendente").reduce((s,p)=>s+p.amount,0))),reportMetric("Recebido",moneyBR(received)),reportMetric("Cancelado",demoPayments.filter(p=>p.status==="Cancelado").length+" lançamento(s)"));
+ }else if(type==="shirts"){
+  title.textContent="Camisetas por tamanho e pagamento";desc.textContent="Contagens calculadas dos registros demonstrativos de pessoas.";
+  const sizes=["PP","P","M","G","GG","XGG","Não precisa","Não informado"];
+  rows=sizes.map(s=>({title:"Tamanho: "+s,detail:demoPeople.filter(p=>p.shirt===s).length+" pessoa(s)"}));
+  rows.push({title:"Pagamento: Pago",detail:demoPeople.filter(p=>p.shirtPaid==="Pago").length+" pessoa(s)"},{title:"Pagamento: Pendente",detail:demoPeople.filter(p=>p.shirtPaid==="Pendente").length+" pessoa(s)"},{title:"Pagamento: Não informado",detail:demoPeople.filter(p=>p.shirtPaid==="Não informado").length+" pessoa(s)"});
+  summary.append(reportMetric("Com tamanho informado",demoPeople.filter(p=>p.shirt!=="Não informado"&&p.shirt!=="Não precisa").length),reportMetric("Pagamentos pendentes",demoPeople.filter(p=>p.shirtPaid==="Pendente").length));
+ }else{
+  title.textContent="Eventos e resultados de batismo";desc.textContent="Participação e resultado final permanecem separados.";
+  rows=demoBaptismEvents.map(e=>({title:e.name,detail:(e.date||"Data não informada")+" · "+e.entries.length+" participante(s) · Batismos realizados: "+e.entries.filter(p=>p.result==="Realizado").length}));
+  summary.append(reportMetric("Eventos",demoBaptismEvents.length),reportMetric("Participantes na ordem",entries),reportMetric("Resultado realizado",demoBaptismEvents.reduce((s,e)=>s+e.entries.filter(p=>p.result==="Realizado").length,0)));
+ }
+ const visible=rows.filter(r=>(r.title+" "+r.detail).toLocaleLowerCase("pt-BR").includes(q));
+ if(!visible.length){table.innerHTML='<div class="empty">'+(rows.length?"Nenhuma linha corresponde à pesquisa.":"Nenhum dado demonstrativo para exibir.")+'</div>';return;}
+ visible.forEach(r=>table.append(reportRow(r.title,r.detail)));
+}
+document.getElementById("reportType").addEventListener("change",renderReports);
+document.getElementById("reportSearch").addEventListener("input",renderReports);
+document.getElementById("refreshReport").addEventListener("click",renderReports);
+document.getElementById("printReport").addEventListener("click",()=>window.print());
+
 function renderPayments(){
  fillPaymentPersonOptions();
  const open=demoPayments.filter(p=>p.status==="Pendente").reduce((s,p)=>s+p.amount,0);
@@ -441,9 +518,11 @@ function showView(view){
  document.getElementById("baptismWorkspace").hidden=view!=="baptism";
  document.getElementById("shirtsWorkspace").hidden=view!=="shirts";
  document.getElementById("paymentsWorkspace").hidden=view!=="payments";
- document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism"||view==="shirts"||view==="payments";
+ document.getElementById("reportsWorkspace").hidden=view!=="reports";
+ document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism"||view==="shirts"||view==="payments"||view==="reports";
  if(view==="shirts")renderShirts();
  if(view==="payments")renderPayments();
+ if(view==="reports")renderReports();
  if(view!=="overview"){
   document.getElementById("moduleTitle").textContent=labels[view];
   document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
