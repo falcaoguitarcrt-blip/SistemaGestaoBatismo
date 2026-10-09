@@ -176,14 +176,14 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
     </article>
    </section>
    <section id="paymentsWorkspace" class="people-workspace" hidden>
-    <div class="people-private-note"><strong>Modo de demonstração.</strong> Utilize apenas dados fictícios. Os lançamentos existem somente na memória desta aba e desaparecem ao recarregar. Nenhum pagamento real é processado ou registrado.</div>
+    <div class="people-private-note"><strong>Apontamento complementar em modo de demonstração.</strong> Use somente dados fictícios. Este espaço serve para registrar uma informação financeira quando necessário, não para administrar as finanças do programa. Os registros desaparecem ao recarregar e nenhum pagamento real é processado.</div>
     <div class="grid">
-     <article class="card"><div class="metric-top"><span class="metric-label">Lançamentos demonstrativos</span><span class="metric-icon">▤</span></div><div class="metric-value" id="paymentTotal">0</div><div class="metric-foot">Inclui todos os status</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Apontamentos registrados</span><span class="metric-icon">▤</span></div><div class="metric-value" id="paymentTotal">0</div><div class="metric-foot">Inclui todos os status</div></article>
      <article class="card"><div class="metric-top"><span class="metric-label">Em aberto</span><span class="metric-icon">◷</span></div><div class="metric-value" id="paymentOpen">R$ 0,00</div><div class="metric-foot">Valores ainda não recebidos</div></article>
      <article class="card"><div class="metric-top"><span class="metric-label">Recebido</span><span class="metric-icon">✓</span></div><div class="metric-value" id="paymentReceived">R$ 0,00</div><div class="metric-foot">Somente lançamentos marcados como pagos</div></article>
     </div>
     <article class="card">
-     <div class="card-head"><div><h2 class="section-title">Adicionar lançamento demonstrativo</h2><p class="section-sub">Informe um valor e classifique o status. Apenas o status “Pago” entra no total recebido.</p></div></div>
+     <div class="card-head"><div><h2 class="section-title">Registrar apontamento financeiro</h2><p class="section-sub">Registre somente quando houver necessidade. O apontamento é complementar ao acompanhamento do batismo.</p></div></div>
      <form id="paymentForm" novalidate>
       <div class="form-grid">
        <div class="field"><label for="paymentPerson">Participante fictício *</label><select id="paymentPerson" required><option value="">Selecione uma pessoa</option></select></div>
@@ -237,7 +237,7 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
 </main>
 </div>
 <script>
-const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscrições",lessons:"Aulas e presenças",baptism:"Ordem de batismo",shirts:"Camisetas",payments:"Pagamentos",reports:"Relatórios"};
+const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscrições",lessons:"Aulas e presenças",baptism:"Ordem de batismo",shirts:"Camisetas",payments:"Apontamentos financeiros",reports:"Relatórios"};
 let demoPeople=[];let editingDemoId=null;let nextDemoId=1;
 function renderDemoPeople(){
  const query=document.getElementById("peopleSearch").value.trim().toLocaleLowerCase("pt-BR");
