@@ -128,6 +128,39 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
     <div id="peopleCount" class="people-count">Nenhuma pessoa adicionada nesta sessão.</div>
     <div id="peopleList" class="people-list" aria-live="polite" style="margin-top:10px"><div class="empty">Nenhum registro de demonstração ainda.<br>Preencha o formulário acima para testar a interface.</div></div>
    </section>
+   <section id="baptismWorkspace" class="people-workspace" hidden>
+    <div class="people-private-note"><strong>Modo de demonstração.</strong> Use apenas nomes fictícios. Eventos e ordem ficam na memória desta aba e desaparecem ao recarregar. Não cadastre pessoas reais nesta versão pública.</div>
+    <article class="card">
+     <div class="card-head"><div><h2 class="section-title">Criar evento de batismo</h2><p class="section-sub">Cada evento mantém sua própria lista demonstrativa.</p></div></div>
+     <form id="baptismEventForm" novalidate>
+      <div class="form-grid">
+       <div class="field"><label for="eventName">Nome do evento *</label><input id="eventName" maxlength="100" required placeholder="Ex.: Batismo de demonstração"></div>
+       <div class="field"><label for="eventDate">Data do evento</label><input id="eventDate" type="date"></div>
+      </div>
+      <div class="form-actions"><button class="btn" type="submit">Criar evento demonstrativo</button></div>
+      <p id="eventFormMessage" class="form-error" role="status" aria-live="polite"></p>
+     </form>
+    </article>
+    <div class="people-toolbar"><div><h2 class="section-title">Eventos desta sessão</h2><p class="section-sub">Selecione um evento para organizar a ordem.</p></div><input id="eventSearch" class="search-input" type="search" placeholder="Buscar evento..." aria-label="Buscar eventos demonstrativos"></div>
+    <div id="eventList" class="people-list" aria-live="polite"><div class="empty">Nenhum evento demonstrativo criado.</div></div>
+    <article class="card" id="eventOrderCard" hidden>
+     <div class="card-head"><div><h2 class="section-title" id="selectedEventTitle">Ordem do evento</h2><p class="section-sub" id="selectedEventMeta"></p></div><span class="pill">Ordem manual</span></div>
+     <form id="baptismPersonForm" novalidate>
+      <div class="form-grid">
+       <div class="field"><label for="orderPersonName">Nome fictício *</label><input id="orderPersonName" maxlength="100" required placeholder="Ex.: Participante de teste"></div>
+       <div class="field"><label for="orderPersonClass">Turma</label><select id="orderPersonClass"><option>Não informado</option><option>Turma A</option><option>Turma B</option><option>Turma C</option><option>A definir</option></select></div>
+       <div class="field"><label for="orderParticipation">Participação no evento</label><select id="orderParticipation"><option>Não informado</option><option>Prevista</option><option>Confirmada</option><option>Não participará</option><option>Compareceu</option><option>Não compareceu</option></select></div>
+       <div class="field"><label for="orderResult">Resultado final do batismo</label><select id="orderResult"><option>Não informado</option><option>Realizado</option><option>Não realizado</option><option>Adiado</option></select></div>
+       <div class="field"><label for="orderNotes">Observação não confidencial</label><input id="orderNotes" maxlength="180" placeholder="Somente dados fictícios"></div>
+      </div>
+      <div class="form-actions"><button class="btn" type="submit" id="saveOrderPerson">Adicionar à ordem</button><button class="btn btn-secondary" id="cancelOrderEdit" type="button" hidden>Cancelar edição</button></div>
+      <p id="orderFormMessage" class="form-error" role="status" aria-live="polite"></p>
+     </form>
+     <div class="people-toolbar"><div><h2 class="section-title">Ordem de batismo</h2><p class="section-sub">Use as setas para mudar a posição. A numeração é atualizada automaticamente.</p></div><input id="orderSearch" class="search-input" type="search" placeholder="Buscar participante..." aria-label="Buscar participantes na ordem"></div>
+     <div id="orderCount" class="people-count">Nenhum participante nesta ordem.</div>
+     <div id="orderList" class="people-list" aria-live="polite"><div class="empty">Adicione nomes fictícios para testar a ordem.</div></div>
+    </article>
+   </section>
    <article class="card module-placeholder" id="genericModulePlaceholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
    <button class="btn back-button" id="backOverview" type="button">← Voltar à visão geral</button>
   </section>
@@ -197,7 +230,82 @@ document.getElementById("personForm").addEventListener("submit",e=>{
 });
 document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
 document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
-const descriptions={people:"Cadastro e acompanhamento individual, com identificador próprio e dados pessoais protegidos.",classes:"Organização de turmas, inscrições e vínculo com a jornada.",lessons:"Acompanhamento da jornada, aulas concluídas, presença e aulas a repor.",baptism:"Organização por evento, confirmação de participação, ordem manual e resultado final separado.",shirts:"Controle de tamanhos, distribuição e situação de pagamento das camisetas.",payments:"Conferência das situações financeiras sem confundir valores não informados com valores não pagos.",reports:"Resumos calculados a partir dos registros reais autorizados, sem indicadores fictícios."};
+
+let demoBaptismEvents=[];let selectedBaptismEventId=null;let nextBaptismEventId=1;let nextOrderEntryId=1;let editingOrderEntryId=null;
+function selectedBaptismEvent(){return demoBaptismEvents.find(e=>e.id===selectedBaptismEventId)||null;}
+function renderBaptismEvents(){
+ const q=document.getElementById("eventSearch").value.trim().toLocaleLowerCase("pt-BR");
+ const list=document.getElementById("eventList");list.replaceChildren();
+ const visible=demoBaptismEvents.filter(e=>(e.name+" "+e.date).toLocaleLowerCase("pt-BR").includes(q));
+ if(!visible.length){list.innerHTML='<div class="empty">'+(demoBaptismEvents.length?"Nenhum evento corresponde à busca.":"Nenhum evento demonstrativo criado.")+'</div>';return;}
+ visible.forEach(ev=>{
+  const row=document.createElement("article");row.className="person-row";
+  const main=document.createElement("div");main.className="person-main";
+  const title=document.createElement("strong");title.textContent=ev.name;
+  const detail=document.createElement("small");detail.textContent=(ev.date||"Data não informada")+" · "+ev.entries.length+" participante(s) na ordem";
+  main.append(title,detail);
+  const actions=document.createElement("div");actions.className="person-actions";
+  const open=document.createElement("button");open.type="button";open.className="small-btn";open.textContent=ev.id===selectedBaptismEventId?"Evento selecionado":"Organizar ordem";open.addEventListener("click",()=>{selectedBaptismEventId=ev.id;editingOrderEntryId=null;resetOrderForm();renderBaptismEvents();renderOrderEntries();});
+  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover evento";remove.addEventListener("click",()=>{if(!window.confirm("Remover o evento demonstrativo e sua ordem desta sessão?"))return;demoBaptismEvents=demoBaptismEvents.filter(x=>x.id!==ev.id);if(selectedBaptismEventId===ev.id)selectedBaptismEventId=demoBaptismEvents[0]?.id??null;resetOrderForm();renderBaptismEvents();renderOrderEntries();});
+  actions.append(open,remove);row.append(main,actions);list.append(row);
+ });
+}
+document.getElementById("baptismEventForm").addEventListener("submit",e=>{
+ e.preventDefault();const name=document.getElementById("eventName").value.trim();const msg=document.getElementById("eventFormMessage");
+ if(!name){msg.className="form-error";msg.textContent="Informe o nome do evento demonstrativo.";return;}
+ const ev={id:nextBaptismEventId++,name,date:document.getElementById("eventDate").value,entries:[]};demoBaptismEvents.push(ev);selectedBaptismEventId=ev.id;
+ e.target.reset();msg.className="form-success";msg.textContent="Evento criado apenas nesta sessão de demonstração.";
+ renderBaptismEvents();renderOrderEntries();
+});
+function resetOrderForm(){document.getElementById("baptismPersonForm").reset();editingOrderEntryId=null;document.getElementById("saveOrderPerson").textContent="Adicionar à ordem";document.getElementById("cancelOrderEdit").hidden=true;document.getElementById("orderFormMessage").textContent="";}
+function renderOrderEntries(){
+ const ev=selectedBaptismEvent();const card=document.getElementById("eventOrderCard");card.hidden=!ev;
+ if(!ev)return;
+ document.getElementById("selectedEventTitle").textContent=ev.name;
+ document.getElementById("selectedEventMeta").textContent="Data: "+(ev.date||"Não informada")+" · Histórico independente deste evento";
+ const q=document.getElementById("orderSearch").value.trim().toLocaleLowerCase("pt-BR");
+ const visible=ev.entries.filter(p=>(p.name+" "+p.className+" "+p.participation+" "+p.result+" "+p.notes).toLocaleLowerCase("pt-BR").includes(q));
+ document.getElementById("orderCount").textContent=ev.entries.length+" participante(s) na ordem · "+visible.length+" exibido(s)";
+ const list=document.getElementById("orderList");list.replaceChildren();
+ if(!visible.length){list.innerHTML='<div class="empty">'+(ev.entries.length?"Nenhum participante corresponde à busca.":"Adicione nomes fictícios para testar a ordem.")+'</div>';return;}
+ visible.forEach(p=>{
+  const row=document.createElement("article");row.className="person-row";
+  const main=document.createElement("div");main.className="person-main";
+  const title=document.createElement("strong");title.textContent=p.position+". "+p.name;
+  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Participação: "+p.participation+" · Resultado: "+p.result+" · Observação: "+p.notes;
+  main.append(title,detail);
+  const actions=document.createElement("div");actions.className="person-actions";
+  const up=document.createElement("button");up.type="button";up.className="small-btn";up.textContent="↑";up.setAttribute("aria-label","Mover "+p.name+" para cima");up.disabled=p.position===1;up.addEventListener("click",()=>moveOrderEntry(p.id,-1));
+  const down=document.createElement("button");down.type="button";down.className="small-btn";down.textContent="↓";down.setAttribute("aria-label","Mover "+p.name+" para baixo");down.disabled=p.position===ev.entries.length;down.addEventListener("click",()=>moveOrderEntry(p.id,1));
+  const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="Editar";edit.addEventListener("click",()=>editOrderEntry(p.id));
+  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover";remove.addEventListener("click",()=>{if(!window.confirm("Remover este participante da ordem demonstrativa?"))return;ev.entries=ev.entries.filter(x=>x.id!==p.id);resetOrderForm();renderBaptismEvents();renderOrderEntries();});
+  actions.append(up,down,edit,remove);row.append(main,actions);list.append(row);
+ });
+}
+function moveOrderEntry(id,delta){
+ const ev=selectedBaptismEvent();if(!ev)return;const i=ev.entries.findIndex(p=>p.id===id),j=i+delta;if(i<0||j<0||j>=ev.entries.length)return;
+ [ev.entries[i],ev.entries[j]]=[ev.entries[j],ev.entries[i]];renderOrderEntries();renderBaptismEvents();
+}
+function editOrderEntry(id){
+ const ev=selectedBaptismEvent();const p=ev?.entries.find(x=>x.id===id);if(!p)return;editingOrderEntryId=id;
+ document.getElementById("orderPersonName").value=p.name;document.getElementById("orderPersonClass").value=p.className;document.getElementById("orderParticipation").value=p.participation;document.getElementById("orderResult").value=p.result;document.getElementById("orderNotes").value=p.notes==="Não informado"?"":p.notes;
+ document.getElementById("saveOrderPerson").textContent="Salvar alteração temporária";document.getElementById("cancelOrderEdit").hidden=false;document.getElementById("orderPersonName").focus();
+}
+document.getElementById("baptismPersonForm").addEventListener("submit",e=>{
+ e.preventDefault();const ev=selectedBaptismEvent();const name=document.getElementById("orderPersonName").value.trim();const msg=document.getElementById("orderFormMessage");
+ if(!ev){msg.className="form-error";msg.textContent="Crie ou selecione um evento primeiro.";return;}
+ if(!name){msg.className="form-error";msg.textContent="Informe um nome fictício.";return;}
+ const item={name,className:document.getElementById("orderPersonClass").value,participation:document.getElementById("orderParticipation").value,result:document.getElementById("orderResult").value,notes:document.getElementById("orderNotes").value.trim()||"Não informado"};
+ if(editingOrderEntryId!==null){const i=ev.entries.findIndex(p=>p.id===editingOrderEntryId);if(i>=0)ev.entries[i]={...ev.entries[i],...item};}
+ else ev.entries.push({id:nextOrderEntryId++,...item});
+ resetOrderForm();msg.className="form-success";msg.textContent="Ordem atualizada apenas nesta sessão.";
+ renderOrderEntries();renderBaptismEvents();
+});
+document.getElementById("cancelOrderEdit").addEventListener("click",resetOrderForm);
+document.getElementById("eventSearch").addEventListener("input",renderBaptismEvents);
+document.getElementById("orderSearch").addEventListener("input",renderOrderEntries);
+
+const descriptions={people:"Cadastro e acompanhamento individual, com identificador próprio e dados pessoais protegidos.",classes:"Organização de turmas, inscrições e vínculo com a jornada.",lessons:"Acompanhamento da jornada, aulas concluídas, presença e aulas a repor.",baptism:"Criação de eventos demonstrativos, lista ordenável por participante e histórico separado por evento.",shirts:"Controle de tamanhos, distribuição e situação de pagamento das camisetas.",payments:"Conferência das situações financeiras sem confundir valores não informados com valores não pagos.",reports:"Resumos calculados a partir dos registros reais autorizados, sem indicadores fictícios."};
 const sidebar=document.getElementById("sidebar"),mobileMenu=document.getElementById("mobileMenu"),mobileScrim=document.getElementById("mobileScrim");
 function closeMobileMenu(){sidebar.classList.remove("open");mobileScrim.classList.remove("open");mobileMenu.setAttribute("aria-expanded","false");mobileMenu.setAttribute("aria-label","Abrir menu");}
 function showView(view){
@@ -208,7 +316,8 @@ function showView(view){
  document.getElementById("overview").classList.toggle("hidden",view!=="overview");
  document.getElementById("moduleView").classList.toggle("active",view!=="overview");
  document.getElementById("peopleWorkspace").hidden=view!=="people";
- document.getElementById("genericModulePlaceholder").hidden=view==="people";
+ document.getElementById("baptismWorkspace").hidden=view!=="baptism";
+ document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism";
  if(view!=="overview"){
   document.getElementById("moduleTitle").textContent=labels[view];
   document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
