@@ -42,17 +42,17 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
 .module:hover{border-color:#9fc4af;background:#f8fcf9;transform:translateY(-1px)}
 .module-icon{width:37px;height:37px;border-radius:11px;background:#e9f4ed;display:grid;place-items:center;font-size:17px;flex-shrink:0}
 .module strong{display:block;font-size:12px;line-height:1.35}.module small{color:#829087;font-size:10px;display:block;margin-top:3px;line-height:1.35}
-.footer{color:#8a958f;font-size:11px;text-align:center;margin:26px 0 6px}.mobile-menu{display:none;border:1px solid #dce6df;border-radius:10px;background:white;padding:8px 10px;cursor:pointer;color:#244b39}
+.footer{color:#8a958f;font-size:11px;text-align:center;margin:26px 0 6px}.mobile-menu{display:none;border:1px solid #dce6df;border-radius:10px;background:white;padding:8px 10px;cursor:pointer;color:#244b39}.mobile-scrim{display:none}button:focus-visible{outline:3px solid #e5b95c;outline-offset:3px}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 .module-view{display:none}.module-view.active{display:block}.overview-view.hidden{display:none}
 .module-placeholder{margin-top:20px}.back-button{margin-top:18px}
 @media(max-width:1120px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.modules{grid-template-columns:repeat(2,minmax(0,1fr))}.shell{grid-template-columns:220px minmax(0,1fr)}.content{padding:22px}.topbar{padding:0 22px}}
-@media(max-width:760px){.shell{grid-template-columns:1fr}aside{display:none;position:fixed;z-index:5;inset:0 auto 0 0;width:min(290px,85vw);overflow:auto;box-shadow:10px 0 35px #102c2030}aside.open{display:flex}.topbar{min-height:68px;padding:12px 15px}.mobile-menu{display:block}.content{padding:21px 15px}.heading{align-items:start;flex-direction:column}.lower{grid-template-columns:1fr}.pill{font-size:10px}.brand{font-size:14px}.heading .btn{width:100%}}
+@media(max-width:760px){.shell{grid-template-columns:1fr}aside{display:none;position:fixed;z-index:6;inset:0 auto 0 0;width:min(290px,85vw);overflow:auto;box-shadow:10px 0 35px #102c2030}aside.open{display:flex}.mobile-scrim.open{display:block;position:fixed;inset:0;background:#0b2119a6;z-index:5;border:0;width:100%;height:100%;padding:0}.topbar{min-height:68px;padding:12px 15px}.mobile-menu{display:block}.content{padding:21px 15px}.heading{align-items:start;flex-direction:column}.lower{grid-template-columns:1fr}.pill{font-size:10px}.brand{font-size:14px}.heading .btn{width:100%}}
 @media(max-width:430px){.grid{gap:9px}.card{padding:14px}.metric{font-size:24px}.modules{grid-template-columns:1fr}.pill{display:none}.metric-label{font-size:11px}.metric-foot{font-size:10px}.event-placeholder{grid-template-columns:40px minmax(0,1fr);padding:11px}.event-icon{height:40px}}
 </style>
 </head>
 <body>
 <div class="shell">
-<aside id="sidebar">
+<aside id="sidebar" aria-label="Menu principal">
  <div class="brand"><div class="mark">✦</div><div>Sistema de Gestão<br>de Batismo</div></div>
  <div class="section-label">Menu principal</div>
  <nav id="sideNav">
@@ -67,15 +67,16 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
  </nav>
  <div class="side-note">Área administrativa<br>Dados reais ainda não conectados<br>© Sistema de Gestão de Batismo</div>
 </aside>
+<button id="mobileScrim" class="mobile-scrim" aria-label="Fechar menu"></button>
 <main>
  <header class="topbar">
-  <div style="display:flex;align-items:center;gap:11px"><button id="mobileMenu" class="mobile-menu" aria-label="Abrir menu" aria-expanded="false">☰</button><div><div class="crumb">Sistema / <span id="crumb">Visão geral</span></div><div class="top-title" id="pageTitle">Visão geral</div></div></div>
+  <div style="display:flex;align-items:center;gap:11px"><button id="mobileMenu" class="mobile-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="sidebar">☰</button><div><div class="crumb">Sistema / <span id="crumb">Visão geral</span></div><div class="top-title" id="pageTitle">Visão geral</div></div></div>
   <div class="pill">● Prévia visual</div>
  </header>
  <div class="content">
-  <section id="overview" class="overview-view">
-   <div class="heading"><div><div class="eyebrow">Painel administrativo</div><h1>Acompanhe o programa de batismo</h1><p class="sub">Uma visão organizada das pessoas, turmas e preparação para o batismo.</p></div><button id="refresh" class="btn btn-secondary" type="button">↻ Atualizar painel</button></div>
-   <div class="notice"><strong>Modo de preparação</strong>Este painel ainda não está conectado ao banco de dados. Os indicadores permanecem sem números para não apresentar dados fictícios. Não insira informações pessoais nesta versão pública.</div>
+  <section id="overview" class="overview-view" aria-labelledby="welcomeTitle">
+   <div class="heading"><div><div class="eyebrow">Painel administrativo</div><h1 id="welcomeTitle">Acompanhe o programa de batismo</h1><p class="sub">Uma visão organizada das pessoas, turmas e preparação para o batismo.</p></div><button id="connectionStatus" class="btn btn-secondary" type="button">Ver status da conexão</button></div>
+   <div class="notice" id="prototypeNotice" tabindex="-1"><strong>Modo de preparação</strong>Este painel ainda não está conectado ao banco de dados. Os indicadores permanecem sem números para não apresentar dados fictícios. Não insira informações pessoais nesta versão pública.</div>
    <div class="grid">
     <article class="card"><div class="metric-top"><span class="metric-label">Pessoas cadastradas</span><span class="metric-symbol">♙</span></div><div class="metric">—</div><div class="metric-foot">Disponível após conexão segura</div></article>
     <article class="card"><div class="metric-top"><span class="metric-label">Turmas ativas</span><span class="metric-symbol">▤</span></div><div class="metric">—</div><div class="metric-foot">Disponível após conexão segura</div></article>
@@ -98,7 +99,7 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
     </div>
    </div>
   </section>
-  <section id="moduleView" class="module-view">
+  <section id="moduleView" class="module-view" aria-labelledby="moduleTitle" aria-live="polite">
    <div class="eyebrow">Módulo em preparação</div><h1 id="moduleTitle">Pessoas</h1><p class="sub" id="moduleDescription">Esta área será implementada após validar o armazenamento e as permissões.</p>
    <article class="card module-placeholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
    <button class="btn back-button" id="backOverview" type="button">← Voltar à visão geral</button>
@@ -110,25 +111,26 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
 <script>
 const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscrições",lessons:"Aulas e presenças",baptism:"Ordem de batismo",shirts:"Camisetas",payments:"Pagamentos",reports:"Relatórios"};
 const descriptions={people:"Cadastro e acompanhamento individual, com identificador próprio e dados pessoais protegidos.",classes:"Organização de turmas, inscrições e vínculo com a jornada.",lessons:"Acompanhamento da jornada, aulas concluídas, presença e aulas a repor.",baptism:"Organização por evento, confirmação de participação, ordem manual e resultado final separado.",shirts:"Controle de tamanhos, distribuição e situação de pagamento das camisetas.",payments:"Conferência das situações financeiras sem confundir valores não informados com valores não pagos.",reports:"Resumos calculados a partir dos registros reais autorizados, sem indicadores fictícios."};
-const sidebar=document.getElementById("sidebar"),mobileMenu=document.getElementById("mobileMenu");
+const sidebar=document.getElementById("sidebar"),mobileMenu=document.getElementById("mobileMenu"),mobileScrim=document.getElementById("mobileScrim");
+function closeMobileMenu(){sidebar.classList.remove("open");mobileScrim.classList.remove("open");mobileMenu.setAttribute("aria-expanded","false");mobileMenu.setAttribute("aria-label","Abrir menu");}
 function showView(view){
  if(!labels[view])return;
  document.getElementById("pageTitle").textContent=labels[view];
  document.getElementById("crumb").textContent=labels[view];
- document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active",n.dataset.view===view));
+ document.querySelectorAll(".nav").forEach(n=>{const active=n.dataset.view===view;n.classList.toggle("active",active);if(active)n.setAttribute("aria-current","page");else n.removeAttribute("aria-current");});
  document.getElementById("overview").classList.toggle("hidden",view!=="overview");
  document.getElementById("moduleView").classList.toggle("active",view!=="overview");
  if(view!=="overview"){
   document.getElementById("moduleTitle").textContent=labels[view];
   document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
  }
- sidebar.classList.remove("open");mobileMenu.setAttribute("aria-expanded","false");
- window.scrollTo({top:0,behavior:"smooth"});
+ closeMobileMenu();
+ window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
 }
 document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
 document.getElementById("backOverview").addEventListener("click",()=>showView("overview"));
 mobileMenu.addEventListener("click",()=>{
- const open=sidebar.classList.toggle("open");
+ const open=sidebar.classList.toggle("open");mobileScrim.classList.toggle("open",open);
  mobileMenu.setAttribute("aria-expanded",String(open));
  mobileMenu.setAttribute("aria-label",open?"Fechar menu":"Abrir menu");
 });
