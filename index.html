@@ -339,7 +339,7 @@ document.getElementById("personForm").addEventListener("submit",e=>{
  if(editingDemoId!==null){const i=demoPeople.findIndex(p=>p.id===editingDemoId);if(i>=0)demoPeople[i]={...demoPeople[i],...item};}
  else demoPeople.push({id:nextDemoId++,...item});
  resetDemoForm();message.className="form-success";message.textContent="Registro atualizado apenas nesta sessão de demonstração.";
- renderDemoPeople();renderShirts();
+ openPeopleList();renderDemoPeople();document.getElementById("peopleCount").textContent="Registro salvo nesta sessão demonstrativa · "+demoPeople.length+" pessoa(s) no total.";renderShirts();
 });
 document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
 document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
