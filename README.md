@@ -4,7 +4,7 @@ Aplicação web para apoiar a gestão de pessoas, turmas, inscrições, aulas, p
 
 ## Estado atual
 
-Este repositório está em preparação inicial. A autenticação Google e a camada de dados protegida ainda precisam ser configuradas e testadas antes de inserir dados reais.
+Este repositório está em preparação inicial. O acesso pela tela de login Google foi removido temporariamente, conforme solicitado. A autenticação real e a camada de dados protegida ainda precisam ser configuradas e testadas antes de inserir dados reais.
 
 ## Segurança obrigatória
 
@@ -16,8 +16,8 @@ Este repositório está em preparação inicial. A autenticação Google e a cam
 
 ## Próximas etapas
 
-1. Implementar a interface inicial responsiva.
-2. Configurar autenticação Google usando um fluxo suportado e validado no servidor.
+1. Manter a interface inicial responsiva sem botão de login por enquanto.
+2. Definir e configurar autenticação confiável antes de liberar dados reais.
 3. Definir a camada de dados privada, sem credenciais no frontend.
 4. Implementar autorização por usuário e testes de acesso negado.
 5. Publicar pelo GitHub Pages apenas a interface sem segredos e validar cada integração antes dos dados reais.
