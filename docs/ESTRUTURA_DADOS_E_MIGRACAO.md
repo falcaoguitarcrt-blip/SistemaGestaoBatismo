@@ -11,7 +11,7 @@ Campos operacionais: nome, idade, telefone, turma, data, jornada, aulas a repor,
 - **Jornada concluída:** registros cuja jornada indica conclusão.
 - **Camisetas sem pagamento confirmado:** pessoas com tamanho registrado e pagamento não confirmado.
 
-O campo `BATIZADO` está vazio na planilha analisada. A importação deve usar “Não informado”, sem inferir que a pessoa foi ou não batizada. O total da lista não deve ser rotulado como “batizados confirmados”.
+Uma linha de dados repete o cabeçalho `NOME`; ela será ignorada na importação. O campo `BATIZADO` está vazio na planilha analisada. A importação deve usar “Não informado”, sem inferir que a pessoa foi ou não batizada. O total da lista não deve ser rotulado como “batizados confirmados”.
 
 ## Ordem de batismo
 O módulo permite criar eventos, vincular pessoas já cadastradas por seleção explícita, adicionar um nome manualmente e organizar a sequência. Participação no evento e resultado final são campos separados.
