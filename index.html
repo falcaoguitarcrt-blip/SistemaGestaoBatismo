@@ -35,10 +35,6 @@
     .module:hover{border-color:#9fc4af;background:#f8fcf9}.module-icon{width:38px;height:38px;border-radius:11px;background:#e9f4ed;display:grid;place-items:center;font-size:18px;flex-shrink:0}
     .module strong{display:block;font-size:13px}.module small{color:#829087;font-size:11px;display:block;margin-top:3px}
     .footer{color:#8a958f;font-size:12px;text-align:center;margin:28px 0 8px}
-    .login-wrap{max-width:510px;margin:8vh auto;padding:0 20px}.login{background:#fff;border:1px solid #e3ebe5;border-radius:22px;padding:32px;box-shadow:0 16px 55px #153e2d0b}
-    .login .brand{color:#173b2e;margin-bottom:30px}.login h1{margin-bottom:10px}.login p{line-height:1.65;color:#718077}
-    .google-btn{margin-top:18px;width:100%;background:#fff;color:#2e3a33;border:1px solid #d7e0da;border-radius:10px;padding:13px 16px;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:650;cursor:pointer}
-    .google-btn:disabled{opacity:.6;cursor:not-allowed}.g-mark{font-size:19px;font-weight:800;color:#4285f4}.smallprint{font-size:12px!important;margin-top:18px}.hidden{display:none!important}
     .mobile-menu{display:none;border:1px solid #dce6df;border-radius:10px;background:white;padding:9px;cursor:pointer}
     @media(max-width:1050px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.shell{grid-template-columns:220px 1fr}.content{padding:22px}.topbar{padding:0 22px}}
     @media(max-width:760px){.shell{grid-template-columns:1fr}aside{display:none}.topbar{height:auto;min-height:70px;padding:14px 16px}.mobile-menu{display:block}.content{padding:21px 16px}.heading{align-items:start;flex-direction:column}.lower{grid-template-columns:1fr}.pill{font-size:11px}.brand{font-size:14px}}
@@ -46,19 +42,7 @@
   </style>
 </head>
 <body>
-  <section id="loginScreen" class="login-wrap">
-    <div class="login">
-      <div class="brand"><div class="mark">✦</div><div>Sistema de Gestão<br>de Batismo</div></div>
-      <div class="eyebrow">Área administrativa</div>
-      <h1>Acesso ao sistema</h1>
-      <p>Entre com a conta Google autorizada para administrar turmas, inscrições, aulas e registros de batismo.</p>
-      <button id="googleLogin" class="google-btn" type="button"><span class="g-mark">G</span> Continuar com Google</button>
-      <div id="authStatus" role="status" aria-live="polite" class="smallprint">O login ficará disponível após configurar o provedor de autenticação.</div>
-      <p class="smallprint">Por segurança, este protótipo não aceita dados de pessoas nem se conecta a uma planilha enquanto a autenticação e as regras do servidor não estiverem configuradas.</p>
-    </div>
-  </section>
-
-  <section id="appScreen" class="shell hidden">
+  <section id="appScreen" class="shell">
     <aside>
       <div class="brand"><div class="mark">✦</div><div>Sistema de Gestão<br>de Batismo</div></div>
       <div class="section-label">Menu principal</div>
@@ -77,11 +61,11 @@
     <main>
       <header class="topbar">
         <div style="display:flex;align-items:center;gap:12px"><button id="mobileMenu" class="mobile-menu" aria-label="Alternar menu">☰</button><div><div class="crumb">Sistema / <span id="crumb">Visão geral</span></div><div class="top-title" id="pageTitle">Visão geral</div></div></div>
-        <div style="display:flex;align-items:center;gap:12px"><div class="pill">● Ambiente protegido</div><button id="logout" class="btn" type="button">Sair</button></div>
+        <div class="pill">Prévia demonstrativa</div>
       </header>
       <div class="content">
         <div class="heading"><div><div class="eyebrow">Painel administrativo</div><h1 id="welcomeTitle">Acompanhe o programa de batismo</h1><p class="sub">Organize as atividades e acompanhe o andamento em um só lugar.</p></div><button id="refresh" class="btn" type="button">Atualizar painel</button></div>
-        <div class="notice" id="prototypeNotice"><strong>Modo de preparação</strong>Esta é uma interface inicial. Os dados abaixo são apenas indicadores ilustrativos. Login real, autorização no servidor e integração com a planilha ainda precisam ser ativados e testados antes do uso.</div>
+        <div class="notice" id="prototypeNotice"><strong>Modo de preparação</strong>Esta é uma prévia visual. Nenhum dado real é carregado ou salvo. A autenticação, a autorização no servidor e a conexão segura com os dados ainda não foram configuradas. Não utilize informações pessoais nesta versão pública.</div>
         <div class="grid" id="metrics">
           <article class="card"><div class="metric-label">Pessoas cadastradas</div><div class="metric">—</div><div class="metric-foot">Aguardando conexão segura</div></article>
           <article class="card"><div class="metric-label">Turmas ativas</div><div class="metric">—</div><div class="metric-foot">Aguardando conexão segura</div></article>
@@ -90,7 +74,7 @@
         </div>
         <div class="lower">
           <article class="card"><div class="card-head"><h2>Atividade recente</h2><span class="metric-foot">Prévia vazia</span></div><div class="empty">Nenhuma atividade para exibir.<br>Após configurar a conexão protegida, os registros autorizados aparecerão aqui.</div></article>
-          <article class="card"><div class="card-head"><h2>Acesso e segurança</h2></div><div style="display:grid;gap:13px;font-size:13px;color:#526259"><div>✓ Interface sem dados pessoais embutidos</div><div>✓ Não há chaves secretas neste frontend</div><div>◷ Login Google pendente de configuração</div><div>◷ Banco de dados pendente de ligação segura</div></div></article>
+          <article class="card"><div class="card-head"><h2>Acesso e segurança</h2></div><div style="display:grid;gap:13px;font-size:13px;color:#526259"><div>✓ Interface sem dados pessoais embutidos</div><div>✓ Não há chaves secretas neste frontend</div><div>◷ Autenticação temporariamente fora da interface</div><div>◷ Banco de dados pendente de ligação segura</div></div></article>
         </div>
         <div style="margin-top:26px"><div class="card-head"><h2>Módulos do sistema</h2><span class="metric-foot">Selecione um módulo</span></div><div class="modules">
           <button class="module" data-view="people"><span class="module-icon">♙</span><span><strong>Pessoas</strong><small>Cadastro e acompanhamento</small></span></button>
@@ -109,12 +93,6 @@
     // No fake login: identity verification must be implemented by a trusted auth provider
     // and every data request must be re-authorized by the server.
     const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscrições",lessons:"Aulas e presenças",baptism:"Fichas de batismo",shirts:"Camisetas",payments:"Pagamentos",reports:"Relatórios"};
-    const loginScreen=document.getElementById("loginScreen");
-    const appScreen=document.getElementById("appScreen");
-    const status=document.getElementById("authStatus");
-    document.getElementById("googleLogin").addEventListener("click",()=>{
-      status.textContent="Login ainda não configurado. Não informe senha nesta página. A autenticação será ativada quando o provedor e a validação do servidor estiverem configurados.";
-    });
     document.querySelectorAll("[data-view]").forEach(button=>button.addEventListener("click",()=>{
       const view=button.dataset.view;
       if(!labels[view])return;
@@ -130,9 +108,6 @@
       }
       document.querySelector(".content").scrollIntoView({behavior:"smooth",block:"start"});
     }));
-    document.getElementById("logout").addEventListener("click",()=>{
-      appScreen.classList.add("hidden");loginScreen.classList.remove("hidden");
-    });
     document.getElementById("refresh").addEventListener("click",()=>{
       document.getElementById("prototypeNotice").scrollIntoView({behavior:"smooth",block:"center"});
     });
