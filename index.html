@@ -175,6 +175,38 @@ h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color
      <div id="shirtsList" class="people-list" aria-live="polite"><div class="empty">Nenhuma pessoa demonstrativa cadastrada. Acesse Pessoas e crie um registro fictício.</div></div>
     </article>
    </section>
+   <section id="paymentsWorkspace" class="people-workspace" hidden>
+    <div class="people-private-note"><strong>Modo de demonstração.</strong> Utilize apenas dados fictícios. Os lançamentos existem somente na memória desta aba e desaparecem ao recarregar. Nenhum pagamento real é processado ou registrado.</div>
+    <div class="grid">
+     <article class="card"><div class="metric-top"><span class="metric-label">Lançamentos demonstrativos</span><span class="metric-icon">▤</span></div><div class="metric-value" id="paymentTotal">0</div><div class="metric-foot">Inclui todos os status</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Em aberto</span><span class="metric-icon">◷</span></div><div class="metric-value" id="paymentOpen">R$ 0,00</div><div class="metric-foot">Valores ainda não recebidos</div></article>
+     <article class="card"><div class="metric-top"><span class="metric-label">Recebido</span><span class="metric-icon">✓</span></div><div class="metric-value" id="paymentReceived">R$ 0,00</div><div class="metric-foot">Somente lançamentos marcados como pagos</div></article>
+    </div>
+    <article class="card">
+     <div class="card-head"><div><h2 class="section-title">Adicionar lançamento demonstrativo</h2><p class="section-sub">Informe um valor e classifique o status. Apenas o status “Pago” entra no total recebido.</p></div></div>
+     <form id="paymentForm" novalidate>
+      <div class="form-grid">
+       <div class="field"><label for="paymentPerson">Participante fictício *</label><select id="paymentPerson" required><option value="">Selecione uma pessoa</option></select></div>
+       <div class="field"><label for="paymentDescription">Descrição *</label><input id="paymentDescription" maxlength="100" required placeholder="Ex.: Camiseta demonstrativa"></div>
+       <div class="field"><label for="paymentAmount">Valor (R$) *</label><input id="paymentAmount" type="number" min="0.01" max="9999999" step="0.01" required placeholder="0,00"></div>
+       <div class="field"><label for="paymentStatus">Situação *</label><select id="paymentStatus" required><option value="Pendente">Pendente</option><option value="Pago">Pago</option><option value="Cancelado">Cancelado</option></select></div>
+       <div class="field"><label for="paymentDueDate">Data de vencimento</label><input id="paymentDueDate" type="date"></div>
+       <div class="field"><label for="paymentNotes">Observação não confidencial</label><input id="paymentNotes" maxlength="180" placeholder="Opcional, somente demonstração"></div>
+      </div>
+      <div class="form-actions"><button class="btn" type="submit" id="savePayment">Adicionar lançamento</button><button class="btn btn-secondary" type="button" id="cancelPaymentEdit" hidden>Cancelar edição</button></div>
+      <p id="paymentFormMessage" class="form-error" role="status" aria-live="polite"></p>
+     </form>
+    </article>
+    <article class="card">
+     <div class="people-toolbar"><div><h2 class="section-title">Lançamentos</h2><p class="section-sub">Valores pendentes não são somados ao total recebido.</p></div><input id="paymentsSearch" class="search-input" type="search" placeholder="Buscar participante, descrição ou status..." aria-label="Buscar lançamentos demonstrativos"></div>
+     <div class="form-grid" style="margin:12px 0">
+      <div class="field"><label for="paymentsStatusFilter">Filtrar por situação</label><select id="paymentsStatusFilter"><option value="Todos">Todas as situações</option><option value="Pendente">Pendente</option><option value="Pago">Pago</option><option value="Cancelado">Cancelado</option></select></div>
+      <div class="field"><label for="paymentsPersonFilter">Filtrar por participante</label><select id="paymentsPersonFilter"><option value="Todos">Todos os participantes</option></select></div>
+     </div>
+     <div id="paymentsCount" class="people-count">Nenhum lançamento demonstrativo.</div>
+     <div id="paymentsList" class="people-list" aria-live="polite"><div class="empty">Nenhum lançamento criado nesta sessão.</div></div>
+    </article>
+   </section>
    <article class="card module-placeholder" id="genericModulePlaceholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
    <button class="btn back-button" id="backOverview" type="button">← Voltar à visão geral</button>
   </section>
@@ -227,7 +259,7 @@ function editDemoPerson(id){
 function removeDemoPerson(id){
  const person=demoPeople.find(p=>p.id===id);if(!person)return;
  if(!window.confirm("Remover o registro demonstrativo de "+person.name+" desta sessão?"))return;
- demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();renderShirts();
+ demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();renderShirts();renderPayments();renderPayments();
 }
 document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
 document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
@@ -247,6 +279,58 @@ document.getElementById("peopleSearch").addEventListener("input",renderDemoPeopl
 
 let demoBaptismEvents=[];let selectedBaptismEventId=null;let nextBaptismEventId=1;let nextOrderEntryId=1;let editingOrderEntryId=null;
 function selectedBaptismEvent(){return demoBaptismEvents.find(e=>e.id===selectedBaptismEventId)||null;}
+
+
+let demoPayments=[];let nextDemoPaymentId=1;let editingPaymentId=null;
+function moneyBR(value){return Number(value).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
+function fillPaymentPersonOptions(){
+ const person=document.getElementById("paymentPerson"),filter=document.getElementById("paymentsPersonFilter");
+ const oldPerson=person.value,oldFilter=filter.value;
+ person.replaceChildren();const blank=document.createElement("option");blank.value="";blank.textContent="Selecione uma pessoa";person.append(blank);
+ filter.replaceChildren();const all=document.createElement("option");all.value="Todos";all.textContent="Todos os participantes";filter.append(all);
+ demoPeople.forEach(p=>{const o=document.createElement("option");o.value=String(p.id);o.textContent=p.name;person.append(o);const f=document.createElement("option");f.value=String(p.id);f.textContent=p.name;filter.append(f);});
+ if([...person.options].some(o=>o.value===oldPerson))person.value=oldPerson;
+ if([...filter.options].some(o=>o.value===oldFilter))filter.value=oldFilter;
+}
+function resetPaymentForm(){document.getElementById("paymentForm").reset();editingPaymentId=null;document.getElementById("savePayment").textContent="Adicionar lançamento";document.getElementById("cancelPaymentEdit").hidden=true;document.getElementById("paymentFormMessage").textContent="";}
+function renderPayments(){
+ fillPaymentPersonOptions();
+ const open=demoPayments.filter(p=>p.status==="Pendente").reduce((s,p)=>s+p.amount,0);
+ const received=demoPayments.filter(p=>p.status==="Pago").reduce((s,p)=>s+p.amount,0);
+ document.getElementById("paymentTotal").textContent=String(demoPayments.length);
+ document.getElementById("paymentOpen").textContent=moneyBR(open);
+ document.getElementById("paymentReceived").textContent=moneyBR(received);
+ const q=document.getElementById("paymentsSearch").value.trim().toLocaleLowerCase("pt-BR"),status=document.getElementById("paymentsStatusFilter").value,personFilter=document.getElementById("paymentsPersonFilter").value;
+ const visible=demoPayments.filter(p=>{const person=demoPeople.find(x=>x.id===p.personId);return (status==="Todos"||p.status===status)&&(personFilter==="Todos"||String(p.personId)===personFilter)&&((person?.name||"Pessoa removida")+" "+p.description+" "+p.status+" "+p.notes).toLocaleLowerCase("pt-BR").includes(q);});
+ document.getElementById("paymentsCount").textContent=demoPayments.length+" lançamento(s) · "+visible.length+" exibido(s)";
+ const list=document.getElementById("paymentsList");list.replaceChildren();
+ if(!visible.length){list.innerHTML='<div class="empty">'+(demoPayments.length?"Nenhum lançamento corresponde aos filtros.":"Nenhum lançamento criado nesta sessão.")+'</div>';return;}
+ visible.forEach(p=>{
+  const row=document.createElement("article");row.className="person-row";
+  const main=document.createElement("div");main.className="person-main";
+  const title=document.createElement("strong");title.textContent=(demoPeople.find(x=>x.id===p.personId)?.name||"Pessoa removida")+" · "+p.description;
+  const detail=document.createElement("small");detail.textContent=moneyBR(p.amount)+" · Situação: "+p.status+" · Vencimento: "+(p.dueDate||"Não informado")+" · Observação: "+p.notes;
+  main.append(title,detail);
+  const actions=document.createElement("div");actions.className="person-actions";
+  const status=document.createElement("select");status.setAttribute("aria-label","Situação do lançamento "+p.description);["Pendente","Pago","Cancelado"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;status.append(o);});status.value=p.status;status.addEventListener("change",()=>{p.status=status.value;renderPayments();});
+  const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="Editar";edit.addEventListener("click",()=>{editingPaymentId=p.id;document.getElementById("paymentPerson").value=String(p.personId);document.getElementById("paymentDescription").value=p.description;document.getElementById("paymentAmount").value=p.amount.toFixed(2);document.getElementById("paymentStatus").value=p.status;document.getElementById("paymentDueDate").value=p.dueDate;document.getElementById("paymentNotes").value=p.notes==="Não informado"?"":p.notes;document.getElementById("savePayment").textContent="Salvar alteração";document.getElementById("cancelPaymentEdit").hidden=false;document.getElementById("paymentFormMessage").textContent="";document.getElementById("paymentForm").scrollIntoView({behavior:"smooth",block:"start"});});
+  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover";remove.addEventListener("click",()=>{if(!window.confirm("Remover este lançamento demonstrativo?"))return;demoPayments=demoPayments.filter(x=>x.id!==p.id);if(editingPaymentId===p.id)resetPaymentForm();renderPayments();});
+  actions.append(status,edit,remove);row.append(main,actions);list.append(row);
+ });
+}
+document.getElementById("paymentForm").addEventListener("submit",e=>{
+ e.preventDefault();const personId=Number(document.getElementById("paymentPerson").value),description=document.getElementById("paymentDescription").value.trim(),amount=Number(document.getElementById("paymentAmount").value),msg=document.getElementById("paymentFormMessage");
+ if(!personId||!demoPeople.some(p=>p.id===personId)){msg.className="form-error";msg.textContent="Cadastre primeiro uma pessoa fictícia e selecione-a.";return;}
+ if(!description||!Number.isFinite(amount)||amount<=0||amount>9999999){msg.className="form-error";msg.textContent="Informe descrição e valor maior que zero.";return;}
+ const item={personId,description,amount,status:document.getElementById("paymentStatus").value,dueDate:document.getElementById("paymentDueDate").value,notes:document.getElementById("paymentNotes").value.trim()||"Não informado"};
+ if(editingPaymentId!==null){const i=demoPayments.findIndex(p=>p.id===editingPaymentId);if(i>=0)demoPayments[i]={...demoPayments[i],...item};}
+ else demoPayments.push({id:nextDemoPaymentId++,...item});
+ resetPaymentForm();msg.className="form-success";msg.textContent="Lançamento atualizado apenas nesta sessão demonstrativa.";renderPayments();
+});
+document.getElementById("cancelPaymentEdit").addEventListener("click",resetPaymentForm);
+document.getElementById("paymentsSearch").addEventListener("input",renderPayments);
+document.getElementById("paymentsStatusFilter").addEventListener("change",renderPayments);
+document.getElementById("paymentsPersonFilter").addEventListener("change",renderPayments);
 
 function renderShirts(){
  const q=document.getElementById("shirtsSearch").value.trim().toLocaleLowerCase("pt-BR");
@@ -356,8 +440,10 @@ function showView(view){
  document.getElementById("peopleWorkspace").hidden=view!=="people";
  document.getElementById("baptismWorkspace").hidden=view!=="baptism";
  document.getElementById("shirtsWorkspace").hidden=view!=="shirts";
- document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism"||view==="shirts";
+ document.getElementById("paymentsWorkspace").hidden=view!=="payments";
+ document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism"||view==="shirts"||view==="payments";
  if(view==="shirts")renderShirts();
+ if(view==="payments")renderPayments();
  if(view!=="overview"){
   document.getElementById("moduleTitle").textContent=labels[view];
   document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
