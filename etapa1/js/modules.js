@@ -91,7 +91,8 @@ function filteredPeople() {
     return (!search || searchable.includes(search))
       && (!peopleFilters.turma || String(p.turmaId ?? p.turma ?? "") === peopleFilters.turma)
       && (!peopleFilters.status || personStatus(p) === peopleFilters.status)
-      && (!peopleFilters.pendencia || String(personHasPending(p)) === peopleFilters.pendencia)\n      && (!peopleFilters.ekklesia || norm(p.cadastroEkklesia) === peopleFilters.ekklesia);
+      && (!peopleFilters.pendencia || String(personHasPending(p)) === peopleFilters.pendencia)
+      && (!peopleFilters.ekklesia || norm(p.cadastroEkklesia) === peopleFilters.ekklesia);
   });
 }
 function renderPeople() {
@@ -106,7 +107,8 @@ function renderPeople() {
       <input class="module-input search-wide" id="pSearch" type="search" value="${esc(peopleFilters.search)}" placeholder="Buscar nome ou telefone" aria-label="Buscar por nome ou telefone">
       <select class="module-select" id="pClass" aria-label="Filtrar turma"><option value="">Todas as turmas</option>${classes.map(c=>'<option value="'+esc(c)+'" '+(peopleFilters.turma===c?'selected':'')+'>'+esc(c)+'</option>').join("")}</select>
       <select class="module-select" id="pStatus" aria-label="Filtrar situação"><option value="">Todas as situações</option>${statusOptions.map(s=>'<option '+(peopleFilters.status===s?'selected':'')+'>'+s+'</option>').join("")}</select>
-      <select class="module-select" id="pPending" aria-label="Filtrar pendências"><option value="">Com ou sem pendência</option><option value="true" ${peopleFilters.pendencia==="true"?"selected":""}>Com pendência</option><option value="false" ${peopleFilters.pendencia==="false"?"selected":""}>Sem pendência</option></select>\n      <select class="module-select" id="pEkklesia" aria-label="Filtrar cadastro Ekklesia"><option value="">Ekklesia: todos</option><option value="sim" ${peopleFilters.ekklesia==="sim"?"selected":""}>Com Ekklesia</option><option value="não" ${peopleFilters.ekklesia==="não"?"selected":""}>Sem Ekklesia</option></select>
+      <select class="module-select" id="pPending" aria-label="Filtrar pendências"><option value="">Com ou sem pendência</option><option value="true" ${peopleFilters.pendencia==="true"?"selected":""}>Com pendência</option><option value="false" ${peopleFilters.pendencia==="false"?"selected":""}>Sem pendência</option></select>
+      <select class="module-select" id="pEkklesia" aria-label="Filtrar cadastro Ekklesia"><option value="">Ekklesia: todos</option><option value="sim" ${peopleFilters.ekklesia==="sim"?"selected":""}>Com Ekklesia</option><option value="não" ${peopleFilters.ekklesia==="não"?"selected":""}>Sem Ekklesia</option></select>
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
       <button class="button primary" data-action="new-person" type="button">+ Cadastro rápido</button>
@@ -121,7 +123,8 @@ function renderPeople() {
   root.querySelector("#pSearch").addEventListener("input",e=>{peopleFilters.search=e.target.value;peoplePage=0;renderPeople();const el=root.querySelector("#pSearch");el.focus();el.setSelectionRange(el.value.length,el.value.length);});
   root.querySelector("#pClass").addEventListener("change",e=>{peopleFilters.turma=e.target.value;peoplePage=0;renderPeople();});
   root.querySelector("#pStatus").addEventListener("change",e=>{peopleFilters.status=e.target.value;peoplePage=0;renderPeople();});
-  root.querySelector("#pPending").addEventListener("change",e=>{peopleFilters.pendencia=e.target.value;peoplePage=0;renderPeople();});\n  root.querySelector("#pEkklesia").addEventListener("change",e=>{peopleFilters.ekklesia=e.target.value;peoplePage=0;renderPeople();});
+  root.querySelector("#pPending").addEventListener("change",e=>{peopleFilters.pendencia=e.target.value;peoplePage=0;renderPeople();});
+  root.querySelector("#pEkklesia").addEventListener("change",e=>{peopleFilters.ekklesia=e.target.value;peoplePage=0;renderPeople();});
   root.querySelector("#selectAllPeople")?.addEventListener("change",e=>root.querySelectorAll(".person-check").forEach(c=>c.checked=e.target.checked));
 }
 function personFormMarkup(p = {}) {
