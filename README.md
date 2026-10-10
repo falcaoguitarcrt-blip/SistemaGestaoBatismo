@@ -1,24 +1,28 @@
 # Gestão de Batismo
 
-Protótipo web responsivo para organizar visualmente a jornada de preparação e o dia do batismo.
+Protótipo web responsivo para organizar cadastro, preparação, ordem do batismo, check-in, camisetas, reposição e histórico.
 
 ## Acessar
 
 - **Aplicação:** https://falcaoguitarcrt-blip.github.io/SistemaGestaoBatismo/
-- **Código principal:** `index.html`
-- **Cópia-base revisada:** [prototipos/gestao-batismo-base.html](prototipos/gestao-batismo-base.html)
+- **Código principal:** [index.html](index.html)
+- **Cópia-base visual:** [prototipos/gestao-batismo-base.html](prototipos/gestao-batismo-base.html)
 
-## Módulos do protótipo
+## Importar a planilha
 
-Visão geral, pessoas, ficha individual, ordem do batismo, check-in, pendências, camisetas, reposição de aulas, histórico, importação demonstrativa e configurações.
+1. Abra a aplicação e entre em **Importar**.
+2. Selecione o arquivo Excel que contém as abas **Batismo**, **Ordem**, **Ordem Batismo 35** e **GERAL**.
+3. Confira os quantitativos de cada aba.
+4. Clique em **Importar e salvar neste navegador**.
 
-## Estado atual e segurança
+A planilha original, todas as linhas lidas e as marcações de check-in são mantidas localmente no navegador. A aplicação não envia os registros importados para o GitHub. Duplicidades e linhas incompletas não são apagadas nem mescladas automaticamente. Antes de substituir uma importação, a versão local ativa é arquivada como backup.
 
-Esta versão é um protótipo de interface. Os dados exibidos são fictícios e não há banco de dados, autenticação real, salvamento persistente ou sincronização offline. Algumas ações apenas atualizam a tela ou exibem um aviso.
+## Limites deste modo
 
-**Não inserir dados pessoais reais neste repositório público.** Antes do uso operacional, será necessário implementar e testar autenticação, autorização, persistência e proteção dos dados.
+Este é um modo local, sem sincronização entre diferentes computadores ou usuários. Para trabalho compartilhado, é necessário implementar um backend privado, autenticação real e permissões de acesso. O GitHub Pages deste repositório é público e contém apenas o código da interface.
 
-## Regra para as próximas atualizações
+**Não commit dados pessoais, telefones, informações de menores ou observações de perfil neste repositório público.** Use o arquivo Excel a partir do navegador e mantenha uma cópia segura do original.
 
-Evoluir o `index.html` em pequenas etapas, conforme o uso revelar necessidades. Preservar a cópia-base em `prototipos/gestao-batismo-base.html` para consulta e comparação, e evitar mudanças de arquitetura sem necessidade.
+## Regra para próximas atualizações
 
+Evoluir o `index.html` em pequenas etapas, mantendo a cópia-base disponível para comparação. Preservar a organização do protótipo e não alterar os dados de origem por deduplicação, correções automáticas ou mudanças estruturais não solicitadas.

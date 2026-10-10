@@ -53,6 +53,68 @@ h2.t{font-size:22px;margin:4px 0 12px}
 .demo-toast.show{opacity:1;transform:translate(-50%,0)}
 @media print{body{background:#fff;color:#111}header,.bb,.note,.demo-toast,#tm{display:none!important}main{max-width:none;padding:0}.card{box-shadow:none;break-inside:avoid}section{display:none!important}section.on{display:block!important}.bar{border:1px solid #bbb}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Importação local: nenhuma linha da planilha é enviada ao servidor. */
+.security-callout{border-color:#d9c58d;background:color-mix(in srgb,var(--gold) 9%,var(--card))}
+.security-callout p{font-size:13px;color:var(--mut);margin:8px 0 0;line-height:1.6}
+.import-status{font-size:13px;line-height:1.55;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--ln);margin:10px 0}
+.import-status.error{border-color:#c0392b;color:var(--er)}
+.import-status.success{border-color:#2e8b57;color:var(--ok)}
+.import-actions{flex-wrap:wrap}
+.import-actions .btn{min-width:170px}
+.mapping-row{display:grid;grid-template-columns:minmax(130px,.35fr) minmax(0,1fr);gap:12px;padding:10px 0;border-top:1px solid var(--ln);font-size:13px}
+.mapping-row:first-of-type{margin-top:8px}
+.mapping-row span{color:var(--mut)}
+.data-toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,.4fr) minmax(155px,.42fr);gap:8px;margin:10px 0}
+.data-toolbar input,.data-toolbar select{margin:0;width:100%;min-width:0;padding:11px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
+.data-summary{font-size:12px;color:var(--mut);margin:8px 0}
+.data-list{display:grid;gap:8px;margin:10px 0}
+.data-item{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--ln);border-radius:12px;background:var(--card);min-width:0}
+.data-item .item-main{flex:1;min-width:0}
+.data-item strong{overflow-wrap:anywhere}
+.data-item .item-meta{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
+.data-item .item-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+.data-item .item-badges .tag{margin:0}
+.data-item .item-actions{display:flex;flex-wrap:wrap;gap:6px}
+.data-item .item-actions .btn{padding:8px 10px;min-height:38px;font-size:12px}
+.data-empty{border:1px dashed var(--ln);padding:18px;text-align:center;border-radius:12px;color:var(--mut);font-size:13px}
+.data-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 16px}
+.data-pager span{font-size:12px;color:var(--mut)}
+.data-pager .btn{padding:8px 12px;min-height:38px}
+.data-field-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:12px}
+.data-field{border:1px solid var(--ln);border-radius:10px;padding:11px;min-width:0}
+.data-field small{display:block;color:var(--mut);font-size:11px;margin-bottom:5px}
+.data-field strong{display:block;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;font-weight:600}
+.data-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px;margin-bottom:12px}
+.data-metric{background:var(--card);border:1px solid var(--ln);border-radius:13px;padding:13px;min-width:0}
+.data-metric span{font-size:12px;color:var(--mut);display:block}
+.data-metric strong{font-family:Fraunces,Georgia,serif;font-size:25px;display:block;margin-top:4px;overflow-wrap:anywhere}
+.data-bar-row{display:flex;align-items:center;gap:9px;margin:9px 0;font-size:12px}
+.data-bar-row span:first-child{min-width:55px;max-width:130px;overflow-wrap:anywhere;color:var(--mut)}
+.data-bar{height:8px;flex:1;min-width:25px;background:var(--ln);border-radius:20px;overflow:hidden}
+.data-bar i{display:block;height:100%;background:var(--aq);border-radius:20px}
+.data-bar-row em{font-style:normal;min-width:34px;text-align:right}
+.history-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.history-tabs button{border:1px solid var(--ln);border-radius:999px;background:var(--card);color:var(--tx);padding:8px 12px;font:inherit;font-size:12px;cursor:pointer}
+.history-tabs button.active{background:var(--pri);border-color:var(--pri);color:#fff}
+.backup-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--ln);font-size:12px}
+.backup-row:first-child{border-top:0}
+.backup-row .backup-actions{display:flex;gap:6px;flex-wrap:wrap}
+.backup-row .btn{font-size:11px;padding:7px 9px;min-height:34px}
+.local-only-note{font-size:12px;color:var(--mut);margin:10px 0}
+@media(max-width:600px){
+ .mapping-row{grid-template-columns:1fr;gap:4px}
+ .data-toolbar{grid-template-columns:1fr}
+ .data-item{flex-direction:column}
+ .data-item .item-actions{width:100%}
+ .data-item .item-actions .btn{flex:1}
+ .data-field-grid{grid-template-columns:1fr}
+ .backup-row{align-items:flex-start;flex-direction:column}
+ .backup-row .backup-actions{width:100%}
+ .backup-row .backup-actions .btn{flex:1}
+ .import-actions .btn{width:100%}
+}
+
 </style>
 </head>
 <body>
@@ -178,15 +240,38 @@ h2.t{font-size:22px;margin:4px 0 12px}
 <div class="card"><div class="row"><span class="n">35</span><div class="m"><b>Turma 35 · 18/07/2026</b><div>36 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">34</span><div class="m"><b>Turma 34 · 30/05/2026</b><div>43 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">36</span><div class="m"><b>Turma 36 · 12/10/2026</b><div>57 inscritos</div></div><span class="tag t-in">Em 2 dias</span></div></div>
 <div class="cert"><small style="color:var(--gold)">✦ CERTIFICADO ✦</small><h2>Marina Souza</h2><p style="margin:8px 0">foi batizada em 18 de julho de 2026<br>Turma 35 · Pr. Gustavo</p><div class="s"></div><small style="color:var(--mut)">Pastor responsável</small></div>
 <div class="bb"><button type="button" class="btn" data-demo-action="true">⬇ Gerar PDF</button><button type="button" class="btn o" data-demo-action="true">Editar modelo</button></div></section>
-<section id="imp"><h2 class="t">Importar planilha</h2>
-<div class="st"><span class="d">1 Enviar ✓</span><span class="d">2 Colunas ✓</span><span class="c">3 Revisar</span><span>4 Confirmar</span></div>
-<div class="grid" style="margin-bottom:12px"><div class="card kpi" style="margin:0"><span>Linhas lidas</span><b>1.562</b></div><div class="card kpi" style="margin:0"><span>Duplicados</span><b style="color:var(--pe)">82</b></div><div class="card kpi" style="margin:0"><span>Sem turma</span><b style="color:var(--pe)">56</b></div><div class="card kpi" style="margin:0"><span>Sem telefone</span><b style="color:var(--er)">93</b></div></div>
-<div class="card"><b>Corrigir antes de importar</b>
-<div class="row"><div class="m">3 datas impossíveis (anos 1977–1985)<div>Sugestão: usar a data da turma</div></div><span class="tag t-ok">Aplicar</span></div>
-<div class="row"><div class="m">Telefones em 6 formatos<div>Padronizar para (16) 9XXXX-XXXX</div></div><span class="tag t-ok">Aplicar</span></div>
-<div class="row"><div class="m">20 textos livres de pendência<div>Agrupar em 9 tipos padrão</div></div><span class="tag t-in">Revisar</span></div>
-<div class="row"><div class="m">82 nomes duplicados<div>Mesclar, manter ambos ou ignorar</div></div><span class="tag t-pe">Decidir</span></div></div>
-<div class="bb"><button type="button" class="btn o" data-demo-action="true">← Voltar</button><button type="button" class="btn" data-demo-action="true">Continuar →</button></div></section>
+<section id="imp">
+<h2 class="t">Importar planilha de batismo</h2>
+<div class="card security-callout">
+  <b>Importação local e preservação dos dados</b>
+  <p>Escolha a planilha original. O arquivo será lido no navegador e guardado neste dispositivo, sem enviar nomes, telefones, idades ou observações ao repositório do GitHub.</p>
+  <p><strong>Importante:</strong> este modo não sincroniza os dados entre computadores ou usuários. Mantenha uma cópia segura do Excel e baixe o backup original após importar.</p>
+</div>
+<div class="card">
+  <label for="workbook-file"><b>Arquivo Excel (.xlsx)</b></label>
+  <input id="workbook-file" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:block;width:100%;margin:10px 0">
+  <div id="import-status" class="import-status" role="status" aria-live="polite">Selecione “Batismo (1).xlsx” para conferir as abas e os registros antes de importar.</div>
+  <div id="import-preview"></div>
+  <div class="bb import-actions">
+    <button id="confirm-import" type="button" class="btn" disabled>Importar e salvar neste navegador</button>
+    <button id="download-source" type="button" class="btn o" disabled>Baixar Excel original</button>
+    <button id="download-json" type="button" class="btn o" disabled>Exportar backup JSON</button>
+  </div>
+</div>
+<div class="card">
+  <b>Como as abas serão distribuídas</b>
+  <div class="mapping-row"><strong>Batismo</strong><span>Cadastro, ficha individual, jornada, grupo, camiseta, pagamentos, status, pendências e observações de perfil.</span></div>
+  <div class="mapping-row"><strong>Ordem</strong><span>Sequência numerada, retirada de fichas e observações. Posições sem nome serão mantidas como posições incompletas.</span></div>
+  <div class="mapping-row"><strong>Ordem Batismo 35</strong><span>Histórico da turma 35, com aula de batismo, batizado na missão e indicação de unificação.</span></div>
+  <div class="mapping-row"><strong>GERAL</strong><span>Histórico de pessoas, idade, telefone, turma e ano.</span></div>
+  <p class="note">Nenhum registro repetido será mesclado automaticamente. Linhas, lacunas e células originais ficam preservadas na cópia integral do Excel e no arquivo de origem guardado localmente.</p>
+</div>
+<div class="card">
+  <b>Cópias de segurança anteriores</b>
+  <p class="section-sub">Ao importar uma nova planilha, a versão local ativa será arquivada antes da substituição.</p>
+  <div id="backup-items" class="backup-list"><span class="note">Carregando backups locais…</span></div>
+</div>
+</section>
 <section id="cfg"><h2 class="t">Configurações</h2>
 <div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
 <div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
@@ -195,6 +280,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
 <p class="note">Protótipo interativo · dados fictícios · ações não conectadas a uma base de dados</p>
 </main>
 <div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 (function () {
   'use strict';
@@ -356,6 +442,847 @@ h2.t{font-size:22px;margin:4px 0 12px}
       showToast('Esta ação ainda é apenas visual no protótipo. Vamos conectá-la conforme os requisitos forem definidos.');
     });
   });
+})();
+</script>
+<script>
+(function () {
+  'use strict';
+
+  var DB_NAME = 'gestao-batismo-local';
+  var DB_VERSION = 1;
+  var PAGE_SIZE = 50;
+  var db = null;
+  var appData = null;
+  var pendingImport = null;
+  var selectedPersonRow = null;
+  var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
+  var orderState = { query: '', page: 1 };
+  var dayState = { query: '' , page: 1 };
+  var pendingState = { query: '', page: 1 };
+  var shirtState = { query: '', page: 1 };
+  var returnState = { query: '', page: 1 };
+  var historyState = { query: '', source: 'geral', page: 1 };
+
+  var importSection = document.getElementById('imp');
+  var configSection = document.getElementById('cfg');
+
+  configSection.innerHTML = '<h2 class="t">Dados e privacidade</h2>' +
+    '<div class="card"><b>Armazenamento local</b><p class="section-sub">A planilha importada e as marcações do dia ficam no armazenamento deste navegador. A página pública não envia esses dados para o GitHub, mas também não sincroniza entre computadores.</p></div>' +
+    '<div class="card"><b>Origem carregada</b><div id="config-source" class="local-only-note">Nenhuma planilha importada neste navegador.</div><div class="bb"><button type="button" class="btn o" data-go="imp">Abrir importação</button><button type="button" class="btn o" data-download-current="xlsx" disabled>Baixar Excel original</button><button type="button" class="btn o" data-download-current="json" disabled>Exportar backup JSON</button></div></div>' +
+    '<div class="card"><b>Preservação e segurança</b><p class="section-sub">Registros duplicados não são mesclados. A importação guarda a planilha original e as linhas de todas as abas. Cada nova importação gera uma cópia de segurança local da versão ativa.</p><p class="section-sub">Não use dados pessoais reais em computador compartilhado. Para acesso conjunto por vários voluntários será necessário um backend privado com autenticação e regras de acesso.</p></div>' +
+    '<div class="card"><b>Backups locais</b><div id="backup-items-config" class="backup-list"><span class="note">Carregando…</span></div></div>';
+
+  var homeSection = document.getElementById('home');
+  var demoNotice = document.createElement('div');
+  demoNotice.className = 'card security-callout';
+  demoNotice.innerHTML = '<b>Modo demonstrativo</b><p>Os nomes e números iniciais desta tela são exemplos. Para trabalhar com a planilha verdadeira, abra <strong>Importar</strong> e carregue o arquivo Excel. Os dados serão processados somente neste navegador.</p><button type="button" class="btn" data-go="imp">Importar minha planilha →</button>';
+  homeSection.insertBefore(demoNotice, homeSection.firstChild);
+
+  function isBlank(value) {
+    return value === null || value === undefined || String(value).trim() === '';
+  }
+  function hasData(row) {
+    return Array.isArray(row) && row.some(function (value) { return !isBlank(value); });
+  }
+  function clean(value) {
+    return isBlank(value) ? '' : String(value).trim();
+  }
+  function esc(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function display(value) {
+    if (value === null || value === undefined || value === '') return 'Não preenchido';
+    if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+    return String(value).trim() || 'Não preenchido';
+  }
+  function numberLabel(value) {
+    return Number(value || 0).toLocaleString('pt-BR');
+  }
+  function normal(value) {
+    return clean(value).toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  function excelDate(value) {
+    if (typeof value !== 'number' || !window.XLSX || !XLSX.SSF || !XLSX.SSF.parse_date_code || value < 20000 || value > 90000) {
+      return display(value);
+    }
+    var parsed = XLSX.SSF.parse_date_code(value);
+    if (!parsed || !parsed.y || !parsed.m || !parsed.d) return display(value);
+    return String(parsed.d).padStart(2, '0') + '/' + String(parsed.m).padStart(2, '0') + '/' + parsed.y;
+  }
+  function asBoolean(value) {
+    if (value === true) return true;
+    if (value === false) return false;
+    var v = normal(value);
+    if (['true', 'sim', 's', 'pago', 'ok', 'yes', '1'].indexOf(v) >= 0) return true;
+    if (['false', 'nao', 'n', 'pendente', 'no', '0'].indexOf(v) >= 0) return false;
+    return null;
+  }
+  function displayName(person) {
+    return person.name || ('Registro sem nome · linha ' + person.sourceRow);
+  }
+  function chip(text, cls) {
+    return '<span class="tag ' + (cls || 't-in') + '">' + esc(text) + '</span>';
+  }
+  function badgeForStatus(value) {
+    var v = normal(value);
+    if (v === 'ok' || v === 'concluida' || v === 'concluido') return chip(display(value), 't-ok');
+    if (v.indexOf('pendencia') >= 0 || v.indexOf('repor') >= 0) return chip(display(value), 't-pe');
+    return isBlank(value) ? chip('Sem status', '') : chip(display(value), 't-in');
+  }
+  function setImportMessage(message, type) {
+    var node = document.getElementById('import-status');
+    if (!node) return;
+    node.textContent = message;
+    node.className = 'import-status' + (type ? ' ' + type : '');
+  }
+  function goTo(sectionId) {
+    var button = document.querySelector('#nav [data-s="' + sectionId + '"]');
+    if (button) button.click();
+  }
+  function openDatabase() {
+    if (!('indexedDB' in window)) return Promise.reject(new Error('Este navegador não oferece armazenamento local compatível. Use uma versão atualizada do Chrome, Edge ou Firefox.'));
+    return new Promise(function (resolve, reject) {
+      var request = indexedDB.open(DB_NAME, DB_VERSION);
+      request.onupgradeneeded = function () {
+        var database = request.result;
+        if (!database.objectStoreNames.contains('workspace')) database.createObjectStore('workspace', { keyPath: 'id' });
+        if (!database.objectStoreNames.contains('snapshots')) database.createObjectStore('snapshots', { keyPath: 'id' });
+      };
+      request.onsuccess = function () { db = request.result; resolve(db); };
+      request.onerror = function () { reject(request.error || new Error('Não foi possível abrir o armazenamento local.')); };
+    });
+  }
+  function getCurrentWorkspace() {
+    return openDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        var request = database.transaction(['workspace'], 'readonly').objectStore('workspace').get('current');
+        request.onsuccess = function () { resolve(request.result || null); };
+        request.onerror = function () { reject(request.error); };
+      });
+    });
+  }
+  function getSnapshots() {
+    return openDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        var request = database.transaction(['snapshots'], 'readonly').objectStore('snapshots').getAll();
+        request.onsuccess = function () {
+          var values = request.result || [];
+          values.sort(function (a, b) { return String(b.snapshotAt || '').localeCompare(String(a.snapshotAt || '')); });
+          resolve(values);
+        };
+        request.onerror = function () { reject(request.error); };
+      });
+    });
+  }
+  function saveWorkspace(payload, createBackup) {
+    return openDatabase().then(function (database) {
+      return new Promise(function (resolve, reject) {
+        var transaction = database.transaction(['workspace', 'snapshots'], 'readwrite');
+        var workspace = transaction.objectStore('workspace');
+        var snapshots = transaction.objectStore('snapshots');
+        var request = workspace.get('current');
+        request.onsuccess = function () {
+          var previous = request.result;
+          if (createBackup && previous) {
+            var backup = Object.assign({}, previous);
+            backup.id = 'backup-' + Date.now();
+            backup.snapshotAt = new Date().toISOString();
+            snapshots.put(backup);
+          }
+          var current = Object.assign({}, payload, { id: 'current' });
+          workspace.put(current);
+        };
+        transaction.oncomplete = function () { resolve(true); };
+        transaction.onerror = function () { reject(transaction.error || new Error('Falha ao gravar os dados locais.')); };
+        transaction.onabort = function () { reject(transaction.error || new Error('Gravação local cancelada.')); };
+      });
+    });
+  }
+  function getSheetRows(rawSheets, desiredName) {
+    var target = normal(desiredName);
+    var key = Object.keys(rawSheets).find(function (name) { return normal(name) === target; });
+    return key ? rawSheets[key] : null;
+  }
+  function isRepeatedMainHeader(row) {
+    if (!row || normal(row[0]) !== 'nome') return false;
+    return row.slice(1).every(isBlank);
+  }
+  function normalizeWorkbook(file, buffer) {
+    if (!window.XLSX) throw new Error('A biblioteca para ler Excel ainda não carregou. Confira a conexão e recarregue a página.');
+    var workbook = XLSX.read(buffer, { type: 'array', cellDates: false, raw: true });
+    var rawSheets = {};
+    var sheetStats = [];
+    workbook.SheetNames.forEach(function (sheetName) {
+      var rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
+        header: 1, raw: true, defval: null, blankrows: true
+      }).map(function (row) { return Array.from(row); });
+      rawSheets[sheetName] = rows;
+      sheetStats.push({
+        name: sheetName,
+        rowCount: rows.length,
+        nonemptyRows: rows.filter(hasData).length,
+        columns: rows.reduce(function (max, row) { return Math.max(max, row.length); }, 0)
+      });
+    });
+
+    var mainRows = getSheetRows(rawSheets, 'Batismo');
+    var orderRows = getSheetRows(rawSheets, 'Ordem');
+    var order35Rows = getSheetRows(rawSheets, 'Ordem Batismo 35');
+    var generalRows = getSheetRows(rawSheets, 'GERAL');
+    var missingSheets = [];
+    if (!mainRows) missingSheets.push('Batismo');
+    if (!orderRows) missingSheets.push('Ordem');
+    if (!order35Rows) missingSheets.push('Ordem Batismo 35');
+    if (!generalRows) missingSheets.push('GERAL');
+    if (missingSheets.length) throw new Error('A planilha precisa conter estas quatro abas: ' + missingSheets.join(', ') + '. Nenhum dado foi substituído.');
+
+    var people = [];
+    var skippedDuplicateHeaders = 0;
+    for (var i = 1; i < mainRows.length; i++) {
+      var row = mainRows[i] || [];
+      var sourceRow = i + 1;
+      if (isRepeatedMainHeader(row)) {
+        skippedDuplicateHeaders++;
+        continue;
+      }
+      if (!hasData(row)) continue;
+      var fields = row.slice(0, 14);
+      while (fields.length < 14) fields.push(null);
+      people.push({
+        sourceRow: sourceRow, name: clean(fields[0]), age: fields[1], phone: fields[2], turma: fields[3],
+        date: fields[4], journey: fields[5], lesson: fields[6], group: fields[7], shirt: fields[8],
+        shirtPaid: fields[9], status: fields[10], pending: fields[11], baptized: fields[12],
+        profile: fields[13], fields: fields
+      });
+    }
+
+    function createOrderEntries(rows, kind) {
+      return rows.slice(1).map(function (row, index) {
+        return { sourceRow: index + 2, fields: row.slice(), removed: row[0], number: row[1], name: clean(row[2]), note: row[3], lesson: row[4], baptized: row[5], merged: row[6] };
+      }).filter(function (record) { return hasData(record.fields); });
+    }
+    var order = createOrderEntries(orderRows, 'current');
+    var order35 = createOrderEntries(order35Rows, 'history35');
+    var generalAll = generalRows.slice(1).map(function (row, index) {
+      var fields = row.slice(0, 5);
+      while (fields.length < 5) fields.push(null);
+      return { sourceRow: index + 2, fields: fields, name: typeof fields[0] === 'string' ? clean(fields[0]) : '', age: fields[1], phone: fields[2], turma: fields[3], year: fields[4] };
+    }).filter(function (record) { return hasData(record.fields); });
+    var general = generalAll.filter(function (record) { return !!record.name; });
+    var generalUnmapped = generalAll.filter(function (record) { return !record.name; });
+
+    var stats = {};
+    Object.keys(rawSheets).forEach(function (key) {
+      var rows = rawSheets[key];
+      stats[key] = { rows: rows.length, nonemptyRows: rows.filter(hasData).length, columns: sheetStats.find(function (s) { return s.name === key; }).columns };
+    });
+
+    return {
+      id: 'current',
+      importedAt: new Date().toISOString(),
+      sourceFileName: file.name,
+      sourceFileSize: file.size,
+      sourceWorkbook: new Blob([buffer], { type: file.type || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+      rawSheets: rawSheets,
+      sheetStats: sheetStats,
+      people: people,
+      order: order,
+      order35: order35,
+      general: general,
+      generalAll: generalAll,
+      generalUnmapped: generalUnmapped,
+      skippedDuplicateHeaders: skippedDuplicateHeaders,
+      checkin: {},
+      sourceSheetNames: workbook.SheetNames.slice()
+    };
+  }
+
+  function namedPeople() {
+    return appData ? appData.people.filter(function (p) { return !!p.name; }) : [];
+  }
+  function uniqueCount(items, keyFn) {
+    var seen = {};
+    items.forEach(function (item) {
+      var key = normal(keyFn(item));
+      if (key) seen[key] = true;
+    });
+    return Object.keys(seen).length;
+  }
+  function duplicateNameGroups(items, keyFn) {
+    var counts = {};
+    items.forEach(function (item) {
+      var key = normal(keyFn(item));
+      if (key) counts[key] = (counts[key] || 0) + 1;
+    });
+    return Object.keys(counts).filter(function (key) { return counts[key] > 1; }).length;
+  }
+  function signalFlags(person) {
+    var flags = [];
+    if (!person.name) flags.push('Sem nome');
+    if (isBlank(person.phone)) flags.push('Sem telefone');
+    if (normal(person.status) === 'pendencia') flags.push('Status: ' + clean(person.status));
+    if (normal(person.journey).indexOf('repor') >= 0) flags.push('Jornada: ' + clean(person.journey));
+    if (!isBlank(person.lesson)) flags.push('Aula para repor: ' + clean(person.lesson));
+    if (!isBlank(person.pending)) flags.push('Observação: ' + clean(person.pending));
+    return flags;
+  }
+  function hasPendingSignal(person) {
+    return signalFlags(person).some(function (flag) { return flag.indexOf('Status:') === 0 || flag.indexOf('Jornada:') === 0 || flag.indexOf('Aula para repor:') === 0 || flag.indexOf('Observação:') === 0; });
+  }
+  function shirtChosen(person) {
+    var shirt = normal(person.shirt);
+    return !!shirt && shirt !== 'ja tem';
+  }
+  function shirtPaidValue(person) {
+    return asBoolean(person.shirtPaid);
+  }
+  function shirtSummary() {
+    var shirts = appData.people.filter(shirtChosen);
+    return {
+      shirts: shirts,
+      paid: shirts.filter(function (p) { return shirtPaidValue(p) === true; }),
+      unpaid: shirts.filter(function (p) { return shirtPaidValue(p) === false; }),
+      unknown: shirts.filter(function (p) { return shirtPaidValue(p) === null; }),
+      alreadyHas: appData.people.filter(function (p) { return normal(p.shirt) === 'ja tem'; }),
+      blank: appData.people.filter(function (p) { return isBlank(p.shirt); })
+    };
+  }
+  function countBy(items, keyFn) {
+    var result = {};
+    items.forEach(function (item) {
+      var key = clean(keyFn(item)) || 'Não preenchido';
+      result[key] = (result[key] || 0) + 1;
+    });
+    return result;
+  }
+  function metric(label, value, foot) {
+    return '<div class="data-metric"><span>' + esc(label) + '</span><strong>' + esc(numberLabel(value)) + '</strong><span class="item-meta">' + esc(foot || '') + '</span></div>';
+  }
+  function buildHome() {
+    if (!appData) return;
+    var home = document.getElementById('home');
+    var people = appData.people;
+    var peopleNamed = namedPeople();
+    var withoutName = people.length - peopleNamed.length;
+    var noPhone = people.filter(function (p) { return isBlank(p.phone); }).length;
+    var done = people.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
+    var makeups = people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
+    var shirts = shirtSummary();
+    var namedOrder = appData.order.filter(function (p) { return !!p.name; }).length;
+    var turmaCounts = countBy(peopleNamed.filter(function (p) { return !isBlank(p.turma); }), function (p) { return p.turma; });
+    var turmas = Object.keys(turmaCounts).sort(function (a, b) { return Number(a) - Number(b); });
+    var maxTurma = Math.max.apply(null, turmas.map(function (t) { return turmaCounts[t]; }).concat([1]));
+    var duplicateGroups = duplicateNameGroups(peopleNamed, function (p) { return p.name; });
+    home.innerHTML = '<div class="card hero"><small>PLANILHA IMPORTADA · DADOS LOCAIS</small><h2>Gestão de Batismo</h2><small>' + esc(appData.sourceFileName) + ' · importada em ' + esc(new Date(appData.importedAt).toLocaleString('pt-BR')) + '</small><div class="bar" style="margin:12px 0"><b style="width:' + Math.round((done / Math.max(people.length, 1)) * 100) + '%"></b></div><span class="btn" data-go="ord">Abrir ordem de batismo →</span></div>' +
+      '<div class="data-metrics">' +
+      metric('Registros na aba Batismo', people.length, 'Sem mesclar linhas repetidas') +
+      metric('Registros com nome', peopleNamed.length, 'Cadastros da aba principal') +
+      metric('Registros sem nome', withoutName, 'Preservados para conferência') +
+      metric('Pessoas nomeadas na ordem', namedOrder, numberLabel(appData.order.length) + ' posições preenchidas na planilha de ordem') +
+      '</div>' +
+      '<div class="card"><h2 class="t">Resumo da preparação</h2>' +
+      '<div class="grid">' +
+      '<div class="data-metric"><span>Jornada concluída</span><strong>' + numberLabel(done) + '</strong><span class="item-meta">Valor conforme coluna JORNADA</span></div>' +
+      '<div class="data-metric"><span>Com indicação de reposição</span><strong>' + numberLabel(makeups) + '</strong><span class="item-meta">JORNADA ou AULA P/ REPOR</span></div>' +
+      '<div class="data-metric"><span>Sem telefone preenchido</span><strong>' + numberLabel(noPhone) + '</strong><span class="item-meta">Sem alterar os dados de origem</span></div>' +
+      '<div class="data-metric"><span>Camisetas não pagas</span><strong>' + numberLabel(shirts.unpaid.length) + '</strong><span class="item-meta">Somente tamanhos informados</span></div>' +
+      '</div></div>' +
+      '<div class="lower"><div class="card"><div class="card-head"><div><h2 class="t">Cadastros por turma</h2><p class="section-sub">Contagem calculada da aba Batismo.</p></div><button type="button" class="btn o" data-go="pes">Ver pessoas</button></div>' +
+      (turmas.length ? turmas.map(function (turma) { return '<div class="data-bar-row"><span>Turma ' + esc(turma) + '</span><div class="data-bar"><i style="width:' + Math.round((turmaCounts[turma] / maxTurma) * 100) + '%"></i></div><em>' + numberLabel(turmaCounts[turma]) + '</em></div>'; }).join('') : '<div class="data-empty">Nenhuma turma preenchida.</div>') +
+      '</div><div class="card"><h2 class="t">Conferências sem alterar a fonte</h2><div class="security-list">' +
+      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(duplicateGroups) + '</strong> grupos de nomes repetidos. Nenhum registro foi mesclado.</span></div>' +
+      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(withoutName) + '</strong> linhas de cadastro sem nome, mantidas para revisão.</span></div>' +
+      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(appData.generalUnmapped.length) + '</strong> linhas da aba GERAL sem nome textual; permanecem na origem completa.</span></div>' +
+      '<div class="security-row"><span class="status-dot"></span><span>A coluna BATIZADO está vazia na aba Batismo; o histórico de turma 35 vem da aba própria.</span></div>' +
+      '</div><div class="bb"><button type="button" class="btn o" data-go="pen">Ver observações e pendências</button><button type="button" class="btn o" data-go="imp">Ver importação e backups</button></div></div></div>' +
+      '<p class="note">Os dados são lidos e mantidos neste navegador. Não existe sincronização entre dispositivos.</p>';
+  }
+
+  function buildPeople() {
+    var section = document.getElementById('pes');
+    var turmas = Array.from(new Set(appData.people.map(function (p) { return clean(p.turma); }).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
+    section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
+      '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '">Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
+      '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>' +
+      '<p class="note">Os registros repetidos permanecem separados. Toque em um registro para abrir a ficha completa com os campos da planilha.</p>';
+    document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
+    document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
+    document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
+    drawPeopleResults();
+  }
+  function drawPeopleResults() {
+    if (!appData || !document.getElementById('people-results')) return;
+    var query = normal(peopleState.query);
+    var items = appData.people.filter(function (p) {
+      var text = normal([p.name, p.phone, p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.sourceRow].join(' '));
+      if (query && text.indexOf(query) < 0) return false;
+      if (peopleState.turma && clean(p.turma) !== peopleState.turma) return false;
+      if (peopleState.filter === 'pending' && !hasPendingSignal(p)) return false;
+      if (peopleState.filter === 'without-phone' && !isBlank(p.phone) ) return false;
+      if (peopleState.filter === 'without-name' && p.name) return false;
+      if (peopleState.filter === 'no-group' && asBoolean(p.group) !== false) return false;
+      return true;
+    });
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    peopleState.page = Math.min(Math.max(1, peopleState.page), pages);
+    var start = (peopleState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    document.getElementById('people-count').textContent = numberLabel(items.length) + ' registros encontrados · página ' + peopleState.page + ' de ' + pages;
+    document.getElementById('people-results').innerHTML = view.map(function (p) {
+      var status = isBlank(p.status) ? (p.name ? 'Status não preenchido' : 'Registro incompleto') : p.status;
+      var classes = p.name ? 't-in' : 't-er';
+      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Linha original ' + esc(p.sourceRow) + ' · Jornada: ' + esc(display(p.journey)) + '</div><div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button></div></div>';
+    }).join('') || '<div class="data-empty">Nenhum registro encontrado com estes filtros.</div>';
+    document.getElementById('people-pager').innerHTML = '<button type="button" class="btn o" data-page="people:-1" ' + (peopleState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>' + numberLabel(start + (view.length ? 1 : 0)) + '–' + numberLabel(start + view.length) + ' de ' + numberLabel(items.length) + '</span><button type="button" class="btn o" data-page="people:1" ' + (peopleState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
+  function buildFiche(person) {
+    var section = document.getElementById('fic');
+    if (!person) {
+      section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="data-empty">Importe a planilha e selecione uma pessoa na aba Pessoas para abrir a ficha completa.</div>';
+      return;
+    }
+    var fields = [
+      ['NOME', person.fields[0]], ['IDADE', person.fields[1]], ['TELEFONE', person.fields[2]], ['TURMA', person.fields[3]],
+      ['DATA', excelDate(person.fields[4])], ['JORNADA', person.fields[5]], ['AULA P/ REPOR', person.fields[6]],
+      ['ENTROU NO GRUPO', person.fields[7]], ['CAMISETA', person.fields[8]], ['PG CAMISETA', person.fields[9]],
+      ['STATUS', person.fields[10]], ['PENDENCIA', person.fields[11]], ['BATIZADO', person.fields[12]],
+      ['INVESTIGAÇÃO PERFIL (FBI)', person.fields[13]]
+    ];
+    section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>Linha ' + esc(person.sourceRow) + ' da aba Batismo · Turma ' + esc(display(person.turma)) + '</div></div></div>' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Tem observação', 't-pe') : '') + '</div>' +
+      '<div class="card"><b>Todos os campos da planilha</b><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></div>' +
+      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn o" data-go="imp">Importação e backups</button></div>' +
+      '<p class="note">Nenhum campo foi editado ou corrigido automaticamente; o conteúdo original fica disponível no Excel guardado localmente.</p>';
+  }
+
+  function buildOrder() {
+    var section = document.getElementById('ord');
+    section.innerHTML = '<h2 class="t">Ordem de batismo</h2><div class="card"><p class="section-sub">Aba de origem: Ordem. Posições numeradas vazias foram preservadas e aparecem como pendentes de nome.</p><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><div></div><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
+    document.getElementById('order-search').addEventListener('input', function () { orderState.query = this.value; orderState.page = 1; drawOrderResults(); });
+    drawOrderResults();
+  }
+  function drawOrderResults() {
+    if (!appData || !document.getElementById('order-results')) return;
+    var query = normal(orderState.query);
+    var items = appData.order.filter(function (r) {
+      return !query || normal([r.number, r.name, r.note, r.removed, r.sourceRow].join(' ')).indexOf(query) >= 0;
+    });
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    orderState.page = Math.min(Math.max(1, orderState.page), pages);
+    var start = (orderState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    var named = appData.order.filter(function (r) { return !!r.name; }).length;
+    document.getElementById('order-count').textContent = numberLabel(items.length) + ' linhas com conteúdo · ' + numberLabel(named) + ' posições com nome · ' + numberLabel(appData.order.length - named) + ' posições sem nome';
+    document.getElementById('order-results').innerHTML = view.map(function (r) {
+      return '<div class="data-item"><div class="n">' + esc(display(r.number)) + '</div><div class="item-main"><strong>' + esc(r.name || 'Posição reservada sem nome') + '</strong><div class="item-meta">Número original: ' + esc(display(r.number)) + ' · Ficha retirada: ' + esc(display(r.removed)) + (r.note ? '<br>Observação: ' + esc(r.note) : '') + '<br>Linha original ' + esc(r.sourceRow) + '</div><div class="item-badges">' + (r.name ? chip('Nome preenchido', 't-ok') : chip('Precisa conferir', 't-pe')) + (r.note ? chip('Com observação', 't-in') : '') + '</div></div></div>';
+    }).join('') || '<div class="data-empty">Nenhuma posição encontrada.</div>';
+    document.getElementById('order-pager').innerHTML = '<button type="button" class="btn o" data-page="order:-1" ' + (orderState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + orderState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="order:1" ' + (orderState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
+  function buildDay() {
+    document.getElementById('dia').innerHTML = '<h2 class="t">Dia do batismo · check-in local</h2><div class="card" id="day-summary"></div><div class="data-toolbar"><input id="day-search" type="search" placeholder="Buscar pessoa na ordem…" aria-label="Buscar pessoa na ordem"><div></div><span class="local-only-note">As marcações ficam neste navegador, separadas da planilha original.</span></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div>';
+    document.getElementById('day-search').addEventListener('input', function () { dayState.query = this.value; dayState.page = 1; drawDayResults(); });
+    drawDayResults();
+  }
+  function drawDayResults() {
+    if (!appData || !document.getElementById('day-results')) return;
+    var namedOrder = appData.order.filter(function (row) { return !!row.name; });
+    var records = namedOrder.map(function (row) {
+      var state = (appData.checkin || {})[String(row.sourceRow)] || {};
+      return { row: row, state: state };
+    }).filter(function (entry) {
+      return !dayState.query || normal([entry.row.name, entry.row.number, entry.row.note].join(' ')).indexOf(normal(dayState.query)) >= 0;
+    });
+    var pages = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
+    dayState.page = Math.min(Math.max(1, dayState.page), pages);
+    var start = (dayState.page - 1) * PAGE_SIZE;
+    var view = records.slice(start, start + PAGE_SIZE);
+    var baptized = namedOrder.filter(function (row) { return !!((appData.checkin || {})[String(row.sourceRow)] || {}).baptized; }).length;
+    var present = namedOrder.filter(function (row) { return !!((appData.checkin || {})[String(row.sourceRow)] || {}).present; }).length;
+    document.getElementById('day-summary').innerHTML = '<small style="color:var(--mut)">MARCAÇÕES LOCAIS · NÃO ESTÃO NA PLANILHA ORIGINAL</small><div class="data-metrics" style="margin:10px 0 0">' + metric('Pessoas nomeadas na ordem', namedOrder.length, 'Aba Ordem') + metric('Presentes marcados', present, 'Salvo neste navegador') + metric('Batizados marcados', baptized, 'Salvo neste navegador') + '</div>';
+    document.getElementById('day-results').innerHTML = view.map(function (entry) {
+      var row = entry.row;
+      var state = entry.state;
+      return '<div class="data-item"><div class="n">' + esc(display(row.number)) + '</div><div class="item-main"><strong>' + esc(row.name) + '</strong><div class="item-meta">Ficha retirada: ' + esc(display(row.removed)) + (row.note ? '<br>Observação: ' + esc(row.note) : '') + '</div></div><div class="item-actions"><button type="button" class="btn ' + (state.present ? 'g' : 'o') + '" data-checkin="present" data-order-row="' + esc(row.sourceRow) + '">' + (state.present ? '✓ Presente' : 'Presente') + '</button><button type="button" class="btn ' + (state.baptized ? 'g' : '') + '" data-checkin="baptized" data-order-row="' + esc(row.sourceRow) + '">' + (state.baptized ? '✓ Batizado' : 'Marcar batizado') + '</button></div></div>';
+    }).join('') || '<div class="data-empty">Nenhuma pessoa encontrada na ordem.</div>';
+    document.getElementById('day-pager').innerHTML = '<button type="button" class="btn o" data-page="day:-1" ' + (dayState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + dayState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="day:1" ' + (dayState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
+  function buildPending() {
+    var pending = appData.people.filter(hasPendingSignal);
+    var statusCount = appData.people.filter(function (p) { return normal(p.status) === 'pendencia'; }).length;
+    var makeupCount = appData.people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
+    var noteCount = appData.people.filter(function (p) { return !isBlank(p.pending); }).length;
+    var noPhone = appData.people.filter(function (p) { return isBlank(p.phone); }).length;
+    document.getElementById('pen').innerHTML = '<h2 class="t">Observações e pendências da planilha</h2><div class="data-metrics">' + metric('Status PENDENCIA', statusCount, 'Campo STATUS') + metric('Sinais de reposição', makeupCount, 'JORNADA ou AULA P/ REPOR') + metric('Observações preenchidas', noteCount, 'Texto original preservado') + metric('Sem telefone', noPhone, 'Cadastro incompleto') + '</div><div class="card"><p class="section-sub">A planilha mistura pendências com observações operacionais. O texto não foi reinterpretado; cada valor é apresentado como veio da origem.</p><div class="data-toolbar"><input id="pending-search" type="search" placeholder="Buscar em nomes, pendências e observações…" aria-label="Buscar pendências"><div></div><span class="local-only-note">Não houve mesclagem nem correção automática.</span></div><div id="pending-count" class="data-summary"></div><div id="pending-results" class="data-list"></div><div id="pending-pager" class="data-pager"></div></div>';
+    document.getElementById('pending-search').addEventListener('input', function () { pendingState.query = this.value; pendingState.page = 1; drawPendingResults(); });
+    drawPendingResults();
+  }
+  function drawPendingResults() {
+    if (!appData || !document.getElementById('pending-results')) return;
+    var query = normal(pendingState.query);
+    var items = appData.people.filter(hasPendingSignal).filter(function (p) {
+      return !query || normal([p.name, p.phone, p.status, p.pending, p.lesson, p.journey, p.sourceRow].join(' ')).indexOf(query) >= 0;
+    });
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    pendingState.page = Math.min(Math.max(1, pendingState.page), pages);
+    var start = (pendingState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    document.getElementById('pending-count').textContent = numberLabel(items.length) + ' registros com algum sinal ou observação · página ' + pendingState.page + ' de ' + pages;
+    document.getElementById('pending-results').innerHTML = view.map(function (p) {
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Linha ' + esc(p.sourceRow) + '</div><div class="item-badges">' + signalFlags(p).map(function (flag) { return chip(flag, flag.indexOf('Status:') === 0 ? 't-er' : 't-pe'); }).join('') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button></div></div>';
+    }).join('') || '<div class="data-empty">Nenhum registro encontrado.</div>';
+    document.getElementById('pending-pager').innerHTML = '<button type="button" class="btn o" data-page="pending:-1" ' + (pendingState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + pendingState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="pending:1" ' + (pendingState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
+  function buildShirts() {
+    var summary = shirtSummary();
+    var bySize = countBy(summary.shirts, function (p) { return p.shirt; });
+    var sizes = Object.keys(bySize).sort(function (a, b) { return a.localeCompare(b, 'pt-BR', { numeric: true }); });
+    var max = Math.max.apply(null, sizes.map(function (size) { return bySize[size]; }).concat([1]));
+    document.getElementById('cam').innerHTML = '<h2 class="t">Camisetas · conforme a opção registrada</h2><div class="data-metrics">' + metric('Tamanhos preenchidos', summary.shirts.length, 'Não inclui “Já tem”') + metric('Pagamentos marcados', summary.paid.length, 'PG CAMISETA = verdadeiro') + metric('Pagamentos não marcados', summary.unpaid.length, 'Tamanho informado e pagamento falso') + metric('Já tem camiseta', summary.alreadyHas.length, 'Sem nova cobrança automática') + '</div><div class="card"><h2 class="t">Quantidade por tamanho</h2><p class="section-sub">Os tamanhos foram mantidos exatamente como registrados, inclusive variações como XG, G2 e G3.</p>' + (sizes.map(function (size) { return '<div class="data-bar-row"><span>' + esc(size) + '</span><div class="data-bar"><i style="width:' + Math.round((bySize[size] / max) * 100) + '%"></i></div><em>' + numberLabel(bySize[size]) + '</em></div>'; }).join('') || '<div class="data-empty">Nenhum tamanho preenchido.</div>') + '</div><div class="card"><h2 class="t">Pessoas com camiseta não marcada como paga</h2><div class="data-toolbar"><input id="shirt-search" type="search" placeholder="Buscar nome ou tamanho…" aria-label="Buscar camisetas a pagar"><div></div><span class="local-only-note">Não alteramos valores nem status do Excel.</span></div><div id="shirt-count" class="data-summary"></div><div id="shirt-results" class="data-list"></div><div id="shirt-pager" class="data-pager"></div></div>';
+    document.getElementById('shirt-search').addEventListener('input', function () { shirtState.query = this.value; shirtState.page = 1; drawShirtResults(); });
+    drawShirtResults();
+  }
+  function drawShirtResults() {
+    if (!appData || !document.getElementById('shirt-results')) return;
+    var query = normal(shirtState.query);
+    var items = shirtSummary().unpaid.filter(function (p) {
+      return !query || normal([p.name, p.shirt, p.turma, p.phone, p.sourceRow].join(' ')).indexOf(query) >= 0;
+    });
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    shirtState.page = Math.min(Math.max(1, shirtState.page), pages);
+    var start = (shirtState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    document.getElementById('shirt-count').textContent = numberLabel(items.length) + ' registros com camiseta informada e pagamento não marcado';
+    document.getElementById('shirt-results').innerHTML = view.map(function (p) {
+      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0,2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Tamanho: ' + esc(display(p.shirt)) + ' · Turma ' + esc(display(p.turma)) + ' · Linha ' + esc(p.sourceRow) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button></div></div>';
+    }).join('') || '<div class="data-empty">Nenhuma camiseta pendente para os filtros escolhidos.</div>';
+    document.getElementById('shirt-pager').innerHTML = '<button type="button" class="btn o" data-page="shirt:-1" ' + (shirtState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + shirtState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="shirt:1" ' + (shirtState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
+  function buildReturns() {
+    var rows = appData.people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); });
+    document.getElementById('rep').innerHTML = '<h2 class="t">Reposição de aulas</h2><div class="card"><div class="data-metrics">' + metric('Registros com reposição', rows.length, 'JORNADA ou AULA P/ REPOR') + metric('Com aula descrita', rows.filter(function (p) { return !isBlank(p.lesson); }).length, 'Texto original da coluna AULA P/ REPOR') + '</div><div class="data-toolbar"><input id="return-search" type="search" placeholder="Buscar nome, aula ou turma…" aria-label="Buscar reposições"><div></div><span class="local-only-note">Datas e textos são exibidos como registrados.</span></div><div id="return-count" class="data-summary"></div><div id="return-results" class="data-list"></div><div id="return-pager" class="data-pager"></div></div>';
+    document.getElementById('return-search').addEventListener('input', function () { returnState.query = this.value; returnState.page = 1; drawReturnResults(); });
+    drawReturnResults();
+  }
+  function drawReturnResults() {
+    if (!appData || !document.getElementById('return-results')) return;
+    var query = normal(returnState.query);
+    var items = appData.people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).filter(function (p) {
+      return !query || normal([p.name, p.lesson, p.journey, p.turma, p.sourceRow].join(' ')).indexOf(query) >= 0;
+    });
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    returnState.page = Math.min(Math.max(1, returnState.page), pages);
+    var start = (returnState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    document.getElementById('return-count').textContent = numberLabel(items.length) + ' registros · página ' + returnState.page + ' de ' + pages;
+    document.getElementById('return-results').innerHTML = view.map(function (p) {
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Jornada: ' + esc(display(p.journey)) + ' · Aula para repor: ' + esc(display(p.lesson)) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button></div></div>';
+    }).join('') || '<div class="data-empty">Nenhuma reposição encontrada.</div>';
+    document.getElementById('return-pager').innerHTML = '<button type="button" class="btn o" data-page="return:-1" ' + (returnState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + returnState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="return:1" ' + (returnState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
+  function buildHistory() {
+    document.getElementById('his').innerHTML = '<h2 class="t">Histórico</h2><div class="card"><p class="section-sub">A aba GERAL contém o histórico consolidado; “Ordem Batismo 35” mantém o registro operacional específico daquela turma.</p><div class="history-tabs"><button type="button" class="active" data-history-tab="geral">GERAL · ' + numberLabel(appData.general.length) + '</button><button type="button" data-history-tab="ord35">Ordem Batismo 35 · ' + numberLabel(appData.order35.length) + '</button></div><div class="data-toolbar"><input id="history-search" type="search" placeholder="Buscar nome, turma, ano ou status…" aria-label="Buscar histórico"><div></div><span class="local-only-note">Os registros não são mesclados entre abas.</span></div><div id="history-count" class="data-summary"></div><div id="history-results" class="data-list"></div><div id="history-pager" class="data-pager"></div></div>';
+    document.getElementById('history-search').addEventListener('input', function () { historyState.query = this.value; historyState.page = 1; drawHistoryResults(); });
+    drawHistoryResults();
+  }
+  function drawHistoryResults() {
+    if (!appData || !document.getElementById('history-results')) return;
+    var query = normal(historyState.query);
+    var items;
+    if (historyState.source === 'geral') {
+      items = appData.general.filter(function (p) { return !query || normal([p.name, p.age, p.phone, p.turma, p.year, p.sourceRow].join(' ')).indexOf(query) >= 0; });
+    } else {
+      items = appData.order35.filter(function (p) { return !query || normal([p.number, p.name, p.removed, p.lesson, p.baptized, p.merged, p.sourceRow].join(' ')).indexOf(query) >= 0; });
+    }
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    historyState.page = Math.min(Math.max(1, historyState.page), pages);
+    var start = (historyState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    document.querySelectorAll('[data-history-tab]').forEach(function (button) {
+      button.classList.toggle('active', button.dataset.historyTab === historyState.source);
+    });
+    document.getElementById('history-count').textContent = numberLabel(items.length) + ' registros nesta aba · página ' + historyState.page + ' de ' + pages;
+    document.getElementById('history-results').innerHTML = view.map(function (p) {
+      if (historyState.source === 'geral') {
+        return '<div class="data-item"><div class="item-main"><strong>' + esc(p.name) + '</strong><div class="item-meta">Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Turma: ' + esc(display(p.turma)) + ' · Ano: ' + esc(display(p.year)) + ' · Linha ' + esc(p.sourceRow) + '</div></div></div>';
+      }
+      return '<div class="data-item"><div class="n">' + esc(display(p.number)) + '</div><div class="item-main"><strong>' + esc(p.name || 'Registro sem nome') + '</strong><div class="item-meta">Ficha retirada: ' + esc(display(p.removed)) + '<br>Aula de batismo: ' + esc(display(p.lesson)) + ' · Batizado na missão: ' + esc(display(p.baptized)) + '<br>Unificação: ' + esc(display(p.merged)) + ' · Linha ' + esc(p.sourceRow) + '</div></div></div>';
+    }).join('') || '<div class="data-empty">Nenhum registro encontrado.</div>';
+    document.getElementById('history-pager').innerHTML = '<button type="button" class="btn o" data-page="history:-1" ' + (historyState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + historyState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="history:1" ' + (historyState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
+  function buildImportPreview(payload) {
+    var stats = payload.sheetStats.map(function (sheet) {
+      var extra = '';
+      var key = normal(sheet.name);
+      if (key === 'batismo') extra = numberLabel(payload.people.length) + ' linhas mapeadas, ' + numberLabel(payload.people.filter(function (p) { return !p.name; }).length) + ' sem nome';
+      if (key === 'ordem') extra = numberLabel(payload.order.length) + ' posições com conteúdo, ' + numberLabel(payload.order.filter(function (p) { return !!p.name; }).length) + ' com nome';
+      if (key === 'ordem batismo 35') extra = numberLabel(payload.order35.length) + ' registros operacionais mantidos';
+      if (key === 'geral') extra = numberLabel(payload.general.length) + ' pessoas com nome, ' + numberLabel(payload.generalUnmapped.length) + ' linhas sem nome textual mantidas na origem';
+      return '<div class="mapping-row"><strong>' + esc(sheet.name) + '</strong><span>' + numberLabel(sheet.rowCount) + ' linhas lidas · ' + numberLabel(sheet.nonemptyRows) + ' não vazias · ' + esc(sheet.columns) + ' colunas<br>' + esc(extra) + '</span></div>';
+    }).join('');
+    var skipped = payload.skippedDuplicateHeaders ? '<p class="section-sub">' + numberLabel(payload.skippedDuplicateHeaders) + ' linha(s) repetindo o cabeçalho da aba Batismo será(ão) excluída(s) apenas da lista de pessoas. Ela(s) continua(m) preservada(s) no Excel original e em rawSheets.</p>' : '';
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">O arquivo original completo (' + numberLabel(payload.sourceFileSize) + ' bytes) também será guardado no armazenamento local, junto com todas as linhas de origem.</p></div>';
+  }
+
+  function buildAll() {
+    if (!appData) return;
+    demoNotice.remove();
+    buildHome();
+    buildPeople();
+    buildFiche(appData.people.find(function (p) { return p.sourceRow === selectedPersonRow; }) || null);
+    buildOrder();
+    buildDay();
+    buildPending();
+    buildShirts();
+    buildReturns();
+    buildHistory();
+    var sourceInfo = 'Arquivo: ' + appData.sourceFileName + ' · importada em ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '. Dados guardados localmente neste navegador.';
+    document.getElementById('config-source').textContent = sourceInfo;
+    document.querySelectorAll('[data-download-current]').forEach(function (button) { button.disabled = false; });
+    document.getElementById('download-source').disabled = false;
+    document.getElementById('download-json').disabled = false;
+    setImportMessage('Planilha carregada neste navegador. ' + numberLabel(appData.people.length) + ' registros na aba Batismo, ' + numberLabel(appData.order.length) + ' posições na Ordem, ' + numberLabel(appData.order35.length) + ' registros na Ordem Batismo 35 e ' + numberLabel(appData.general.length) + ' pessoas no GERAL.', 'success');
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Dados atualmente carregados</b><p class="section-sub">' + esc(appData.sourceFileName) + ' · ' + numberLabel(appData.sourceFileSize) + ' bytes · ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '</p><p class="section-sub">Os dados estão no navegador, não no repositório público. Para inserir uma versão atualizada, selecione outro Excel e confirme a importação. A versão anterior será arquivada automaticamente.</p></div>';
+    refreshBackups();
+  }
+
+  function downloadBlob(blob, filename) {
+    if (!blob) return;
+    var url = URL.createObjectURL(blob);
+    var anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename || 'backup-batismo.xlsx';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+  }
+  function downloadWorkbook(workspace) {
+    if (!workspace || !workspace.sourceWorkbook) {
+      setImportMessage('Não há um Excel original salvo neste registro.', 'error');
+      return;
+    }
+    downloadBlob(workspace.sourceWorkbook, workspace.sourceFileName || 'backup-batismo.xlsx');
+  }
+  function downloadJson(workspace) {
+    if (!workspace) return;
+    var backup = {
+      exportadoEm: new Date().toISOString(),
+      arquivoOriginal: workspace.sourceFileName,
+      importadoEm: workspace.importedAt,
+      aviso: 'Para preservar também a formatação e a estrutura exata do Excel, mantenha o arquivo XLSX original. Este JSON preserva as linhas e valores lidos.',
+      rawSheets: workspace.rawSheets,
+      people: workspace.people,
+      order: workspace.order,
+      order35: workspace.order35,
+      general: workspace.general,
+      generalAll: workspace.generalAll,
+      generalUnmapped: workspace.generalUnmapped,
+      checkin: workspace.checkin || {}
+    };
+    downloadBlob(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' }), 'backup-gestao-batismo.json');
+  }
+
+  async function refreshBackups() {
+    var targets = [document.getElementById('backup-items'), document.getElementById('backup-items-config')].filter(Boolean);
+    if (!targets.length) return;
+    try {
+      var snapshots = await getSnapshots();
+      if (!snapshots.length) {
+        targets.forEach(function (node) { node.innerHTML = '<div class="data-empty">Nenhuma versão anterior arquivada neste navegador.</div>'; });
+        return;
+      }
+      var content = snapshots.map(function (snapshot) {
+        var label = snapshot.snapshotAt ? new Date(snapshot.snapshotAt).toLocaleString('pt-BR') : 'Data não registrada';
+        return '<div class="backup-row"><span><strong>' + esc(snapshot.sourceFileName || 'Planilha sem nome') + '</strong><br>' + esc(label) + '</span><div class="backup-actions"><button type="button" class="btn o" data-restore-backup="' + esc(snapshot.id) + '">Restaurar</button><button type="button" class="btn o" data-download-backup="' + esc(snapshot.id) + '">Baixar Excel</button><button type="button" class="btn o" data-json-backup="' + esc(snapshot.id) + '">JSON</button></div></div>';
+      }).join('');
+      targets.forEach(function (node) { node.innerHTML = content; });
+    } catch (error) {
+      targets.forEach(function (node) { node.textContent = 'Não foi possível listar os backups locais: ' + error.message; });
+    }
+  }
+  async function getSnapshotById(id) {
+    var snapshots = await getSnapshots();
+    return snapshots.find(function (snapshot) { return snapshot.id === id; }) || null;
+  }
+
+  var fileInput = document.getElementById('workbook-file');
+  fileInput.addEventListener('change', async function () {
+    pendingImport = null;
+    document.getElementById('confirm-import').disabled = true;
+    document.getElementById('import-preview').innerHTML = '';
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) {
+      setImportMessage('Nenhum arquivo selecionado.');
+      return;
+    }
+    if (!/\.(xlsx|xls)$/i.test(file.name)) {
+      setImportMessage('Formato inválido. Selecione um arquivo .xlsx ou .xls.', 'error');
+      return;
+    }
+    setImportMessage('Lendo as abas e conferindo os registros…');
+    try {
+      var buffer = await file.arrayBuffer();
+      var payload = normalizeWorkbook(file, buffer);
+      pendingImport = payload;
+      buildImportPreview(payload);
+      document.getElementById('confirm-import').disabled = false;
+      setImportMessage('Arquivo conferido. Revise os quantitativos abaixo e confirme para salvar neste navegador.', 'success');
+    } catch (error) {
+      setImportMessage(error.message || 'Não foi possível ler a planilha. Nenhum dado foi substituído.', 'error');
+    }
+  });
+
+  document.getElementById('confirm-import').addEventListener('click', async function () {
+    if (!pendingImport) return;
+    var message = 'Importar todos os dados para este navegador?';
+    if (appData) message += '\n\nA versão ativa será arquivada antes da substituição.';
+    message += '\n\nNenhum dado será enviado ao GitHub, mas também não haverá sincronização com outros dispositivos.';
+    if (!window.confirm(message)) return;
+    var button = document.getElementById('confirm-import');
+    button.disabled = true;
+    setImportMessage('Salvando a planilha original, as linhas e os registros locais…');
+    try {
+      await saveWorkspace(pendingImport, true);
+      appData = Object.assign({}, pendingImport, { id: 'current' });
+      selectedPersonRow = null;
+      peopleState = { query: '', turma: '', filter: 'all', page: 1 };
+      orderState = { query: '', page: 1 };
+      dayState = { query: '', page: 1 };
+      pendingState = { query: '', page: 1 };
+      shirtState = { query: '', page: 1 };
+      returnState = { query: '', page: 1 };
+      historyState = { query: '', source: 'geral', page: 1 };
+      buildAll();
+      goTo('home');
+    } catch (error) {
+      setImportMessage('Falha ao salvar: ' + (error.message || 'erro desconhecido') + '. A versão anterior não foi removida intencionalmente.', 'error');
+      button.disabled = false;
+    }
+  });
+
+  document.getElementById('download-source').addEventListener('click', function () { downloadWorkbook(appData); });
+  document.getElementById('download-json').addEventListener('click', function () { downloadJson(appData); });
+
+  document.addEventListener('click', async function (event) {
+    var goButton = event.target.closest('[data-go]');
+    if (goButton) { goTo(goButton.dataset.go); return; }
+
+    var openPersonButton = event.target.closest('[data-open-person]');
+    if (openPersonButton && appData) {
+      selectedPersonRow = Number(openPersonButton.dataset.openPerson);
+      var person = appData.people.find(function (p) { return p.sourceRow === selectedPersonRow; });
+      buildFiche(person);
+      goTo('fic');
+      return;
+    }
+
+    var pageButton = event.target.closest('[data-page]');
+    if (pageButton && !pageButton.disabled) {
+      var parts = pageButton.dataset.page.split(':');
+      var stateMap = { people: peopleState, order: orderState, day: dayState, pending: pendingState, shirt: shirtState, return: returnState, history: historyState };
+      var state = stateMap[parts[0]];
+      if (state) {
+        state.page = Math.max(1, state.page + Number(parts[1]));
+        var drawMap = { people: drawPeopleResults, order: drawOrderResults, day: drawDayResults, pending: drawPendingResults, shirt: drawShirtResults, return: drawReturnResults, history: drawHistoryResults };
+        drawMap[parts[0]]();
+      }
+      return;
+    }
+
+    var historyButton = event.target.closest('[data-history-tab]');
+    if (historyButton) {
+      historyState.source = historyButton.dataset.historyTab;
+      historyState.page = 1;
+      drawHistoryResults();
+      return;
+    }
+
+    var checkinButton = event.target.closest('[data-checkin][data-order-row]');
+    if (checkinButton && appData) {
+      var rowId = String(checkinButton.dataset.orderRow);
+      appData.checkin = appData.checkin || {};
+      var status = appData.checkin[rowId] || {};
+      if (checkinButton.dataset.checkin === 'present') status.present = !status.present;
+      if (checkinButton.dataset.checkin === 'baptized') {
+        status.baptized = !status.baptized;
+        if (status.baptized) status.present = true;
+      }
+      appData.checkin[rowId] = status;
+      try {
+        await saveWorkspace(appData, false);
+        drawDayResults();
+      } catch (error) {
+        setImportMessage('Não foi possível salvar a marcação local: ' + error.message, 'error');
+      }
+      return;
+    }
+
+    var restoreButton = event.target.closest('[data-restore-backup]');
+    if (restoreButton) {
+      var backupId = restoreButton.dataset.restoreBackup;
+      var snapshot = await getSnapshotById(backupId);
+      if (!snapshot) { setImportMessage('O backup selecionado não foi encontrado.', 'error'); return; }
+      if (!window.confirm('Restaurar esta versão local? A versão ativa atual será arquivada antes da restauração.')) return;
+      try {
+        await saveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
+        appData = Object.assign({}, snapshot, { id: 'current' });
+        selectedPersonRow = null;
+        buildAll();
+        goTo('home');
+      } catch (error) {
+        setImportMessage('Não foi possível restaurar o backup: ' + error.message, 'error');
+      }
+      return;
+    }
+
+    var backupDownload = event.target.closest('[data-download-backup]');
+    if (backupDownload) {
+      var downloadSnapshot = await getSnapshotById(backupDownload.dataset.downloadBackup);
+      downloadWorkbook(downloadSnapshot);
+      return;
+    }
+    var backupJson = event.target.closest('[data-json-backup]');
+    if (backupJson) {
+      var jsonSnapshot = await getSnapshotById(backupJson.dataset.jsonBackup);
+      downloadJson(jsonSnapshot);
+      return;
+    }
+    var currentDownload = event.target.closest('[data-download-current]');
+    if (currentDownload && appData) {
+      if (currentDownload.dataset.downloadCurrent === 'xlsx') downloadWorkbook(appData);
+      else downloadJson(appData);
+      return;
+    }
+    if (event.target.closest('[data-print]')) {
+      window.print();
+    }
+  });
+
+  async function initialize() {
+    importSection.querySelector('#backup-items').innerHTML = '<div class="data-empty">Verificando backups locais…</div>';
+    try {
+      var existing = await getCurrentWorkspace();
+      if (existing && existing.rawSheets && existing.people && existing.order) {
+        appData = existing;
+        buildAll();
+      } else {
+        setImportMessage('Nenhuma planilha importada neste navegador. Selecione o Excel para conferir e importar todos os registros.');
+        await refreshBackups();
+      }
+    } catch (error) {
+      setImportMessage('O armazenamento local não pôde ser aberto: ' + error.message, 'error');
+    }
+  }
+
+  initialize();
 })();
 </script>
 </body>
