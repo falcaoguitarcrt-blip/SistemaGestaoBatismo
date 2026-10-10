@@ -1,585 +1,362 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#123c32">
-<meta name="description" content="Painel visual do Sistema de Gestão de Batismo">
-<title>Sistema de Gestão de Batismo</title>
+<meta name="description" content="Protótipo demonstrativo para organização de turmas, pessoas, preparação e dia do batismo.">
+<title>Gestão de Batismo · Protótipo</title>
 <style>
-:root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#17231f;background:#f4f7f5;font-synthesis:none;--green:#123c32;--green2:#176448;--muted:#718077;--line:#e3ebe6}
-*{box-sizing:border-box}body{margin:0;min-height:100vh}button{font:inherit}
-.shell{min-height:100vh;display:grid;grid-template-columns:248px minmax(0,1fr)}
-aside{background:var(--green);color:#effaf4;padding:23px 15px;display:flex;flex-direction:column;gap:25px}
-.brand{display:flex;align-items:center;gap:11px;padding:0 5px;font-weight:760;font-size:15px;line-height:1.35}
-.mark{width:42px;height:42px;border-radius:13px;background:#d8eee2;color:var(--green);display:grid;place-items:center;font-size:22px}
-.section-label{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#a8c9bb;padding:0 12px}
-nav{display:grid;gap:5px}.nav{width:100%;text-align:left;color:#e7f3ed;border:0;background:transparent;border-radius:10px;padding:12px;cursor:pointer;display:flex;gap:12px;align-items:center;font-size:13px}
-.nav:hover,.nav.active{background:#28584b}.nav-icon{width:22px;text-align:center;font-size:16px}
-.side-note{margin-top:auto;color:#a8c9bb;font-size:11px;line-height:1.6;padding:12px}
-main{min-width:0}.topbar{min-height:76px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;gap:14px}
-.crumb{color:#7b8981;font-size:12px}.top-title{font-size:18px;font-weight:760;margin-top:3px}
-.pill{border:1px solid #d9e5de;border-radius:999px;padding:8px 11px;font-size:11px;color:#365b4c;background:#f4faf6;display:flex;align-items:center;gap:7px;white-space:nowrap}
-.content{padding:28px;max-width:1440px;margin:auto}.eyebrow{color:#28725b;text-transform:uppercase;font-weight:760;font-size:10px;letter-spacing:.14em}
-h1{font-size:clamp(25px,3vw,34px);letter-spacing:-.045em;margin:8px 0}.sub{color:var(--muted);margin:0;line-height:1.55;font-size:14px}
-.heading{display:flex;justify-content:space-between;align-items:end;gap:18px;margin-bottom:22px}
-.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:680;background:var(--green2);color:white;cursor:pointer}.btn:hover{background:#104b37}.btn-secondary{background:#fff;color:#285343;border:1px solid #dce7e0}
-.notice{background:#fff8e7;border:1px solid #f1dfb0;color:#68511c;border-radius:12px;padding:13px 15px;line-height:1.5;font-size:12px;margin:20px 0}
-.notice strong{display:block;margin-bottom:3px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:19px;min-width:0;box-shadow:0 2px 8px #163f2a05}
-.metric-top{display:flex;align-items:center;justify-content:space-between;gap:8px}.metric-label{font-size:12px;color:#6f7d75}.metric-symbol{width:34px;height:34px;border-radius:10px;background:#e9f4ed;color:#286149;display:grid;place-items:center;font-size:17px}
-.metric{font-size:29px;font-weight:780;margin:13px 0 4px;letter-spacing:-.04em;color:#1d3529}.metric-foot{font-size:11px;color:#8a958f;line-height:1.45}
-.section-title{font-size:16px;font-weight:760;margin:0}.section-sub{font-size:12px;color:#819087;margin:5px 0 0;line-height:1.5}
-.lower{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(260px,.75fr);gap:15px;margin-top:16px}
-.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}
-.empty{border:1px dashed #d7e2db;border-radius:12px;padding:25px 17px;text-align:center;color:#7c8981;line-height:1.6;font-size:12px;background:#fbfdfb}
-.event-placeholder{display:grid;grid-template-columns:48px minmax(0,1fr);gap:12px;align-items:center;padding:14px;border:1px solid #e7eee9;border-radius:12px;margin-top:10px}
-.event-icon{height:45px;border-radius:12px;background:#edf5ef;display:grid;place-items:center;font-size:19px;color:#286149}
-.event-placeholder strong{font-size:13px;display:block}.event-placeholder small{font-size:11px;color:#87938c;display:block;margin-top:4px;line-height:1.4}
-.security-list{display:grid;gap:13px}.security-row{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.45;color:#526259}.status-dot{width:8px;height:8px;border-radius:50%;background:#c59a42;flex-shrink:0;margin-top:4px}
-.modules{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.module{display:flex;align-items:center;gap:11px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:13px;text-align:left;cursor:pointer;color:#20362b;min-width:0}
-.module:hover{border-color:#9fc4af;background:#f8fcf9;transform:translateY(-1px)}
-.module-icon{width:37px;height:37px;border-radius:11px;background:#e9f4ed;display:grid;place-items:center;font-size:17px;flex-shrink:0}
-.module strong{display:block;font-size:12px;line-height:1.35}.module small{color:#829087;font-size:10px;display:block;margin-top:3px;line-height:1.35}
-.footer{color:#8a958f;font-size:11px;text-align:center;margin:26px 0 6px}.mobile-menu{display:none;border:1px solid #dce6df;border-radius:10px;background:white;padding:8px 10px;cursor:pointer;color:#244b39}.mobile-scrim{display:none}button:focus-visible{outline:3px solid #e5b95c;outline-offset:3px}@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
-.module-view{display:none}.module-view.active{display:block}.overview-view.hidden{display:none}
-.module-placeholder{margin-top:20px}.back-button{margin-top:18px}
-@media(max-width:1120px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.modules{grid-template-columns:repeat(2,minmax(0,1fr))}.shell{grid-template-columns:220px minmax(0,1fr)}.content{padding:22px}.topbar{padding:0 22px}}
-@media(max-width:760px){.shell{grid-template-columns:1fr}aside{display:none;position:fixed;z-index:6;inset:0 auto 0 0;width:min(290px,85vw);overflow:auto;box-shadow:10px 0 35px #102c2030}aside.open{display:flex}.mobile-scrim.open{display:block;position:fixed;inset:0;background:#0b2119a6;z-index:5;border:0;width:100%;height:100%;padding:0}.topbar{min-height:68px;padding:12px 15px}.mobile-menu{display:block}.content{padding:21px 15px}.heading{align-items:start;flex-direction:column}.lower{grid-template-columns:1fr}.pill{font-size:10px}.brand{font-size:14px}.heading .btn{width:100%}}
-.people-list-compact{display:grid;gap:8px}.person-row.person-row-compact{padding:12px 14px;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s,background .15s}.person-row-compact:hover{border-color:#9fc4af;background:#f8fcf9}.person-row-compact .person-main{gap:5px}.person-row-compact .person-main strong{font-size:14px}.person-row-compact .person-main small{font-size:11px;line-height:1.5}.person-row-compact .person-actions{align-items:center}.person-row-compact .small-btn{white-space:nowrap}.person-row-compact .row-open{color:#286149;font-weight:700;font-size:12px}.person-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.detail-field{border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}.detail-field small{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}.detail-field strong{font-size:13px;overflow-wrap:anywhere}.person-detail-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.person-detail-actions button{flex:0 0 auto}@media(max-width:560px){.person-detail-grid{grid-template-columns:1fr}.person-row.person-row-compact{align-items:flex-start;flex-direction:row}.person-row-compact .person-actions{width:auto}.person-detail-actions button{flex:1}}@media(max-width:560px){.form-grid{grid-template-columns:1fr}.person-row{align-items:flex-start;flex-direction:column}.person-actions{width:100%}.person-actions button{flex:1}.people-toolbar{align-items:stretch}.people-toolbar .search-input{max-width:none}}@media(max-width:430px){.grid{gap:9px}.card{padding:14px}.metric{font-size:24px}.modules{grid-template-columns:1fr}.pill{display:none}.metric-label{font-size:11px}.metric-foot{font-size:10px}.event-placeholder{grid-template-columns:40px minmax(0,1fr);padding:11px}.event-icon{height:40px}}
+:root{--pri:#123c32;--pri2:#1a5446;--aq:#1f7a99;--gold:#c9a24b;--bg:#f6f8f7;--tx:#14211d;--mut:#5f7069;--card:#fff;--ln:#dfe7e3;--ok:#2e8b57;--pe:#d9951b;--er:#c0392b;--in:#2b7bb9;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a17;--tx:#e8f0ec;--mut:#9fb3aa;--card:#16251f;--ln:#26382f;--pri:#2a7a65;--pri2:#339078}}
+:root[data-theme="dark"]{--bg:#0e1a17;--tx:#e8f0ec;--mut:#9fb3aa;--card:#16251f;--ln:#26382f;--pri:#2a7a65;--pri2:#339078}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Inter,system-ui,sans-serif}
+h1,h2{font-family:Fraunces,Georgia,serif;margin:0}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--ln)}
+.brand{display:flex;align-items:center;gap:8px;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:18px}
+.brand i{background:var(--pri);color:var(--gold);width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-style:normal}
+nav{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding:2px 1px 5px;scrollbar-width:thin}
+nav button{flex:none;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;padding:8px 14px;font:inherit;font-size:13px;min-height:40px}
+nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{max-width:980px;margin:0 auto;padding:14px}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.hero{background:linear-gradient(135deg,#123c32,#1f7a99);color:#fff;border:0}
+.hero small{opacity:.8}.hero h2{font-size:26px;margin:4px 0}
+.bar{height:8px;background:var(--ln);border-radius:9px;overflow:hidden}.bar b{display:block;height:100%;background:var(--ok);border-radius:9px}
+.hero .bar{background:rgba(255,255,255,.25)}.hero .bar b{background:var(--gold)}
+.btn{display:inline-block;border:0;border-radius:12px;padding:11px 16px;font:inherit;font-weight:600;background:var(--gold);color:#2b2108;min-height:44px;cursor:pointer;transition:filter .15s ease,transform .15s ease}
+.btn:hover{filter:brightness(.97)}.btn:active{transform:translateY(1px)}.btn:focus-visible,nav button:focus-visible,input:focus-visible{outline:3px solid var(--aq);outline-offset:2px}.btn.g{background:var(--ok);color:#fff}.btn.o{background:transparent;border:1px solid var(--ln);color:var(--tx)}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi b{font-size:28px;display:block;font-family:Fraunces,Georgia,serif}.kpi span{color:var(--mut);font-size:12px}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;margin-right:4px}
+.t-ok{background:#2e8b5722;color:var(--ok)}.t-pe{background:#d9951b22;color:var(--pe)}.t-er{background:#c0392b22;color:var(--er)}.t-in{background:#2b7bb922;color:var(--in)}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}.row:first-child{border-top:0}
+.av{flex:none;width:38px;height:38px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.row .m{flex:1;min-width:0}.row .m div{color:var(--mut);font-size:12px}
+.f{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}.f span:first-child{width:78px;color:var(--mut)}.f .bar{flex:1}.f em{width:26px;font-style:normal;text-align:right}
+input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;background:var(--card);color:var(--tx);font:inherit;margin-bottom:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.chips span{border:1px solid var(--ln);border-radius:99px;padding:6px 12px;font-size:12px;background:var(--card)}.chips .a{background:var(--aq);color:#fff;border-color:var(--aq)}
+.dots{display:flex;gap:8px}.dots span{flex:1;text-align:center;padding:10px 0;border-radius:10px;font-size:12px;font-weight:600}
+.n{width:30px;height:30px;border-radius:8px;background:var(--gold);color:#2b2108;font-weight:700;display:grid;place-items:center;flex:none}
+.hd{color:var(--mut);letter-spacing:-2px;cursor:grab}
+.big{font-size:44px;font-family:Fraunces,Georgia,serif;text-align:center}
+.bb{display:flex;gap:8px;margin-top:8px}.bb .btn{flex:1;min-height:52px;text-align:center}
+.k{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.k h3{margin:0 0 8px;font-size:14px}
+.k .card{background:var(--bg)}.k .i{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px;margin-bottom:8px;font-size:13px}
+.note{color:var(--mut);font-size:12px;text-align:center;margin:6px 0 20px}
+h2.t{font-size:22px;margin:4px 0 12px}
+.demo-toast{position:fixed;left:50%;bottom:18px;z-index:20;transform:translate(-50%,14px);width:min(92vw,460px);padding:12px 16px;border-radius:12px;background:var(--tx);color:var(--card);box-shadow:0 8px 28px #0003;font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;text-align:center}
+.demo-toast.show{opacity:1;transform:translate(-50%,0)}
+@media print{body{background:#fff;color:#111}header,.bb,.note,.demo-toast,#tm{display:none!important}main{max-width:none;padding:0}.card{box-shadow:none;break-inside:avoid}section{display:none!important}section.on{display:block!important}.bar{border:1px solid #bbb}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
-<div class="shell">
-<aside id="sidebar" aria-label="Menu principal">
- <div class="brand"><div class="mark">✦</div><div>Sistema de Gestão<br>de Batismo</div></div>
- <div class="section-label">Menu principal</div>
- <nav id="sideNav">
-  <button class="nav active" data-view="overview"><span class="nav-icon">▦</span>Visão geral</button>
-  <button class="nav" data-view="people"><span class="nav-icon">♙</span>Pessoas</button>
-  <button class="nav" data-view="baptism"><span class="nav-icon">✧</span>Ordem de batismo</button>
- </nav>
- <div class="side-note">Acompanhamento de pessoas<br>Dados reais ainda não conectados<br>© Sistema de Gestão de Batismo</div>
-</aside>
-<button id="mobileScrim" class="mobile-scrim" aria-label="Fechar menu"></button>
+<header>
+<div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
+<nav id="nav" aria-label="Navegação principal">
+<button class="on" data-s="home">▦ Visão geral</button><button data-s="pes">♙ Pessoas</button><button data-s="fic">📋 Ficha</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
+</nav>
+</header>
 <main>
- <header class="topbar">
-  <div style="display:flex;align-items:center;gap:11px"><button id="mobileMenu" class="mobile-menu" aria-label="Abrir menu" aria-expanded="false" aria-controls="sidebar">☰</button><div><div class="crumb">Sistema / <span id="crumb">Visão geral</span></div><div class="top-title" id="pageTitle">Visão geral</div></div></div>
-  <div class="pill">● Prévia visual</div>
- </header>
- <div class="content">
-  <section id="overview" class="overview-view" aria-labelledby="welcomeTitle">
-   <div class="heading"><div><div class="eyebrow">Painel administrativo</div><h1 id="welcomeTitle">Acompanhe o programa de batismo</h1><p class="sub">Acompanhe a jornada das pessoas, a preparação e a organização dos próximos batismos.</p></div><button id="connectionStatus" class="btn btn-secondary" type="button">Ver status da conexão</button></div>
-   <div class="notice" id="prototypeNotice" tabindex="-1"><strong>Modo de preparação</strong>Este painel ainda não está conectado ao banco de dados. Os indicadores permanecem sem números para não apresentar dados fictícios. Não insira informações pessoais nesta versão pública.</div>
-   <div class="grid">
-    <article class="card"><div class="metric-top"><span class="metric-label">Pessoas na lista de batismo</span><span class="metric-symbol">♙</span></div><div class="metric">—</div><div class="metric-foot">Total de registros ativos</div></article>
-    <article class="card"><div class="metric-top"><span class="metric-label">Pessoas com pendências</span><span class="metric-symbol">!</span></div><div class="metric">—</div><div class="metric-foot">Pessoas com pelo menos um apontamento</div></article>
-    <article class="card"><div class="metric-top"><span class="metric-label">Jornada concluída</span><span class="metric-symbol">✓</span></div><div class="metric">—</div><div class="metric-foot">Não significa batismo realizado</div></article>
-    <article class="card"><div class="metric-top"><span class="metric-label">Camisetas pendentes</span><span class="metric-symbol">♧</span></div><div class="metric">—</div><div class="metric-foot">Tamanho e pagamento na ficha da pessoa</div></article>
-   </div>
-   <div class="lower">
-    <article class="card"><div class="card-head"><div><h2 class="section-title">Próximo evento de batismo</h2><p class="section-sub">Resumo do evento e da ordem de participantes</p></div><span class="metric-foot">Sem dados</span></div><div class="empty">Nenhum evento conectado.<br>Quando o banco estiver configurado, o evento e sua ordem aparecerão aqui.</div></article>
-    <article class="card"><div class="card-head"><div><h2 class="section-title">Preparação do sistema</h2><p class="section-sub">O que falta para uso real</p></div></div><div class="security-list"><div class="security-row"><span class="status-dot"></span><span>Interface pública sem dados pessoais embutidos</span></div><div class="security-row"><span class="status-dot"></span><span>Autenticação e permissões ainda precisam ser configuradas</span></div><div class="security-row"><span class="status-dot"></span><span>Firebase e regras de acesso ainda não validados</span></div><div class="security-row"><span class="status-dot"></span><span>Importação de dados reais bloqueada até os testes</span></div></div></article>
-   </div>
-   <div style="margin-top:25px"><div class="card-head"><div><h2 class="section-title">Acesso rápido</h2><p class="section-sub">Escolha uma área para visualizar a próxima etapa de preparação.</p></div></div>
-    <div class="modules">
-     <button class="module" data-view="people"><span class="module-icon">♙</span><span><strong>Pessoas</strong><small>Lista, ficha, pendências e camisetas</small></span></button>
-     <button class="module" data-view="baptism"><span class="module-icon">✧</span><span><strong>Ordem de batismo</strong><small>Eventos e sequência de participantes</small></span></button>
-    </div>
-   </div>
-  </section>
-  <section id="moduleView" class="module-view" aria-labelledby="moduleTitle" aria-live="polite">
-   <div class="eyebrow">Módulo em preparação</div><h1 id="moduleTitle">Pessoas</h1><p class="sub" id="moduleDescription">Esta área será implementada após validar o armazenamento e as permissões.</p>
-   <section id="peopleWorkspace" class="people-workspace" hidden>
-    <div class="people-private-note"><strong>Modo de demonstração.</strong> Os registros ficam somente na memória desta aba, desaparecem ao recarregar a página e não são enviados ao servidor. Use apenas dados fictícios. Não cadastre pessoas reais nesta versão pública.</div>
-    <div id="peopleListView">
-     <div class="people-toolbar"><div><h2 class="section-title">Pessoas</h2><p class="section-sub">Clique em uma pessoa para abrir a ficha completa.</p></div><button class="btn" id="showPersonForm" type="button">+ Adicionar pessoa</button></div>
-     <input id="peopleSearch" class="search-input" type="search" placeholder="Buscar nome, turma, presença ou pendência..." aria-label="Buscar pessoas demonstrativas" style="width:100%;max-width:none;margin:12px 0">
-     <div id="peopleCount" class="people-count">Nenhuma pessoa adicionada nesta sessão.</div>
-     <div id="peopleList" class="people-list people-list-compact" aria-live="polite" style="margin-top:10px"><div class="empty">Nenhum registro de demonstração ainda.<br>Use “Adicionar pessoa” para testar a ficha.</div></div>
-    </div>
-    <article class="card" id="personFormCard" hidden>
-     <div class="card-head"><div><h2 class="section-title" id="personFormTitle">Adicionar pessoa demonstrativa</h2><p class="section-sub">Cadastro visual para validar os campos antes da integração segura.</p></div><button class="btn btn-secondary" id="backFromPersonForm" type="button">Voltar</button></div>
-     <form id="personForm" novalidate>
-      <div class="form-grid">
-       <div class="field"><label for="personName">Nome de demonstração *</label><input id="personName" name="name" maxlength="100" autocomplete="off" required placeholder="Ex.: Pessoa de teste"></div>
-       <div class="field"><label for="personClass">Turma *</label><select id="personClass" name="className" required><option value="">Selecione uma turma</option><option>Turma A</option><option>Turma B</option><option>Turma C</option><option>A definir</option></select></div>
-       <div class="field"><label for="personJourney">Situação da jornada *</label><select id="personJourney" name="journey" required><option value="">Selecione</option><option value="Não informado">Não informado</option><option value="Em andamento">Em andamento</option><option value="Concluída">Concluída</option><option value="Precisa repor aula">Precisa repor aula</option></select></div>
-       <div class="field"><label for="personLessonsToMakeUp">Aulas a repor</label><input id="personLessonsToMakeUp" name="lessonsToMakeUp" maxlength="180" placeholder="Ex.: aula 2, aula 4 ou Não informado"></div>
-       <div class="field"><label for="personBaptismClass">Aula de preparação para batismo</label><select id="personBaptismClass" name="baptismClass"><option value="Não informado">Não informado</option><option value="Não realizada">Não realizada</option><option value="Realizada">Realizada</option><option value="Precisa confirmar">Precisa confirmar</option></select></div>
-       <div class="field"><label for="personBaptismParticipation">Participação no próximo batismo</label><select id="personBaptismParticipation" name="baptismParticipation"><option value="Não informado">Não informado</option><option value="Em avaliação">Em avaliação</option><option value="Confirmada">Confirmada</option><option value="Não participará">Não participará</option></select></div>
-       <div class="field"><label for="personBaptismResult">Resultado final do batismo</label><select id="personBaptismResult" name="baptismResult"><option value="Não informado">Não informado</option><option value="Batizado">Batizado</option><option value="Não realizado">Não realizado</option></select></div>
-       <div class="field"><label for="personPending">Pendências (demonstração)</label><input id="personPending" name="pending" maxlength="240" placeholder="Ex.: confirmar presença, Não informado"></div>
-       <div class="field"><label for="personGroup">Entrou no grupo de batismo?</label><select id="personGroup" name="group"><option value="Não informado">Não informado</option><option value="Sim">Sim</option><option value="Não">Não</option></select></div>
-       <div class="field"><label for="personShirt">Tamanho da camiseta</label><select id="personShirt" name="shirt"><option value="Não informado">Não informado</option><option>PP</option><option>P</option><option>M</option><option>G</option><option>GG</option><option>XGG</option><option>Não precisa</option></select></div>
-       <div class="field"><label for="personShirtPaid">Pagamento da camiseta</label><select id="personShirtPaid" name="shirtPaid"><option value="Não informado">Não informado</option><option value="Pago">Pago</option><option value="Pendente">Pendente</option><option value="Não se aplica">Não se aplica</option></select></div>
-       <div class="field"><label for="personNotes">Observação administrativa não confidencial</label><input id="personNotes" name="notes" maxlength="240" placeholder="Somente dados fictícios nesta demonstração"></div>
-      </div>
-      <div class="form-actions"><button class="btn" id="savePerson" type="submit">Adicionar à demonstração</button><button class="btn btn-secondary" id="cancelPersonEdit" type="button" hidden>Cancelar edição</button></div>
-      <p id="personFormMessage" class="form-error" role="status" aria-live="polite"></p>
-     </form>
-    </article>
-    <article class="card" id="personDetailView" hidden>
-     <div class="card-head"><div><h2 class="section-title" id="personDetailName">Ficha da pessoa</h2><p class="section-sub" id="personDetailSubtitle">Dados de acompanhamento</p></div></div>
-     <div id="personDetailFields" class="person-detail-grid"></div>
-     <div class="person-detail-actions"><button class="btn btn-secondary" id="backToPeople" type="button">← Voltar à lista</button><button class="btn" id="editPersonFromDetail" type="button">Editar ficha</button><button class="btn btn-secondary" id="removePersonFromDetail" type="button">Remover registro de teste</button></div>
-    </article>
-   </section>
-   <section id="baptismWorkspace" class="people-workspace" hidden>
-    <div class="people-private-note"><strong>Modo de demonstração.</strong> Use apenas nomes fictícios. Eventos e ordem ficam na memória desta aba e desaparecem ao recarregar. Não cadastre pessoas reais nesta versão pública.</div>
-    <article class="card">
-     <div class="card-head"><div><h2 class="section-title">Criar evento de batismo</h2><p class="section-sub">Cada evento mantém sua própria lista demonstrativa.</p></div></div>
-     <form id="baptismEventForm" novalidate>
-      <div class="form-grid">
-       <div class="field"><label for="eventName">Nome do evento *</label><input id="eventName" maxlength="100" required placeholder="Ex.: Batismo de demonstração"></div>
-       <div class="field"><label for="eventDate">Data do evento</label><input id="eventDate" type="date"></div>
-      </div>
-      <div class="form-actions"><button class="btn" type="submit">Criar evento demonstrativo</button></div>
-      <p id="eventFormMessage" class="form-error" role="status" aria-live="polite"></p>
-     </form>
-    </article>
-    <div class="people-toolbar"><div><h2 class="section-title">Eventos desta sessão</h2><p class="section-sub">Selecione um evento para organizar a ordem.</p></div><input id="eventSearch" class="search-input" type="search" placeholder="Buscar evento..." aria-label="Buscar eventos demonstrativos"></div>
-    <div id="eventList" class="people-list" aria-live="polite"><div class="empty">Nenhum evento demonstrativo criado.</div></div>
-    <article class="card" id="eventOrderCard" hidden>
-     <div class="card-head"><div><h2 class="section-title" id="selectedEventTitle">Ordem do evento</h2><p class="section-sub" id="selectedEventMeta"></p></div><span class="pill">Ordem manual</span></div>
-     <form id="baptismPersonForm" novalidate>
-      <div class="form-grid">
-       <div class="field"><label for="orderPersonName">Nome fictício *</label><input id="orderPersonName" maxlength="100" required placeholder="Ex.: Participante de teste"></div>
-       <div class="field"><label for="orderPersonClass">Turma</label><select id="orderPersonClass"><option>Não informado</option><option>Turma A</option><option>Turma B</option><option>Turma C</option><option>A definir</option></select></div>
-       <div class="field"><label for="orderParticipation">Participação no evento</label><select id="orderParticipation"><option>Não informado</option><option>Prevista</option><option>Confirmada</option><option>Não participará</option><option>Compareceu</option><option>Não compareceu</option></select></div>
-       <div class="field"><label for="orderResult">Resultado final do batismo</label><select id="orderResult"><option>Não informado</option><option>Realizado</option><option>Não realizado</option><option>Adiado</option></select></div>
-       <div class="field"><label for="orderNotes">Observação não confidencial</label><input id="orderNotes" maxlength="180" placeholder="Somente dados fictícios"></div>
-      </div>
-      <div class="form-actions"><button class="btn" type="submit" id="saveOrderPerson">Adicionar à ordem</button><button class="btn btn-secondary" id="cancelOrderEdit" type="button" hidden>Cancelar edição</button></div>
-      <p id="orderFormMessage" class="form-error" role="status" aria-live="polite"></p>
-     </form>
-     <div class="people-toolbar"><div><h2 class="section-title">Ordem de batismo</h2><p class="section-sub">Use as setas para mudar a posição. A numeração é atualizada automaticamente.</p></div><input id="orderSearch" class="search-input" type="search" placeholder="Buscar participante..." aria-label="Buscar participantes na ordem"></div>
-     <div id="orderCount" class="people-count">Nenhum participante nesta ordem.</div>
-     <div id="orderList" class="people-list" aria-live="polite"><div class="empty">Adicione nomes fictícios para testar a ordem.</div></div>
-    </article>
-   </section>
-   <section id="shirtsWorkspace" class="people-workspace" hidden>
-    <div class="people-private-note"><strong>Modo de demonstração.</strong> Esta área usa apenas participantes fictícios criados na aba Pessoas. Alterações existem somente nesta sessão e desaparecem ao recarregar a página. Não cadastre dados reais.</div>
-    <div class="grid">
-     <article class="card"><div class="metric-top"><span class="metric-label">Participantes na demonstração</span><span class="metric-icon">♙</span></div><div class="metric-value" id="shirtTotal">0</div><div class="metric-foot">Registros temporários</div></article>
-     <article class="card"><div class="metric-top"><span class="metric-label">Tamanho informado</span><span class="metric-icon">♧</span></div><div class="metric-value" id="shirtSizeKnown">0</div><div class="metric-foot">Não inclui “Não precisa”</div></article>
-     <article class="card"><div class="metric-top"><span class="metric-label">Pagamento pendente</span><span class="metric-icon">R$</span></div><div class="metric-value" id="shirtPaymentPending">0</div><div class="metric-foot">Camisetas com pendência declarada</div></article>
-    </div>
-    <article class="card">
-     <div class="card-head"><div><h2 class="section-title">Controle de camisetas</h2><p class="section-sub">Edite tamanho e situação do pagamento. Os indicadores são calculados a partir dos registros fictícios desta sessão.</p></div></div>
-     <div class="people-toolbar"><div><h2 class="section-title">Lista de participantes</h2><p class="section-sub">Cadastre primeiro em Pessoas para que apareçam aqui.</p></div><input id="shirtsSearch" class="search-input" type="search" placeholder="Buscar nome, turma, tamanho..." aria-label="Buscar registros de camisetas"></div>
-     <div id="shirtsCount" class="people-count">Nenhum registro demonstrativo.</div>
-     <div id="shirtsList" class="people-list" aria-live="polite"><div class="empty">Nenhuma pessoa demonstrativa cadastrada. Acesse Pessoas e crie um registro fictício.</div></div>
-    </article>
-   </section>
-   <section id="paymentsWorkspace" class="people-workspace" hidden>
-    <div class="people-private-note"><strong>Apontamento complementar em modo de demonstração.</strong> Use somente dados fictícios. Este espaço serve para registrar uma informação financeira quando necessário, não para administrar as finanças do programa. Os registros desaparecem ao recarregar e nenhum pagamento real é processado.</div>
-    <div class="grid">
-     <article class="card"><div class="metric-top"><span class="metric-label">Apontamentos registrados</span><span class="metric-icon">▤</span></div><div class="metric-value" id="paymentTotal">0</div><div class="metric-foot">Inclui todos os status</div></article>
-     <article class="card"><div class="metric-top"><span class="metric-label">Em aberto</span><span class="metric-icon">◷</span></div><div class="metric-value" id="paymentOpen">R$ 0,00</div><div class="metric-foot">Valores ainda não recebidos</div></article>
-     <article class="card"><div class="metric-top"><span class="metric-label">Recebido</span><span class="metric-icon">✓</span></div><div class="metric-value" id="paymentReceived">R$ 0,00</div><div class="metric-foot">Somente lançamentos marcados como pagos</div></article>
-    </div>
-    <article class="card">
-     <div class="card-head"><div><h2 class="section-title">Registrar apontamento financeiro</h2><p class="section-sub">Registre somente quando houver necessidade. O apontamento é complementar ao acompanhamento do batismo.</p></div></div>
-     <form id="paymentForm" novalidate>
-      <div class="form-grid">
-       <div class="field"><label for="paymentPerson">Participante fictício *</label><select id="paymentPerson" required><option value="">Selecione uma pessoa</option></select></div>
-       <div class="field"><label for="paymentDescription">Descrição *</label><input id="paymentDescription" maxlength="100" required placeholder="Ex.: Camiseta demonstrativa"></div>
-       <div class="field"><label for="paymentAmount">Valor (R$) *</label><input id="paymentAmount" type="number" min="0.01" max="9999999" step="0.01" required placeholder="0,00"></div>
-       <div class="field"><label for="paymentStatus">Situação *</label><select id="paymentStatus" required><option value="Pendente">Pendente</option><option value="Pago">Pago</option><option value="Cancelado">Cancelado</option></select></div>
-       <div class="field"><label for="paymentDueDate">Data de vencimento</label><input id="paymentDueDate" type="date"></div>
-       <div class="field"><label for="paymentNotes">Observação não confidencial</label><input id="paymentNotes" maxlength="180" placeholder="Opcional, somente demonstração"></div>
-      </div>
-      <div class="form-actions"><button class="btn" type="submit" id="savePayment">Adicionar lançamento</button><button class="btn btn-secondary" type="button" id="cancelPaymentEdit" hidden>Cancelar edição</button></div>
-      <p id="paymentFormMessage" class="form-error" role="status" aria-live="polite"></p>
-     </form>
-    </article>
-    <article class="card">
-     <div class="people-toolbar"><div><h2 class="section-title">Lançamentos</h2><p class="section-sub">Valores pendentes não são somados ao total recebido.</p></div><input id="paymentsSearch" class="search-input" type="search" placeholder="Buscar participante, descrição ou status..." aria-label="Buscar lançamentos demonstrativos"></div>
-     <div class="form-grid" style="margin:12px 0">
-      <div class="field"><label for="paymentsStatusFilter">Filtrar por situação</label><select id="paymentsStatusFilter"><option value="Todos">Todas as situações</option><option value="Pendente">Pendente</option><option value="Pago">Pago</option><option value="Cancelado">Cancelado</option></select></div>
-      <div class="field"><label for="paymentsPersonFilter">Filtrar por participante</label><select id="paymentsPersonFilter"><option value="Todos">Todos os participantes</option></select></div>
-     </div>
-     <div id="paymentsCount" class="people-count">Nenhum lançamento demonstrativo.</div>
-     <div id="paymentsList" class="people-list" aria-live="polite"><div class="empty">Nenhum lançamento criado nesta sessão.</div></div>
-    </article>
-   </section>
-   <section id="reportsWorkspace" class="people-workspace" hidden>
-    <div class="people-private-note"><strong>Relatórios demonstrativos.</strong> Os números são calculados somente a partir dos registros fictícios criados nesta sessão. Não representam dados oficiais. Recarregar a página apaga esses registros.</div>
-    <div class="grid">
-     <article class="card"><div class="metric-top"><span class="metric-label">Pessoas na demonstração</span><span class="metric-icon">♙</span></div><div class="metric-value" id="reportPeopleTotal">0</div><div class="metric-foot">Registros temporários</div></article>
-     <article class="card"><div class="metric-top"><span class="metric-label">Eventos demonstrativos</span><span class="metric-icon">✧</span></div><div class="metric-value" id="reportEventsTotal">0</div><div class="metric-foot">Eventos criados nesta sessão</div></article>
-     <article class="card"><div class="metric-top"><span class="metric-label">Participantes na ordem</span><span class="metric-icon">☷</span></div><div class="metric-value" id="reportOrderTotal">0</div><div class="metric-foot">Somados entre os eventos demonstrativos</div></article>
-     <article class="card"><div class="metric-top"><span class="metric-label">Pagamentos recebidos</span><span class="metric-icon">✓</span></div><div class="metric-value" id="reportReceivedTotal">R$ 0,00</div><div class="metric-foot">Somente lançamentos marcados como pagos</div></article>
-    </div>
-    <article class="card">
-     <div class="card-head"><div><h2 class="section-title">Filtros do relatório</h2><p class="section-sub">Escolha qual resumo demonstrativo deseja consultar.</p></div></div>
-     <div class="form-grid">
-      <div class="field"><label for="reportType">Tipo de relatório</label><select id="reportType"><option value="people">Pessoas por turma e jornada</option><option value="payments">Lançamentos por situação</option><option value="shirts">Camisetas por tamanho e pagamento</option><option value="events">Eventos e resultados de batismo</option></select></div>
-      <div class="field"><label for="reportSearch">Pesquisar no relatório</label><input id="reportSearch" type="search" placeholder="Digite para filtrar as linhas..." aria-label="Pesquisar no relatório demonstrativo"></div>
-     </div>
-     <div class="form-actions"><button type="button" class="btn btn-secondary" id="refreshReport">Atualizar relatório</button><button type="button" class="btn btn-secondary" id="printReport">Imprimir / salvar PDF</button></div>
-    </article>
-    <article class="card">
-     <div class="card-head"><div><h2 class="section-title" id="reportTableTitle">Pessoas por turma e jornada</h2><p class="section-sub" id="reportTableDescription">Resumo calculado a partir dos registros fictícios desta sessão.</p></div></div>
-     <div id="reportSummary" class="grid" style="margin-bottom:14px"></div>
-     <div id="reportTable" class="people-list" aria-live="polite"><div class="empty">Nenhum dado demonstrativo para exibir.</div></div>
-    </article>
-   </section>
-   <article class="card module-placeholder" id="genericModulePlaceholder"><div class="card-head"><h2 class="section-title">Área reservada</h2><span class="pill">Ainda não conectado</span></div><div class="empty">Nenhum dado é carregado ou salvo neste módulo nesta fase.<br>Esta tela é apenas uma estrutura visual, sem operações reais.</div></article>
-   <button class="btn back-button" id="backOverview" type="button">← Voltar à visão geral</button>
-  </section>
-  <div class="footer">Protótipo visual · Não armazena nem exibe dados reais.</div>
- </div>
-</main>
+
+<section id="home" class="on">
+<div class="card hero"><small>PRÓXIMO BATISMO · TURMA 36</small><h2>12 de outubro</h2><small>em 2 dias · 42 de 57 prontos</small>
+<div class="bar" style="margin:12px 0"><b style="width:74%"></b></div><button type="button" class="btn">Abrir ordem →</button></div>
+<div class="grid" style="margin-bottom:12px">
+<div class="card kpi" style="margin:0"><span>Pessoas na turma</span><b>57</b></div>
+<div class="card kpi" style="margin:0"><span>Com pendências</span><b style="color:var(--pe)">15</b></div>
+<div class="card kpi" style="margin:0"><span>Jornada concluída</span><b style="color:var(--ok)">49</b></div>
+<div class="card kpi" style="margin:0"><span>Camisetas a pagar</span><b style="color:var(--aq)">11</b></div>
 </div>
+<div class="card"><h2 class="t">Funil de preparação</h2>
+<div class="f"><span>Inscritos</span><div class="bar"><b style="width:100%"></b></div><em>57</em></div>
+<div class="f"><span>Aulas 1–4</span><div class="bar"><b style="width:95%"></b></div><em>54</em></div>
+<div class="f"><span>Jornada</span><div class="bar"><b style="width:86%"></b></div><em>49</em></div>
+<div class="f"><span>Ekklesia</span><div class="bar"><b style="width:81%"></b></div><em>46</em></div>
+<div class="f"><span>Camiseta</span><div class="bar"><b style="width:70%"></b></div><em>40</em></div></div>
+<div class="card"><h2 class="t">Atenção agora</h2>
+<div class="row"><span class="tag t-er">Urgente</span><div class="m">3 menores sem responsável cadastrado</div></div>
+<div class="row"><span class="tag t-pe">Antiga</span><div class="m">8 pendências abertas há mais de 30 dias</div></div>
+<div class="row"><span class="tag t-in">Dados</span><div class="m">2 possíveis duplicados para revisar</div></div></div>
+</section>
+
+<section id="pes">
+<input type="search" placeholder="🔍 Buscar por nome ou telefone…" aria-label="Buscar pessoas por nome ou telefone">
+<div class="chips"><span class="a">Turma 36</span><span>Pendentes</span><span>Sem Ekklesia</span><span>Menores</span><span>+ Filtro</span></div>
+<div class="card">
+<div class="row"><div class="av">MS</div><div class="m"><b>Marina Souza</b><div>Turma 36 · 34 anos</div></div><span class="tag t-ok">Pronta</span></div>
+<div class="row"><div class="av">JL</div><div class="m"><b>João Lima</b><div>Turma 36 · 12 anos</div></div><span class="tag t-er">Sem responsável</span></div>
+<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Turma 36 · 41 anos</div></div><span class="tag t-pe">Ekklesia</span></div>
+<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36 · 28 anos</div></div><span class="tag t-pe">Aula 3</span></div>
+<div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Turma 36 · 50 anos</div></div><span class="tag t-ok">Pronto</span></div></div>
+<p id="pes-empty" class="note" style="display:none">Nenhuma pessoa encontrada com esse termo.</p>
+<p class="note">Toque numa pessoa para abrir a ficha demonstrativa</p>
+</section>
+
+<section id="fic">
+<div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">AP</div><div class="m"><h2 style="font-size:20px">Ana Paula Reis</h2><div>28 anos · (16) 9XXXX-XXXX · Turma 36</div></div></div>
+<span class="tag t-pe">2 pendências</span><span class="tag t-in">Pr. Gustavo</span></div>
+<p class="note" style="margin:0 0 10px">Os detalhes de preparação abaixo são exemplos estáticos neste protótipo.</p>
+<div class="card"><b>Aulas da jornada</b><div class="dots" style="margin-top:8px"><span class="t-ok">Aula 1 ✓</span><span class="t-ok">Aula 2 ✓</span><span class="t-pe">Aula 3 ✗</span><span class="t-ok">Aula 4 ✓</span></div>
+<p style="font-size:13px;color:var(--mut);margin:8px 0 0">Reposição: aulão 14/11 · inscrita</p></div>
+<div class="card"><b>Preparação</b>
+<div class="row"><div class="m">Cadastro no Ekklesia</div><span class="tag t-ok">OK</span></div>
+<div class="row"><div class="m">Camiseta<div>Optou por ter · tamanho M</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="m">Entrou no grupo</div><span class="tag t-ok">Sim</span></div>
+<div class="row"><div class="m">Verificação de perfil 🔒</div><span class="tag t-ok">OK</span></div></div>
+<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 WhatsApp</button><button type="button" class="btn o" data-demo-action="true">Editar</button></div>
+</section>
+
+<section id="ord">
+<h2 class="t">Ordem · Turma 36</h2>
+<div class="card">
+<div class="row"><span class="hd">⋮⋮</span><span class="n">1</span><div class="m"><b>Marina Souza</b><div>Pr. Gustavo</div></div><span class="tag t-ok">Ficha ✓</span></div>
+<div class="row"><span class="hd">⋮⋮</span><span class="n">2</span><div class="m"><b>Rafael Torres</b><div>Pr. Gustavo</div></div><span class="tag t-ok">Ficha ✓</span></div>
+<div class="row"><span class="hd">⋮⋮</span><span class="n">3</span><div class="m"><b>Ana Paula Reis</b><div>Pra. Erika</div></div><span class="tag t-pe">Ficha ○</span></div>
+<div class="row"><span class="hd">⋮⋮</span><span class="n">4</span><div class="m"><b>João Lima (12)</b><div>Pra. Erika · subgrupo Kids</div></div><span class="tag t-er">Pendência</span></div></div>
+<div class="bb"><button type="button" class="btn">🖨 Imprimir ordem</button><button type="button" class="btn o" data-demo-action="true">+ Pessoa</button></div>
+</section>
+
+<section id="dia">
+<div class="card" style="text-align:center"><small style="color:var(--mut)">BATIZADOS HOJE</small><div class="big"><span id="cnt">18</span> <small style="font-size:20px;color:var(--mut)">/ 57</small></div>
+<div class="bar"><b style="width:32%;background:var(--aq)"></b></div><span class="tag t-ok" style="margin-top:10px">● Protótipo · sem sincronização real</span></div>
+<input type="search" placeholder="🔍 Buscar na ordem…" aria-label="Buscar pessoas na ordem do batismo">
+<div class="card"><div class="row"><span class="n">19</span><div class="m"><b style="font-size:17px">Marina Souza</b><div>Pr. Gustavo</div></div></div>
+<div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
+<div class="card"><div class="row"><span class="n">20</span><div class="m"><b style="font-size:17px">Rafael Torres</b><div>Pr. Gustavo</div></div></div>
+<div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
+<p id="dia-empty" class="note" style="display:none">Nenhuma pessoa encontrada na ordem.</p>
+</section>
+
+<section id="pen">
+<h2 class="t">Pendências</h2>
+<div class="k">
+<div class="card"><h3>Abertas · 9</h3><div class="i"><b>Ekklesia</b><br>Carlos Ferreira<br><span class="tag t-er">vencida</span></div><div class="i"><b>Aula 3</b><br>Ana Paula Reis</div></div>
+<div class="card"><h3>Em contato · 4</h3><div class="i"><b>Responsável</b><br>João Lima<br><span class="tag t-pe">vence amanhã</span></div></div>
+<div class="card"><h3>Resolvidas · 22</h3><div class="i"><b>Camiseta G</b><br>Rafael Torres ✓</div></div></div>
+</section>
+
+<section id="cam">
+<h2 class="t">Camisetas</h2>
+<div class="card"><b>Opção de cada pessoa · Turma 36</b>
+<div class="bar" style="display:flex;margin:10px 0"><b style="width:89%;background:var(--aq)"></b><b style="width:7%;background:var(--mut)"></b><b style="width:4%;background:var(--gold)"></b></div>
+<span class="tag t-in">51 querem</span><span class="tag" style="background:var(--ln);color:var(--mut)">4 não querem</span><span class="tag t-pe">2 já têm</span>
+<p style="font-size:12px;color:var(--mut);margin:8px 0 0">Só quem <b>optou por ter</b> entra na cobrança. Quem não quis ou já tem fica sem pendência.</p></div>
+<b style="font-size:13px">Pedido por tamanho (apenas quem optou)</b>
+<div class="card">
+<div class="f"><span>PP</span><div class="bar"><b style="width:25%;background:var(--aq)"></b></div><em>4</em></div>
+<div class="f"><span>P</span><div class="bar"><b style="width:45%;background:var(--aq)"></b></div><em>7</em></div>
+<div class="f"><span>M</span><div class="bar"><b style="width:100%;background:var(--aq)"></b></div><em>16</em></div>
+<div class="f"><span>G</span><div class="bar"><b style="width:75%;background:var(--aq)"></b></div><em>12</em></div>
+<div class="f"><span>GG</span><div class="bar"><b style="width:50%;background:var(--aq)"></b></div><em>8</em></div>
+<div class="f"><span>EG / G1+</span><div class="bar"><b style="width:25%;background:var(--aq)"></b></div><em>4</em></div></div>
+<div class="grid"><div class="card kpi"><span>Pagas</span><b style="color:var(--ok)">40</b></div><div class="card kpi"><span>A receber</span><b style="color:var(--pe)">11</b></div><div class="card kpi"><span>Entregues</span><b>0</b></div></div>
+<div class="card"><b>Cobrança · só quem optou e ainda não pagou</b>
+<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Optou · tamanho M</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Optou · tamanho G</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Optou · tamanho GG</div></div><span class="tag t-ok">Pago</span></div>
+<div class="row"><div class="av" style="background:var(--mut)">JL</div><div class="m"><b>João Lima</b><div>Não optou por camiseta</div></div><span class="tag" style="background:var(--ln);color:var(--mut)">Sem cobrança</span></div></div>
+<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 Cobrar 11 pessoas</button><button type="button" class="btn" data-demo-action="true">⬇ Exportar pedido</button></div>
+</section>
+
+<style>.cert{border:3px double var(--gold);border-radius:14px;padding:22px 14px;text-align:center;background:var(--card)}.cert h2{font-size:24px;color:var(--pri)}.cert .s{width:60%;margin:22px auto 4px;border-top:1px solid var(--mut)}.st{display:flex;gap:6px;margin-bottom:12px}.st span{flex:1;text-align:center;font-size:11px;padding:8px 2px;border-radius:9px;background:var(--ln);color:var(--mut)}.st .d{background:var(--ok);color:#fff}.st .c{background:var(--pri);color:#fff}.sw{width:40px;height:22px;border-radius:99px;background:var(--ok);position:relative;flex:none}.sw:after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}</style>
+<section id="rep"><h2 class="t">Reposição de aulas</h2>
+<div class="card hero"><small>PRÓXIMO AULÃO</small><h2>14 de nov · 19h</h2><small>23 inscritos · 6 vagas livres</small></div>
+<div class="card"><b>Quem precisa repor</b>
+<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36</div></div><span class="tag t-pe">Aula 3</span><span class="tag t-ok">Inscrita</span></div>
+<div class="row"><div class="av">CB</div><div class="m"><b>Caio Batista</b><div>Turma 36</div></div><span class="tag t-pe">Aulas 3 e 4</span><span class="tag t-er">Sem inscrição</span></div>
+<div class="row"><div class="av">DM</div><div class="m"><b>Daniele Matos</b><div>Turma 35</div></div><span class="tag t-pe">Aula 2</span><span class="tag t-er">Sem inscrição</span></div></div>
+<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 Convidar 2 pessoas</button><button type="button" class="btn o">Imprimir chamada</button></div></section>
+<section id="his"><h2 class="t">Histórico de batizados</h2><input type="search" placeholder="🔍 Buscar nome em todos os anos…" aria-label="Buscar nome no histórico de batismos">
+<div class="chips"><span>2023</span><span>2024</span><span>2025</span><span class="a">2026</span></div>
+<p id="his-empty" class="note" style="display:none">Nenhum registro encontrado no histórico.</p>
+<div class="card"><div class="row"><span class="n">35</span><div class="m"><b>Turma 35 · 18/07/2026</b><div>36 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">34</span><div class="m"><b>Turma 34 · 30/05/2026</b><div>43 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">36</span><div class="m"><b>Turma 36 · 12/10/2026</b><div>57 inscritos</div></div><span class="tag t-in">Em 2 dias</span></div></div>
+<div class="cert"><small style="color:var(--gold)">✦ CERTIFICADO ✦</small><h2>Marina Souza</h2><p style="margin:8px 0">foi batizada em 18 de julho de 2026<br>Turma 35 · Pr. Gustavo</p><div class="s"></div><small style="color:var(--mut)">Pastor responsável</small></div>
+<div class="bb"><button type="button" class="btn" data-demo-action="true">⬇ Gerar PDF</button><button type="button" class="btn o" data-demo-action="true">Editar modelo</button></div></section>
+<section id="imp"><h2 class="t">Importar planilha</h2>
+<div class="st"><span class="d">1 Enviar ✓</span><span class="d">2 Colunas ✓</span><span class="c">3 Revisar</span><span>4 Confirmar</span></div>
+<div class="grid" style="margin-bottom:12px"><div class="card kpi" style="margin:0"><span>Linhas lidas</span><b>1.562</b></div><div class="card kpi" style="margin:0"><span>Duplicados</span><b style="color:var(--pe)">82</b></div><div class="card kpi" style="margin:0"><span>Sem turma</span><b style="color:var(--pe)">56</b></div><div class="card kpi" style="margin:0"><span>Sem telefone</span><b style="color:var(--er)">93</b></div></div>
+<div class="card"><b>Corrigir antes de importar</b>
+<div class="row"><div class="m">3 datas impossíveis (anos 1977–1985)<div>Sugestão: usar a data da turma</div></div><span class="tag t-ok">Aplicar</span></div>
+<div class="row"><div class="m">Telefones em 6 formatos<div>Padronizar para (16) 9XXXX-XXXX</div></div><span class="tag t-ok">Aplicar</span></div>
+<div class="row"><div class="m">20 textos livres de pendência<div>Agrupar em 9 tipos padrão</div></div><span class="tag t-in">Revisar</span></div>
+<div class="row"><div class="m">82 nomes duplicados<div>Mesclar, manter ambos ou ignorar</div></div><span class="tag t-pe">Decidir</span></div></div>
+<div class="bb"><button type="button" class="btn o" data-demo-action="true">← Voltar</button><button type="button" class="btn" data-demo-action="true">Continuar →</button></div></section>
+<section id="cfg"><h2 class="t">Configurações</h2>
+<div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
+<div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
+<div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
+<div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Ekklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
+<p class="note">Protótipo interativo · dados fictícios · ações não conectadas a uma base de dados</p>
+</main>
+<div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
 <script>
-const labels={overview:"Visão geral",people:"Pessoas",classes:"Turmas e inscrições",lessons:"Aulas e presenças",baptism:"Ordem de batismo",shirts:"Camisetas",payments:"Apontamentos financeiros",reports:"Relatórios"};
-let demoPeople=[];let editingDemoId=null;let nextDemoId=1;
-let selectedDemoPersonId=null;
-function openPeopleList(){
- document.getElementById("peopleListView").hidden=false;
- document.getElementById("personFormCard").hidden=true;
- document.getElementById("personDetailView").hidden=true;
- selectedDemoPersonId=null;
-}
-function openPersonForm(){
- document.getElementById("peopleListView").hidden=true;
- document.getElementById("personDetailView").hidden=true;
- document.getElementById("personFormCard").hidden=false;
- document.getElementById("personForm").scrollIntoView({behavior:"smooth",block:"start"});
- document.getElementById("personName").focus();
-}
-function openPersonDetail(id){
- const p=demoPeople.find(x=>x.id===id);if(!p)return;
- selectedDemoPersonId=id;
- document.getElementById("peopleListView").hidden=true;
- document.getElementById("personFormCard").hidden=true;
- document.getElementById("personDetailView").hidden=false;
- document.getElementById("personDetailName").textContent=p.name;
- document.getElementById("personDetailSubtitle").textContent="Turma: "+p.className+" · Jornada: "+p.journey;
- const fields=[
-  ["Turma",p.className],["Situação da jornada",p.journey],["Aulas para repor",p.lessonsToMakeUp],
-  ["Aula de preparação para batismo",p.baptismClass],["Participação no próximo batismo",p.baptismParticipation],
-  ["Resultado final do batismo",p.baptismResult],["Entrou no grupo",p.group],["Pendências",p.pending],
-  ["Tamanho da camiseta",p.shirt],["Apontamento da camiseta",p.shirtPaid],["Observação administrativa",p.notes]
- ];
- const box=document.getElementById("personDetailFields");box.replaceChildren();
- fields.forEach(([label,value])=>{const cell=document.createElement("div");cell.className="detail-field";const small=document.createElement("small");small.textContent=label;const strong=document.createElement("strong");strong.textContent=value||"Não informado";cell.append(small,strong);box.append(cell);});
-}
-function renderDemoPeople(){
- const query=document.getElementById("peopleSearch").value.trim().toLocaleLowerCase("pt-BR");
- const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.journey+" "+p.pending+" "+p.lessonsToMakeUp+" "+p.baptismParticipation+" "+p.baptismClass+" "+p.baptismResult+" "+p.group+" "+p.shirt+" "+p.shirtPaid+" "+p.notes).toLocaleLowerCase("pt-BR").includes(query));
- document.getElementById("peopleCount").textContent=demoPeople.length===0?"Nenhuma pessoa adicionada nesta sessão.":demoPeople.length+" pessoa(s) · "+visible.length+" exibida(s)";
- const list=document.getElementById("peopleList");
- if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum resultado para esta busca.":"Nenhum registro de demonstração ainda.<br>Use “Adicionar pessoa” para testar a ficha.")+'</div>';return;}
- list.replaceChildren();
- visible.forEach(p=>{
-  const row=document.createElement("article");row.className="person-row person-row-compact";row.tabIndex=0;row.setAttribute("role","button");row.setAttribute("aria-label","Abrir ficha de "+p.name);
-  const main=document.createElement("div");main.className="person-main";
-  const name=document.createElement("strong");name.textContent=p.name;
-  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Jornada: "+p.journey+" · Presença/participação: "+p.baptismParticipation+" · Pendências: "+p.pending;
-  const open=document.createElement("span");open.className="row-open";open.textContent="Ver ficha →";
-  main.append(name,detail);row.append(main,open);
-  row.addEventListener("click",()=>openPersonDetail(p.id));
-  row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openPersonDetail(p.id);}});
-  list.append(row);
- });
-}
-function resetDemoForm(){
- document.getElementById("personForm").reset();editingDemoId=null;
- document.getElementById("personFormTitle").textContent="Adicionar pessoa demonstrativa";
- document.getElementById("savePerson").textContent="Adicionar à demonstração";
- document.getElementById("cancelPersonEdit").hidden=true;
- document.getElementById("personFormMessage").textContent="";
-}
-function editDemoPerson(id){
- const p=demoPeople.find(x=>x.id===id);if(!p)return;editingDemoId=id;
- document.getElementById("personName").value=p.name;document.getElementById("personClass").value=p.className;
- document.getElementById("personJourney").value=p.journey;document.getElementById("personGroup").value=p.group;
- document.getElementById("personLessonsToMakeUp").value=p.lessonsToMakeUp==="Não informado"?"":p.lessonsToMakeUp;
- document.getElementById("personBaptismClass").value=p.baptismClass;document.getElementById("personBaptismParticipation").value=p.baptismParticipation;document.getElementById("personBaptismResult").value=p.baptismResult;
- document.getElementById("personPending").value=p.pending==="Não informado"?"":p.pending;document.getElementById("personNotes").value=p.notes==="Não informado"?"":p.notes;
- document.getElementById("personShirt").value=p.shirt;document.getElementById("personShirtPaid").value=p.shirtPaid;
- document.getElementById("personFormTitle").textContent="Editar pessoa demonstrativa";
- openPersonForm();
- document.getElementById("savePerson").textContent="Salvar alteração temporária";
- document.getElementById("cancelPersonEdit").hidden=false;document.getElementById("personFormMessage").textContent="";
- document.getElementById("personName").focus();document.getElementById("personForm").scrollIntoView({behavior:"smooth",block:"start"});
-}
-function removeDemoPerson(id){
- const person=demoPeople.find(p=>p.id===id);if(!person)return;
- if(!window.confirm("Remover o registro demonstrativo de "+person.name+" desta sessão?"))return;
- demoPeople=demoPeople.filter(p=>p.id!==id);if(editingDemoId===id)resetDemoForm();renderDemoPeople();renderShirts();renderPayments();renderReports();renderPayments();
-}
-document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
-document.getElementById("showPersonForm").addEventListener("click",()=>{resetDemoForm();openPersonForm();});
-document.getElementById("backFromPersonForm").addEventListener("click",()=>{resetDemoForm();openPeopleList();});
-document.getElementById("backToPeople").addEventListener("click",()=>{openPeopleList();renderDemoPeople();});
-document.getElementById("editPersonFromDetail").addEventListener("click",()=>{if(selectedDemoPersonId!==null)editDemoPerson(selectedDemoPersonId);});
-document.getElementById("removePersonFromDetail").addEventListener("click",()=>{if(selectedDemoPersonId!==null)removeDemoPerson(selectedDemoPersonId);openPeopleList();});
-document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
-document.getElementById("personForm").addEventListener("submit",e=>{
- e.preventDefault();const name=document.getElementById("personName").value.trim();
- const className=document.getElementById("personClass").value;const journey=document.getElementById("personJourney").value;
- const message=document.getElementById("personFormMessage");
- if(!name||!className||!journey){message.className="form-error";message.textContent="Preencha o nome de demonstração, a turma e a situação da jornada.";return;}
- const item={name,className,journey,group:document.getElementById("personGroup").value,lessonsToMakeUp:document.getElementById("personLessonsToMakeUp").value.trim()||"Não informado",baptismClass:document.getElementById("personBaptismClass").value,baptismParticipation:document.getElementById("personBaptismParticipation").value,baptismResult:document.getElementById("personBaptismResult").value,pending:document.getElementById("personPending").value.trim()||"Não informado",shirt:document.getElementById("personShirt").value,shirtPaid:document.getElementById("personShirtPaid").value,notes:document.getElementById("personNotes").value.trim()||"Não informado"};
- if(editingDemoId!==null){const i=demoPeople.findIndex(p=>p.id===editingDemoId);if(i>=0)demoPeople[i]={...demoPeople[i],...item};}
- else demoPeople.push({id:nextDemoId++,...item});
- resetDemoForm();message.className="form-success";message.textContent="Registro atualizado apenas nesta sessão de demonstração.";
- openPeopleList();renderDemoPeople();document.getElementById("peopleCount").textContent="Registro salvo nesta sessão demonstrativa · "+demoPeople.length+" pessoa(s) no total.";renderShirts();
-});
-document.getElementById("cancelPersonEdit").addEventListener("click",resetDemoForm);
-document.getElementById("peopleSearch").addEventListener("input",renderDemoPeople);
+(function () {
+  'use strict';
 
-let demoBaptismEvents=[];let selectedBaptismEventId=null;let nextBaptismEventId=1;let nextOrderEntryId=1;let editingOrderEntryId=null;
-function selectedBaptismEvent(){return demoBaptismEvents.find(e=>e.id===selectedBaptismEventId)||null;}
+  var nav = document.getElementById('nav');
+  var toast = document.getElementById('demo-toast');
+  var toastTimer;
 
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () {
+      toast.classList.remove('show');
+    }, 3000);
+  }
 
-let demoPayments=[];let nextDemoPaymentId=1;let editingPaymentId=null;
-function moneyBR(value){return Number(value).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
-function fillPaymentPersonOptions(){
- const person=document.getElementById("paymentPerson"),filter=document.getElementById("paymentsPersonFilter");
- const oldPerson=person.value,oldFilter=filter.value;
- person.replaceChildren();const blank=document.createElement("option");blank.value="";blank.textContent="Selecione uma pessoa";person.append(blank);
- filter.replaceChildren();const all=document.createElement("option");all.value="Todos";all.textContent="Todos os participantes";filter.append(all);
- demoPeople.forEach(p=>{const o=document.createElement("option");o.value=String(p.id);o.textContent=p.name;person.append(o);const f=document.createElement("option");f.value=String(p.id);f.textContent=p.name;filter.append(f);});
- if([...person.options].some(o=>o.value===oldPerson))person.value=oldPerson;
- if([...filter.options].some(o=>o.value===oldFilter))filter.value=oldFilter;
-}
-function resetPaymentForm(){document.getElementById("paymentForm").reset();editingPaymentId=null;document.getElementById("savePayment").textContent="Adicionar lançamento";document.getElementById("cancelPaymentEdit").hidden=true;document.getElementById("paymentFormMessage").textContent="";}
+  function go(sectionId) {
+    var button = document.querySelector('[data-s="' + sectionId + '"]');
+    if (button) button.click();
+  }
 
-function reportRow(title,detail){
- const row=document.createElement("article");row.className="person-row";
- const main=document.createElement("div");main.className="person-main";
- const strong=document.createElement("strong");strong.textContent=title;
- const small=document.createElement("small");small.textContent=detail;
- main.append(strong,small);row.append(main);return row;
-}
-function reportMetric(label,value){
- const card=document.createElement("article");card.className="card";
- const title=document.createElement("div");title.className="metric-label";title.textContent=label;
- const val=document.createElement("div");val.className="metric-value";val.textContent=String(value);
- card.append(title,val);return card;
-}
-function renderReports(){
- const received=demoPayments.filter(p=>p.status==="Pago").reduce((s,p)=>s+p.amount,0);
- const entries=demoBaptismEvents.reduce((sum,e)=>sum+e.entries.length,0);
- document.getElementById("reportPeopleTotal").textContent=String(demoPeople.length);
- document.getElementById("reportEventsTotal").textContent=String(demoBaptismEvents.length);
- document.getElementById("reportOrderTotal").textContent=String(entries);
- document.getElementById("reportReceivedTotal").textContent=moneyBR(received);
- const type=document.getElementById("reportType").value,q=document.getElementById("reportSearch").value.trim().toLocaleLowerCase("pt-BR");
- const title=document.getElementById("reportTableTitle"),desc=document.getElementById("reportTableDescription"),summary=document.getElementById("reportSummary"),table=document.getElementById("reportTable");
- summary.replaceChildren();table.replaceChildren();
- let rows=[];
- if(type==="people"){
-  title.textContent="Pessoas por turma e jornada";desc.textContent="Somente pessoas fictícias cadastradas nesta sessão.";
-  const groups={};demoPeople.forEach(p=>{const k=p.className+" · "+p.journey;groups[k]=(groups[k]||0)+1;});
-  rows=Object.entries(groups).map(([k,n])=>({title:k,detail:n+" pessoa(s)"}));
-  summary.append(reportMetric("Pessoas cadastradas",demoPeople.length),reportMetric("Com jornada concluída",demoPeople.filter(p=>p.journey==="Concluída").length),reportMetric("Precisam repor aula",demoPeople.filter(p=>p.journey==="Precisa repor aula").length));
- }else if(type==="payments"){
-  title.textContent="Lançamentos por situação";desc.textContent="Pendente não é recebido; Cancelado fica fora dos totais financeiros.";
-  const statuses=["Pendente","Pago","Cancelado"];
-  rows=statuses.map(s=>{const list=demoPayments.filter(p=>p.status===s);return{title:s,detail:list.length+" lançamento(s) · "+moneyBR(list.reduce((sum,p)=>sum+p.amount,0))};});
-  summary.append(reportMetric("Em aberto",moneyBR(demoPayments.filter(p=>p.status==="Pendente").reduce((s,p)=>s+p.amount,0))),reportMetric("Recebido",moneyBR(received)),reportMetric("Cancelado",demoPayments.filter(p=>p.status==="Cancelado").length+" lançamento(s)"));
- }else if(type==="shirts"){
-  title.textContent="Camisetas por tamanho e pagamento";desc.textContent="Contagens calculadas dos registros demonstrativos de pessoas.";
-  const sizes=["PP","P","M","G","GG","XGG","Não precisa","Não informado"];
-  rows=sizes.map(s=>({title:"Tamanho: "+s,detail:demoPeople.filter(p=>p.shirt===s).length+" pessoa(s)"}));
-  rows.push({title:"Pagamento: Pago",detail:demoPeople.filter(p=>p.shirtPaid==="Pago").length+" pessoa(s)"},{title:"Pagamento: Pendente",detail:demoPeople.filter(p=>p.shirtPaid==="Pendente").length+" pessoa(s)"},{title:"Pagamento: Não informado",detail:demoPeople.filter(p=>p.shirtPaid==="Não informado").length+" pessoa(s)"});
-  summary.append(reportMetric("Com tamanho informado",demoPeople.filter(p=>p.shirt!=="Não informado"&&p.shirt!=="Não precisa").length),reportMetric("Pagamentos pendentes",demoPeople.filter(p=>p.shirtPaid==="Pendente").length));
- }else{
-  title.textContent="Eventos e resultados de batismo";desc.textContent="Participação e resultado final permanecem separados.";
-  rows=demoBaptismEvents.map(e=>({title:e.name,detail:(e.date||"Data não informada")+" · "+e.entries.length+" participante(s) · Batismos realizados: "+e.entries.filter(p=>p.result==="Realizado").length}));
-  summary.append(reportMetric("Eventos",demoBaptismEvents.length),reportMetric("Participantes na ordem",entries),reportMetric("Resultado realizado",demoBaptismEvents.reduce((s,e)=>s+e.entries.filter(p=>p.result==="Realizado").length,0)));
- }
- const visible=rows.filter(r=>(r.title+" "+r.detail).toLocaleLowerCase("pt-BR").includes(q));
- if(!visible.length){table.innerHTML='<div class="empty">'+(rows.length?"Nenhuma linha corresponde à pesquisa.":"Nenhum dado demonstrativo para exibir.")+'</div>';return;}
- visible.forEach(r=>table.append(reportRow(r.title,r.detail)));
-}
-document.getElementById("reportType").addEventListener("change",renderReports);
-document.getElementById("reportSearch").addEventListener("input",renderReports);
-document.getElementById("refreshReport").addEventListener("click",renderReports);
-document.getElementById("printReport").addEventListener("click",()=>window.print());
+  nav.addEventListener('click', function (event) {
+    var button = event.target.closest('button[data-s]');
+    if (!button) return;
+    document.querySelectorAll('#nav button, main section').forEach(function (item) {
+      item.classList.remove('on');
+    });
+    button.classList.add('on');
+    button.setAttribute('aria-current', 'page');
+    document.querySelectorAll('#nav button').forEach(function (item) {
+      if (item !== button) item.removeAttribute('aria-current');
+    });
+    var section = document.getElementById(button.dataset.s);
+    if (section) section.classList.add('on');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  });
 
-function renderPayments(){
- fillPaymentPersonOptions();
- const open=demoPayments.filter(p=>p.status==="Pendente").reduce((s,p)=>s+p.amount,0);
- const received=demoPayments.filter(p=>p.status==="Pago").reduce((s,p)=>s+p.amount,0);
- document.getElementById("paymentTotal").textContent=String(demoPayments.length);
- document.getElementById("paymentOpen").textContent=moneyBR(open);
- document.getElementById("paymentReceived").textContent=moneyBR(received);
- const q=document.getElementById("paymentsSearch").value.trim().toLocaleLowerCase("pt-BR"),status=document.getElementById("paymentsStatusFilter").value,personFilter=document.getElementById("paymentsPersonFilter").value;
- const visible=demoPayments.filter(p=>{const person=demoPeople.find(x=>x.id===p.personId);return (status==="Todos"||p.status===status)&&(personFilter==="Todos"||String(p.personId)===personFilter)&&((person?.name||"Pessoa removida")+" "+p.description+" "+p.status+" "+p.notes).toLocaleLowerCase("pt-BR").includes(q);});
- document.getElementById("paymentsCount").textContent=demoPayments.length+" lançamento(s) · "+visible.length+" exibido(s)";
- const list=document.getElementById("paymentsList");list.replaceChildren();
- if(!visible.length){list.innerHTML='<div class="empty">'+(demoPayments.length?"Nenhum lançamento corresponde aos filtros.":"Nenhum lançamento criado nesta sessão.")+'</div>';return;}
- visible.forEach(p=>{
-  const row=document.createElement("article");row.className="person-row";
-  const main=document.createElement("div");main.className="person-main";
-  const title=document.createElement("strong");title.textContent=(demoPeople.find(x=>x.id===p.personId)?.name||"Pessoa removida")+" · "+p.description;
-  const detail=document.createElement("small");detail.textContent=moneyBR(p.amount)+" · Situação: "+p.status+" · Vencimento: "+(p.dueDate||"Não informado")+" · Observação: "+p.notes;
-  main.append(title,detail);
-  const actions=document.createElement("div");actions.className="person-actions";
-  const status=document.createElement("select");status.setAttribute("aria-label","Situação do lançamento "+p.description);["Pendente","Pago","Cancelado"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;status.append(o);});status.value=p.status;status.addEventListener("change",()=>{p.status=status.value;renderPayments();});
-  const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="Editar";edit.addEventListener("click",()=>{editingPaymentId=p.id;document.getElementById("paymentPerson").value=String(p.personId);document.getElementById("paymentDescription").value=p.description;document.getElementById("paymentAmount").value=p.amount.toFixed(2);document.getElementById("paymentStatus").value=p.status;document.getElementById("paymentDueDate").value=p.dueDate;document.getElementById("paymentNotes").value=p.notes==="Não informado"?"":p.notes;document.getElementById("savePayment").textContent="Salvar alteração";document.getElementById("cancelPaymentEdit").hidden=false;document.getElementById("paymentFormMessage").textContent="";document.getElementById("paymentForm").scrollIntoView({behavior:"smooth",block:"start"});});
-  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover";remove.addEventListener("click",()=>{if(!window.confirm("Remover este lançamento demonstrativo?"))return;demoPayments=demoPayments.filter(x=>x.id!==p.id);if(editingPaymentId===p.id)resetPaymentForm();renderPayments();});
-  actions.append(status,edit,remove);row.append(main,actions);list.append(row);
- });
-}
-document.getElementById("paymentForm").addEventListener("submit",e=>{
- e.preventDefault();const personId=Number(document.getElementById("paymentPerson").value),description=document.getElementById("paymentDescription").value.trim(),amount=Number(document.getElementById("paymentAmount").value),msg=document.getElementById("paymentFormMessage");
- if(!personId||!demoPeople.some(p=>p.id===personId)){msg.className="form-error";msg.textContent="Cadastre primeiro uma pessoa fictícia e selecione-a.";return;}
- if(!description||!Number.isFinite(amount)||amount<=0||amount>9999999){msg.className="form-error";msg.textContent="Informe descrição e valor maior que zero.";return;}
- const item={personId,description,amount,status:document.getElementById("paymentStatus").value,dueDate:document.getElementById("paymentDueDate").value,notes:document.getElementById("paymentNotes").value.trim()||"Não informado"};
- if(editingPaymentId!==null){const i=demoPayments.findIndex(p=>p.id===editingPaymentId);if(i>=0)demoPayments[i]={...demoPayments[i],...item};}
- else demoPayments.push({id:nextDemoPaymentId++,...item});
- resetPaymentForm();msg.className="form-success";msg.textContent="Lançamento atualizado apenas nesta sessão demonstrativa.";renderPayments();
-});
-document.getElementById("cancelPaymentEdit").addEventListener("click",resetPaymentForm);
-document.getElementById("paymentsSearch").addEventListener("input",renderPayments);
-document.getElementById("paymentsStatusFilter").addEventListener("change",renderPayments);
-document.getElementById("paymentsPersonFilter").addEventListener("change",renderPayments);
+  document.querySelectorAll('#pes .row').forEach(function (row) {
+    row.style.cursor = 'pointer';
+    row.setAttribute('tabindex', '0');
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', 'Abrir ficha demonstrativa de ' + row.querySelector('.m b').textContent);
 
-function renderShirts(){
- const q=document.getElementById("shirtsSearch").value.trim().toLocaleLowerCase("pt-BR");
- const visible=demoPeople.filter(p=>(p.name+" "+p.className+" "+p.shirt+" "+p.shirtPaid).toLocaleLowerCase("pt-BR").includes(q));
- document.getElementById("shirtTotal").textContent=String(demoPeople.length);
- document.getElementById("shirtSizeKnown").textContent=String(demoPeople.filter(p=>p.shirt!=="Não informado"&&p.shirt!=="Não precisa").length);
- document.getElementById("shirtPaymentPending").textContent=String(demoPeople.filter(p=>p.shirtPaid==="Pendente").length);
- document.getElementById("shirtsCount").textContent=demoPeople.length+" registro(s) demonstrativo(s) · "+visible.length+" exibido(s)";
- const list=document.getElementById("shirtsList");list.replaceChildren();
- if(!visible.length){list.innerHTML='<div class="empty">'+(demoPeople.length?"Nenhum registro corresponde à busca.":"Nenhuma pessoa demonstrativa cadastrada. Acesse Pessoas e crie um registro fictício.")+'</div>';return;}
- visible.forEach(p=>{
-  const row=document.createElement("article");row.className="person-row";
-  const main=document.createElement("div");main.className="person-main";
-  const title=document.createElement("strong");title.textContent=p.name;
-  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Tamanho: "+p.shirt+" · Pagamento: "+p.shirtPaid;
-  main.append(title,detail);
-  const controls=document.createElement("div");controls.className="person-actions";
-  const size=document.createElement("select");size.setAttribute("aria-label","Tamanho da camiseta de "+p.name);["Não informado","PP","P","M","G","GG","XGG","Não precisa"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;size.append(o);});size.value=p.shirt;size.addEventListener("change",()=>{p.shirt=size.value;renderShirts();renderDemoPeople();});
-  const paid=document.createElement("select");paid.setAttribute("aria-label","Pagamento da camiseta de "+p.name);["Não informado","Pago","Pendente","Não se aplica"].forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;paid.append(o);});paid.value=p.shirtPaid;paid.addEventListener("change",()=>{p.shirtPaid=paid.value;renderShirts();renderDemoPeople();});
-  size.style.maxWidth="115px";paid.style.maxWidth="145px";controls.append(size,paid);row.append(main,controls);list.append(row);
- });
-}
-document.getElementById("shirtsSearch").addEventListener("input",renderShirts);
+    function openPerson() {
+      var name = row.querySelector('.m b').textContent.trim();
+      var metadata = row.querySelector('.m div').textContent.trim();
+      var initials = row.querySelector('.av').textContent.trim();
+      var statusTag = row.querySelector('.tag');
+      var profile = document.querySelector('#fic .card:first-child');
+      var avatar = profile.querySelector('.av');
+      var title = profile.querySelector('h2');
+      var meta = profile.querySelector('.m div');
+      var tags = profile.querySelectorAll('.tag');
 
-function renderBaptismEvents(){
- const q=document.getElementById("eventSearch").value.trim().toLocaleLowerCase("pt-BR");
- const list=document.getElementById("eventList");list.replaceChildren();
- const visible=demoBaptismEvents.filter(e=>(e.name+" "+e.date).toLocaleLowerCase("pt-BR").includes(q));
- if(!visible.length){list.innerHTML='<div class="empty">'+(demoBaptismEvents.length?"Nenhum evento corresponde à busca.":"Nenhum evento demonstrativo criado.")+'</div>';return;}
- visible.forEach(ev=>{
-  const row=document.createElement("article");row.className="person-row";
-  const main=document.createElement("div");main.className="person-main";
-  const title=document.createElement("strong");title.textContent=ev.name;
-  const detail=document.createElement("small");detail.textContent=(ev.date||"Data não informada")+" · "+ev.entries.length+" participante(s) na ordem";
-  main.append(title,detail);
-  const actions=document.createElement("div");actions.className="person-actions";
-  const open=document.createElement("button");open.type="button";open.className="small-btn";open.textContent=ev.id===selectedBaptismEventId?"Evento selecionado":"Organizar ordem";open.addEventListener("click",()=>{selectedBaptismEventId=ev.id;editingOrderEntryId=null;resetOrderForm();renderBaptismEvents();renderOrderEntries();});
-  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover evento";remove.addEventListener("click",()=>{if(!window.confirm("Remover o evento demonstrativo e sua ordem desta sessão?"))return;demoBaptismEvents=demoBaptismEvents.filter(x=>x.id!==ev.id);if(selectedBaptismEventId===ev.id)selectedBaptismEventId=demoBaptismEvents[0]?.id??null;resetOrderForm();renderBaptismEvents();renderOrderEntries();});
-  actions.append(open,remove);row.append(main,actions);list.append(row);
- });
-}
-document.getElementById("baptismEventForm").addEventListener("submit",e=>{
- e.preventDefault();const name=document.getElementById("eventName").value.trim();const msg=document.getElementById("eventFormMessage");
- if(!name){msg.className="form-error";msg.textContent="Informe o nome do evento demonstrativo.";return;}
- const ev={id:nextBaptismEventId++,name,date:document.getElementById("eventDate").value,entries:[]};demoBaptismEvents.push(ev);selectedBaptismEventId=ev.id;
- e.target.reset();msg.className="form-success";msg.textContent="Evento criado apenas nesta sessão de demonstração.";
- renderBaptismEvents();renderOrderEntries();
-});
-function resetOrderForm(){document.getElementById("baptismPersonForm").reset();editingOrderEntryId=null;document.getElementById("saveOrderPerson").textContent="Adicionar à ordem";document.getElementById("cancelOrderEdit").hidden=true;document.getElementById("orderFormMessage").textContent="";}
-function renderOrderEntries(){
- const ev=selectedBaptismEvent();const card=document.getElementById("eventOrderCard");card.hidden=!ev;
- if(!ev)return;
- document.getElementById("selectedEventTitle").textContent=ev.name;
- document.getElementById("selectedEventMeta").textContent="Data: "+(ev.date||"Não informada")+" · Histórico independente deste evento";
- const q=document.getElementById("orderSearch").value.trim().toLocaleLowerCase("pt-BR");
- const visible=ev.entries.filter(p=>(p.name+" "+p.className+" "+p.participation+" "+p.result+" "+p.notes).toLocaleLowerCase("pt-BR").includes(q));
- document.getElementById("orderCount").textContent=ev.entries.length+" participante(s) na ordem · "+visible.length+" exibido(s)";
- const list=document.getElementById("orderList");list.replaceChildren();
- if(!visible.length){list.innerHTML='<div class="empty">'+(ev.entries.length?"Nenhum participante corresponde à busca.":"Adicione nomes fictícios para testar a ordem.")+'</div>';return;}
- visible.forEach(p=>{
-  const row=document.createElement("article");row.className="person-row";
-  const main=document.createElement("div");main.className="person-main";
-  const title=document.createElement("strong");title.textContent=p.position+". "+p.name;
-  const detail=document.createElement("small");detail.textContent="Turma: "+p.className+" · Participação: "+p.participation+" · Resultado: "+p.result+" · Observação: "+p.notes;
-  main.append(title,detail);
-  const actions=document.createElement("div");actions.className="person-actions";
-  const up=document.createElement("button");up.type="button";up.className="small-btn";up.textContent="↑";up.setAttribute("aria-label","Mover "+p.name+" para cima");up.disabled=p.position===1;up.addEventListener("click",()=>moveOrderEntry(p.id,-1));
-  const down=document.createElement("button");down.type="button";down.className="small-btn";down.textContent="↓";down.setAttribute("aria-label","Mover "+p.name+" para baixo");down.disabled=p.position===ev.entries.length;down.addEventListener("click",()=>moveOrderEntry(p.id,1));
-  const edit=document.createElement("button");edit.type="button";edit.className="small-btn";edit.textContent="Editar";edit.addEventListener("click",()=>editOrderEntry(p.id));
-  const remove=document.createElement("button");remove.type="button";remove.className="small-btn danger-btn";remove.textContent="Remover";remove.addEventListener("click",()=>{if(!window.confirm("Remover este participante da ordem demonstrativa?"))return;ev.entries=ev.entries.filter(x=>x.id!==p.id);resetOrderForm();renderBaptismEvents();renderOrderEntries();});
-  actions.append(up,down,edit,remove);row.append(main,actions);list.append(row);
- });
-}
-function moveOrderEntry(id,delta){
- const ev=selectedBaptismEvent();if(!ev)return;const i=ev.entries.findIndex(p=>p.id===id),j=i+delta;if(i<0||j<0||j>=ev.entries.length)return;
- [ev.entries[i],ev.entries[j]]=[ev.entries[j],ev.entries[i]];renderOrderEntries();renderBaptismEvents();
-}
-function editOrderEntry(id){
- const ev=selectedBaptismEvent();const p=ev?.entries.find(x=>x.id===id);if(!p)return;editingOrderEntryId=id;
- document.getElementById("orderPersonName").value=p.name;document.getElementById("orderPersonClass").value=p.className;document.getElementById("orderParticipation").value=p.participation;document.getElementById("orderResult").value=p.result;document.getElementById("orderNotes").value=p.notes==="Não informado"?"":p.notes;
- document.getElementById("saveOrderPerson").textContent="Salvar alteração temporária";document.getElementById("cancelOrderEdit").hidden=false;document.getElementById("orderPersonName").focus();
-}
-document.getElementById("baptismPersonForm").addEventListener("submit",e=>{
- e.preventDefault();const ev=selectedBaptismEvent();const name=document.getElementById("orderPersonName").value.trim();const msg=document.getElementById("orderFormMessage");
- if(!ev){msg.className="form-error";msg.textContent="Crie ou selecione um evento primeiro.";return;}
- if(!name){msg.className="form-error";msg.textContent="Informe um nome fictício.";return;}
- const item={name,className:document.getElementById("orderPersonClass").value,participation:document.getElementById("orderParticipation").value,result:document.getElementById("orderResult").value,notes:document.getElementById("orderNotes").value.trim()||"Não informado"};
- if(editingOrderEntryId!==null){const i=ev.entries.findIndex(p=>p.id===editingOrderEntryId);if(i>=0)ev.entries[i]={...ev.entries[i],...item};}
- else ev.entries.push({id:nextOrderEntryId++,...item});
- resetOrderForm();msg.className="form-success";msg.textContent="Ordem atualizada apenas nesta sessão.";
- renderOrderEntries();renderBaptismEvents();
-});
-document.getElementById("cancelOrderEdit").addEventListener("click",resetOrderForm);
-document.getElementById("eventSearch").addEventListener("input",renderBaptismEvents);
-document.getElementById("orderSearch").addEventListener("input",renderOrderEntries);
+      avatar.textContent = initials;
+      title.textContent = name;
+      meta.textContent = metadata;
+      if (tags[0] && statusTag) {
+        tags[0].className = statusTag.className;
+        tags[0].textContent = statusTag.textContent;
+      }
+      if (tags[1]) {
+        tags[1].className = 'tag t-in';
+        tags[1].textContent = 'Ficha demonstrativa';
+      }
+      go('fic');
+    }
 
-const descriptions={people:"Cadastro e acompanhamento individual, com identificador próprio e dados pessoais protegidos.",classes:"Organização de turmas, inscrições e vínculo com a jornada.",lessons:"Acompanhamento da jornada, aulas concluídas, presença e aulas a repor.",baptism:"Criação de eventos demonstrativos, lista ordenável por participante e histórico separado por evento.",shirts:"Controle de tamanhos e distribuição das camisetas. A situação de pagamento é apenas um apontamento complementar.",payments:"Registro financeiro complementar para consulta quando necessário, sem ser o foco do painel principal nem um módulo de gestão financeira completa.",reports:"Resumos calculados a partir dos registros reais autorizados, sem indicadores fictícios."};
-const sidebar=document.getElementById("sidebar"),mobileMenu=document.getElementById("mobileMenu"),mobileScrim=document.getElementById("mobileScrim");
-function closeMobileMenu(){sidebar.classList.remove("open");mobileScrim.classList.remove("open");mobileMenu.setAttribute("aria-expanded","false");mobileMenu.setAttribute("aria-label","Abrir menu");}
-function showView(view){
- if(!labels[view])return;
- document.getElementById("pageTitle").textContent=labels[view];
- document.getElementById("crumb").textContent=labels[view];
- document.querySelectorAll(".nav").forEach(n=>{const active=n.dataset.view===view;n.classList.toggle("active",active);if(active)n.setAttribute("aria-current","page");else n.removeAttribute("aria-current");});
- document.getElementById("overview").classList.toggle("hidden",view!=="overview");
- document.getElementById("moduleView").classList.toggle("active",view!=="overview");
- document.getElementById("peopleWorkspace").hidden=view!=="people";
- document.getElementById("baptismWorkspace").hidden=view!=="baptism";
- document.getElementById("shirtsWorkspace").hidden=view!=="shirts";
- document.getElementById("paymentsWorkspace").hidden=view!=="payments";
- document.getElementById("reportsWorkspace").hidden=view!=="reports";
- document.getElementById("genericModulePlaceholder").hidden=view==="people"||view==="baptism"||view==="shirts"||view==="payments"||view==="reports";
- if(view==="shirts")renderShirts();
- if(view==="payments")renderPayments();
- if(view==="reports")renderReports();
- if(view!=="overview"){
-  document.getElementById("moduleTitle").textContent=labels[view];
-  document.getElementById("moduleDescription").textContent=descriptions[view]||"Esta área será implementada após validar o armazenamento e as permissões.";
- }
- closeMobileMenu();
- window.scrollTo({top:0,behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});
-}
-document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
-document.getElementById("backOverview").addEventListener("click",()=>showView("overview"));
-mobileMenu.addEventListener("click",()=>{
- const open=sidebar.classList.toggle("open");mobileScrim.classList.toggle("open",open);
- mobileMenu.setAttribute("aria-expanded",String(open));
- mobileMenu.setAttribute("aria-label",open?"Fechar menu":"Abrir menu");
-});
-document.getElementById("connectionStatus").addEventListener("click",()=>{
- const notice=document.getElementById("prototypeNotice");
- notice.scrollIntoView({behavior:window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});
- notice.focus({preventScroll:true});
-});
-mobileScrim.addEventListener("click",closeMobileMenu);
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeMobileMenu();});
-window.addEventListener("resize",()=>{if(window.innerWidth>760)closeMobileMenu();});
+    row.addEventListener('click', openPerson);
+    row.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openPerson();
+      }
+    });
+  });
+
+  var peopleSearch = document.querySelector('#pes input');
+  peopleSearch.addEventListener('input', function () {
+    var query = peopleSearch.value.toLowerCase().trim();
+    var visible = 0;
+    document.querySelectorAll('#pes .row').forEach(function (row) {
+      var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
+    });
+    document.getElementById('pes-empty').style.display = visible ? 'none' : 'block';
+  });
+
+  var daySearch = document.querySelector('#dia input[type="search"]');
+  daySearch.addEventListener('input', function () {
+    var query = daySearch.value.toLowerCase().trim();
+    var visible = 0;
+    Array.prototype.slice.call(document.querySelectorAll('#dia .card')).slice(1).forEach(function (card) {
+      var matches = card.textContent.toLowerCase().indexOf(query) !== -1;
+      card.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
+    });
+    document.getElementById('dia-empty').style.display = visible ? 'none' : 'block';
+  });
+
+  var historySearch = document.querySelector('#his input[type="search"]');
+  historySearch.addEventListener('input', function () {
+    var query = historySearch.value.toLowerCase().trim();
+    var visible = 0;
+    document.querySelectorAll('#his .card .row').forEach(function (row) {
+      var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
+    });
+    document.getElementById('his-empty').style.display = visible ? 'none' : 'block';
+  });
+
+  document.querySelectorAll('#dia .btn.g').forEach(function (button) {
+    button.addEventListener('click', function () {
+      if (button.dataset.done) return;
+      button.dataset.done = 'true';
+      button.textContent = '✔ Registrado';
+      button.disabled = true;
+      button.style.opacity = '.65';
+      var count = document.getElementById('cnt');
+      var next = Math.min(57, Number(count.textContent) + 1);
+      count.textContent = String(next);
+      var progress = document.querySelector('#dia .bar b');
+      progress.style.width = ((next / 57) * 100) + '%';
+      showToast('Registro de demonstração atualizado nesta tela. Ele não é salvo em uma base de dados.');
+    });
+  });
+
+  document.querySelectorAll('#dia .btn.o').forEach(function (button) {
+    button.addEventListener('click', function () {
+      if (button.dataset.present) return;
+      button.dataset.present = 'true';
+      button.textContent = '✔ Presente';
+      button.classList.remove('o');
+      button.classList.add('g');
+      showToast('Presença marcada apenas nesta demonstração.');
+    });
+  });
+
+  var openOrder = document.querySelector('.hero .btn');
+  if (openOrder) openOrder.addEventListener('click', function () { go('ord'); });
+
+  document.querySelectorAll('#ord .bb .btn:first-child, #rep .bb .btn.o').forEach(function (button) {
+    button.addEventListener('click', function () { window.print(); });
+  });
+
+  document.getElementById('tm').setAttribute('aria-label', 'Alternar tema claro e escuro');
+  document.getElementById('tm').addEventListener('click', function () {
+    var root = document.documentElement;
+    var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    var currentTheme = root.dataset.theme || systemTheme;
+    root.dataset.theme = currentTheme === 'dark' ? 'light' : 'dark';
+  });
+
+  document.querySelectorAll('[data-demo-action="true"]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      showToast('Esta ação ainda é apenas visual no protótipo. Vamos conectá-la conforme os requisitos forem definidos.');
+    });
+  });
+})();
 </script>
 </body>
 </html>

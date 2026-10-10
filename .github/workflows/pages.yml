@@ -1,4 +1,4 @@
-name: Publicar prévia no GitHub Pages
+name: Publicar Gestão de Batismo no GitHub Pages
 on:
   push:
     branches: [main]
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
-      - name: Ativar e configurar GitHub Pages
+      - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
         with:
           enablement: true
@@ -27,6 +27,6 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
-      - name: Publicar prévia
+      - name: Publicar página
         id: deployment
         uses: actions/deploy-pages@v4

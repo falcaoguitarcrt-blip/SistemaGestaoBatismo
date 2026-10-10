@@ -1,46 +1,24 @@
-# Sistema de Gestão de Batismo
+# Gestão de Batismo
 
-Aplicação web para apoiar a gestão de pessoas, turmas, inscrições, aulas, presenças, fichas de batismo, camisetas, pagamentos e relatórios.
+Protótipo web responsivo para organizar visualmente a jornada de preparação e o dia do batismo.
 
-## Estado atual
+## Acessar
 
-Este repositório está em preparação inicial. O acesso pela tela de login Google foi removido temporariamente, conforme solicitado. A autenticação real e a camada de dados protegida ainda precisam ser configuradas e testadas antes de inserir dados reais.
+- **Aplicação:** https://falcaoguitarcrt-blip.github.io/SistemaGestaoBatismo/
+- **Código principal:** `index.html`
+- **Cópia-base revisada:** [prototipos/gestao-batismo-base.html](prototipos/gestao-batismo-base.html)
 
-## Segurança obrigatória
+## Módulos do protótipo
 
-- Não incluir dados pessoais, planilhas reais, tokens, chaves privadas ou credenciais neste repositório.
-- A interface no GitHub Pages é pública quando publicada. Login apenas no lado do navegador não protege dados.
-- O acesso aos dados deve ser validado no servidor em todas as operações, por meio de autenticação confiável e uma lista explícita de usuários autorizados.
-- Manter a planilha Google de origem privada; usar dados fictícios durante os testes.
-- Não declarar a aplicação pronta para uso real até que autenticação, autorização no servidor, regras de acesso e testes tenham sido concluídos.
+Visão geral, pessoas, ficha individual, ordem do batismo, check-in, pendências, camisetas, reposição de aulas, histórico, importação demonstrativa e configurações.
 
-## Próximas etapas
+## Estado atual e segurança
 
-1. Manter a interface inicial responsiva sem botão de login por enquanto.
-2. Definir e configurar autenticação confiável antes de liberar dados reais.
-3. Definir a camada de dados privada, sem credenciais no frontend.
-4. Implementar autorização por usuário e testes de acesso negado.
-5. Publicar pelo GitHub Pages apenas a interface sem segredos e validar cada integração antes dos dados reais.
+Esta versão é um protótipo de interface. Os dados exibidos são fictícios e não há banco de dados, autenticação real, salvamento persistente ou sincronização offline. Algumas ações apenas atualizam a tela ou exibem um aviso.
 
+**Não inserir dados pessoais reais neste repositório público.** Antes do uso operacional, será necessário implementar e testar autenticação, autorização, persistência e proteção dos dados.
 
-## Fluxo operacional proposto
+## Regra para as próximas atualizações
 
-A lista principal vem da primeira aba da cópia privada da planilha original. O módulo **Pessoas** deve concentrar busca, ficha individual, edição, exclusão confirmada, pendências e camiseta. **Ordem de batismo** fica como módulo separado por evento. O financeiro é complementar.
+Evoluir o `index.html` em pequenas etapas, conforme o uso revelar necessidades. Preservar a cópia-base em `prototipos/gestao-batismo-base.html` para consulta e comparação, e evitar mudanças de arquitetura sem necessidade.
 
-## Separação entre prévia pública e sistema real
-
-O GitHub Pages deste repositório é uma prévia de interface pública e não deve receber dados reais. A aplicação operacional precisa ser instalada no Google Apps Script da conta exclusiva do sistema e conectada a planilhas privadas. O pacote de implementação é mantido fora deste repositório para não expor dados ou IDs de planilhas.
-
-- [Prompt mestre e critérios de aceite](docs/PROMPT_MESTRE_SISTEMA_GESTAO_BATISMO.md)
-- [Estrutura de dados e migração segura](docs/ESTRUTURA_DADOS_E_MIGRACAO.md)
-
-O pacote de implementação ainda exige configuração dos IDs privados, inicialização da base, prévia e confirmação de importação e implantação restrita na conta Google. Não declarar produção concluída antes da homologação real.
-
-## Protótipo visual alternativo
-
-O HTML de protótipo abaixo fica separado do `index.html` principal para permitir testes visuais sem substituir a versão existente:
-
-- [Abrir protótipo no GitHub Pages](https://falcaoguitarcrt-blip.github.io/SistemaGestaoBatismo/prototipos/gestao-batismo-base.html)
-- [Ver código-fonte no GitHub](https://github.com/falcaoguitarcrt-blip/SistemaGestaoBatismo/blob/main/prototipos/gestao-batismo-base.html)
-
-A página usa dados fictícios. As ações ainda não conectadas exibem um aviso; marcações feitas na tela não são gravadas em uma base de dados. Não usar dados pessoais reais nesta prévia pública.
