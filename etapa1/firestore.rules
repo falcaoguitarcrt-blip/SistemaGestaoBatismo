@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userDocExists() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid));
+    }
+
+    function activeUser() {
+      return userDocExists()
+        && get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.ativo == true;
+    }
+
+    function role() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.perfil;
+    }
+
+    function isAdmin() {
+      return activeUser() && role() == 'admin';
+    }
+
+    function isSecretaria() {
+      return activeUser() && role() == 'secretaria';
+    }
+
+    function isLider() {
+      return activeUser() && role() == 'lider';
+    }
+
+    function isVoluntario() {
+      return activeUser() && role() == 'voluntario';
+    }
+
+    // Negar por padrão. As regras de cada coleção devem ser revisadas
+    // conforme o modelo de dados final antes de inserir informações reais.
+    match /usuarios/{userId} {
+      allow read: if isAdmin() || (activeUser() && request.auth.uid == userId);
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (activeUser() && request.auth.uid == userId
+            && request.resource.data.perfil == resource.data.perfil
+            && request.resource.data.ativo == resource.data.ativo);
+    }
+
+    // Dados pessoais: apenas perfis administrativos autenticados.
+    // Líderes/voluntários ainda não recebem acesso nesta fundação.
+    match /pessoas/{personId} {
+      allow read, create, update, delete: if isAdmin() || isSecretaria();
+    }
+
+    match /turmas/{classId} {
+      allow read: if activeUser();
+      allow create, update, delete: if isAdmin() || isSecretaria();
+    }
+
+    match /pendencias/{pendingId} {
+      allow read, create, update, delete: if isAdmin() || isSecretaria();
+    }
+
+    match /tiposPendencia/{typeId} {
+      allow read: if activeUser();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /tamanhosCamiseta/{sizeId} {
+      allow read: if activeUser();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /historico/{historyId} {
+      allow read: if isAdmin() || isSecretaria();
+      allow create: if isAdmin() || isSecretaria();
+      allow update, delete: if false;
+    }
+
+    // Coleções ainda não implementadas ficam bloqueadas por padrão.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
