@@ -147,8 +147,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     <label for="firebase-password">Senha
       <input id="firebase-password" name="password" type="password" autocomplete="current-password" required>
     </label>
-    <button id="firebase-login-submit" class="btn" type="submit">Entrar com segurança</button>
-    <p id="firebase-status" role="status" aria-live="polite">Use o e-mail e a senha cadastrados no Firebase Authentication.</p>
+    <button id="firebase-google-login" class="btn" type="button" style="width:100%;background:#fff;color:#202124;border:1px solid #dadce0;display:flex;align-items:center;justify-content:center;gap:10px">
+      <span aria-hidden="true" style="font-size:18px;font-weight:700;color:#4285f4">G</span> Entrar com Google
+    </button>
+    <p style="text-align:center;margin:8px 0 0">ou entre com e-mail e senha</p>
+    <button id="firebase-login-submit" class="btn o" type="submit">Entrar com e-mail</button>
+    <p id="firebase-status" role="status" aria-live="polite">Selecione a conta Google autorizada ou use suas credenciais cadastradas no Firebase.</p>
     <p style="font-size:11px">Não crie a conta por esta tela. Os usuários são administrados pelo responsável do projeto Firebase.</p>
   </form>
 </div>
@@ -1365,7 +1369,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getFirestore, doc, collection, getDoc, getDocs, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -1383,6 +1387,7 @@ const loginShell = document.getElementById('auth-shell');
 const loginForm = document.getElementById('firebase-login');
 const loginStatus = document.getElementById('firebase-status');
 const loginButton = document.getElementById('firebase-login-submit');
+const googleLoginButton = document.getElementById('firebase-google-login');
 const logoutButton = document.createElement('button');
 let lastAuthError = '';
 let handlingUser = false;
@@ -1404,6 +1409,9 @@ function explainAuthError(error) {
   if (code === 'auth/unauthorized-domain') return 'Este domínio ainda não foi autorizado. No Firebase, abra Authentication > Configurações > Domínios autorizados e adicione falcaoguitarcrt-blip.github.io.';
   if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'E-mail ou senha inválidos. Confira os dados cadastrados no Firebase Authentication.';
   if (code === 'auth/too-many-requests') return 'Muitas tentativas de acesso. Aguarde um pouco e tente novamente.';
+  if (code === 'auth/account-exists-with-different-credential') return 'Este e-mail já está cadastrado no Firebase com outro método de login. Não exclua o usuário nem altere as regras; vamos vincular o Google à conta existente com segurança.';
+  if (code === 'auth/popup-blocked') return 'O navegador bloqueou a janela de login Google. Permita pop-ups para este site e tente novamente.';
+  if (code === 'auth/popup-closed-by-user') return 'A janela de autenticação foi fechada antes de concluir. Tente novamente e escolha sua conta Google.';
   if (code === 'permission-denied' || code === 'firestore/permission-denied') return 'O login foi reconhecido, mas as regras do Firestore não autorizaram a leitura. Confira o UID permitido nas regras.';
   return 'Não foi possível conectar ao Firebase (' + (code || 'erro de conexão') + '). Verifique a conexão e a configuração do projeto.';
 }
@@ -1530,11 +1538,30 @@ async function loadCloudWorkspace() {
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
 
+googleLoginButton.addEventListener('click', async function () {
+  googleLoginButton.disabled = true;
+  loginButton.disabled = true;
+  setLoginStatus('Abrindo a autenticação segura do Google…', false);
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await signInWithPopup(auth, provider);
+    lastAuthError = '';
+  } catch (error) {
+    lastAuthError = explainAuthError(error);
+    setLoginStatus(lastAuthError, true);
+  } finally {
+    googleLoginButton.disabled = false;
+    loginButton.disabled = false;
+  }
+});
+
 loginForm.addEventListener('submit', async function (event) {
   event.preventDefault();
   const email = document.getElementById('firebase-email').value.trim();
   const password = document.getElementById('firebase-password').value;
   loginButton.disabled = true;
+  googleLoginButton.disabled = true;
   setLoginStatus('Validando acesso e conectando ao banco…', false);
   try {
     await signInWithEmailAndPassword(auth, email, password);
@@ -1544,6 +1571,7 @@ loginForm.addEventListener('submit', async function (event) {
     setLoginStatus(lastAuthError, true);
   } finally {
     loginButton.disabled = false;
+    googleLoginButton.disabled = false;
   }
 });
 logoutButton.addEventListener('click', async function () {
