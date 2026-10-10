@@ -68,7 +68,7 @@ document.querySelector("#resetPassword").addEventListener("click", async () => {
   }
 });
 
-onAuthStateChanged(auth, (user) => {
+if (auth) onAuthStateChanged(auth, (user) => {
   if (user) {
     loginView.hidden = true;
     dashboardView.hidden = false;
