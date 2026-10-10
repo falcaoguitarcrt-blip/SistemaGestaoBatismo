@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#123c32">
+<meta name="description" content="Protótipo demonstrativo para organização de turmas, pessoas, preparação e dia do batismo.">
+<title>Gestão de Batismo · Protótipo</title>
+<style>
+:root{--pri:#123c32;--pri2:#1a5446;--aq:#1f7a99;--gold:#c9a24b;--bg:#f6f8f7;--tx:#14211d;--mut:#5f7069;--card:#fff;--ln:#dfe7e3;--ok:#2e8b57;--pe:#d9951b;--er:#c0392b;--in:#2b7bb9;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a17;--tx:#e8f0ec;--mut:#9fb3aa;--card:#16251f;--ln:#26382f;--pri:#2a7a65;--pri2:#339078}}
+:root[data-theme="dark"]{--bg:#0e1a17;--tx:#e8f0ec;--mut:#9fb3aa;--card:#16251f;--ln:#26382f;--pri:#2a7a65;--pri2:#339078}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Inter,system-ui,sans-serif}
+h1,h2{font-family:Fraunces,Georgia,serif;margin:0}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--ln)}
+.brand{display:flex;align-items:center;gap:8px;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:18px}
+.brand i{background:var(--pri);color:var(--gold);width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-style:normal}
+nav{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding:2px 1px 5px;scrollbar-width:thin}
+nav button{flex:none;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;padding:8px 14px;font:inherit;font-size:13px;min-height:40px}
+nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{max-width:980px;margin:0 auto;padding:14px}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.hero{background:linear-gradient(135deg,#123c32,#1f7a99);color:#fff;border:0}
+.hero small{opacity:.8}.hero h2{font-size:26px;margin:4px 0}
+.bar{height:8px;background:var(--ln);border-radius:9px;overflow:hidden}.bar b{display:block;height:100%;background:var(--ok);border-radius:9px}
+.hero .bar{background:rgba(255,255,255,.25)}.hero .bar b{background:var(--gold)}
+.btn{display:inline-block;border:0;border-radius:12px;padding:11px 16px;font:inherit;font-weight:600;background:var(--gold);color:#2b2108;min-height:44px;cursor:pointer;transition:filter .15s ease,transform .15s ease}
+.btn:hover{filter:brightness(.97)}.btn:active{transform:translateY(1px)}.btn:focus-visible,nav button:focus-visible,input:focus-visible{outline:3px solid var(--aq);outline-offset:2px}.btn.g{background:var(--ok);color:#fff}.btn.o{background:transparent;border:1px solid var(--ln);color:var(--tx)}
+.grid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.kpi b{font-size:28px;display:block;font-family:Fraunces,Georgia,serif}.kpi span{color:var(--mut);font-size:12px}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;margin-right:4px}
+.t-ok{background:#2e8b5722;color:var(--ok)}.t-pe{background:#d9951b22;color:var(--pe)}.t-er{background:#c0392b22;color:var(--er)}.t-in{background:#2b7bb922;color:var(--in)}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--ln)}.row:first-child{border-top:0}
+.av{flex:none;width:38px;height:38px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;font-weight:700;font-size:13px}
+.row .m{flex:1;min-width:0}.row .m div{color:var(--mut);font-size:12px}
+.f{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}.f span:first-child{width:78px;color:var(--mut)}.f .bar{flex:1}.f em{width:26px;font-style:normal;text-align:right}
+input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--ln);border-radius:12px;background:var(--card);color:var(--tx);font:inherit;margin-bottom:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.chips span{border:1px solid var(--ln);border-radius:99px;padding:6px 12px;font-size:12px;background:var(--card)}.chips .a{background:var(--aq);color:#fff;border-color:var(--aq)}
+.dots{display:flex;gap:8px}.dots span{flex:1;text-align:center;padding:10px 0;border-radius:10px;font-size:12px;font-weight:600}
+.n{width:30px;height:30px;border-radius:8px;background:var(--gold);color:#2b2108;font-weight:700;display:grid;place-items:center;flex:none}
+.hd{color:var(--mut);letter-spacing:-2px;cursor:grab}
+.big{font-size:44px;font-family:Fraunces,Georgia,serif;text-align:center}
+.bb{display:flex;gap:8px;margin-top:8px}.bb .btn{flex:1;min-height:52px;text-align:center}
+.k{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}.k h3{margin:0 0 8px;font-size:14px}
+.k .card{background:var(--bg)}.k .i{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px;margin-bottom:8px;font-size:13px}
+.note{color:var(--mut);font-size:12px;text-align:center;margin:6px 0 20px}
+h2.t{font-size:22px;margin:4px 0 12px}
+.demo-toast{position:fixed;left:50%;bottom:18px;z-index:20;transform:translate(-50%,14px);width:min(92vw,460px);padding:12px 16px;border-radius:12px;background:var(--tx);color:var(--card);box-shadow:0 8px 28px #0003;font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;text-align:center}
+.demo-toast.show{opacity:1;transform:translate(-50%,0)}
+@media print{body{background:#fff;color:#111}header,.bb,.note,.demo-toast,#tm{display:none!important}main{max-width:none;padding:0}.card{box-shadow:none;break-inside:avoid}section{display:none!important}section.on{display:block!important}.bar{border:1px solid #bbb}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+<div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
+<nav id="nav" aria-label="Navegação principal">
+<button class="on" data-s="home">▦ Visão geral</button><button data-s="pes">♙ Pessoas</button><button data-s="fic">📋 Ficha</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
+</nav>
+</header>
+<main>
+
+<section id="home" class="on">
+<div class="card hero"><small>PRÓXIMO BATISMO · TURMA 36</small><h2>12 de outubro</h2><small>em 2 dias · 42 de 57 prontos</small>
+<div class="bar" style="margin:12px 0"><b style="width:74%"></b></div><button type="button" class="btn">Abrir ordem →</button></div>
+<div class="grid" style="margin-bottom:12px">
+<div class="card kpi" style="margin:0"><span>Pessoas na turma</span><b>57</b></div>
+<div class="card kpi" style="margin:0"><span>Com pendências</span><b style="color:var(--pe)">15</b></div>
+<div class="card kpi" style="margin:0"><span>Jornada concluída</span><b style="color:var(--ok)">49</b></div>
+<div class="card kpi" style="margin:0"><span>Camisetas a pagar</span><b style="color:var(--aq)">11</b></div>
+</div>
+<div class="card"><h2 class="t">Funil de preparação</h2>
+<div class="f"><span>Inscritos</span><div class="bar"><b style="width:100%"></b></div><em>57</em></div>
+<div class="f"><span>Aulas 1–4</span><div class="bar"><b style="width:95%"></b></div><em>54</em></div>
+<div class="f"><span>Jornada</span><div class="bar"><b style="width:86%"></b></div><em>49</em></div>
+<div class="f"><span>Ekklesia</span><div class="bar"><b style="width:81%"></b></div><em>46</em></div>
+<div class="f"><span>Camiseta</span><div class="bar"><b style="width:70%"></b></div><em>40</em></div></div>
+<div class="card"><h2 class="t">Atenção agora</h2>
+<div class="row"><span class="tag t-er">Urgente</span><div class="m">3 menores sem responsável cadastrado</div></div>
+<div class="row"><span class="tag t-pe">Antiga</span><div class="m">8 pendências abertas há mais de 30 dias</div></div>
+<div class="row"><span class="tag t-in">Dados</span><div class="m">2 possíveis duplicados para revisar</div></div></div>
+</section>
+
+<section id="pes">
+<input type="search" placeholder="🔍 Buscar por nome ou telefone…" aria-label="Buscar pessoas por nome ou telefone">
+<div class="chips"><span class="a">Turma 36</span><span>Pendentes</span><span>Sem Ekklesia</span><span>Menores</span><span>+ Filtro</span></div>
+<div class="card">
+<div class="row"><div class="av">MS</div><div class="m"><b>Marina Souza</b><div>Turma 36 · 34 anos</div></div><span class="tag t-ok">Pronta</span></div>
+<div class="row"><div class="av">JL</div><div class="m"><b>João Lima</b><div>Turma 36 · 12 anos</div></div><span class="tag t-er">Sem responsável</span></div>
+<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Turma 36 · 41 anos</div></div><span class="tag t-pe">Ekklesia</span></div>
+<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36 · 28 anos</div></div><span class="tag t-pe">Aula 3</span></div>
+<div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Turma 36 · 50 anos</div></div><span class="tag t-ok">Pronto</span></div></div>
+<p id="pes-empty" class="note" style="display:none">Nenhuma pessoa encontrada com esse termo.</p>
+<p class="note">Toque numa pessoa para abrir a ficha demonstrativa</p>
+</section>
+
+<section id="fic">
+<div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">AP</div><div class="m"><h2 style="font-size:20px">Ana Paula Reis</h2><div>28 anos · (16) 9XXXX-XXXX · Turma 36</div></div></div>
+<span class="tag t-pe">2 pendências</span><span class="tag t-in">Pr. Gustavo</span></div>
+<p class="note" style="margin:0 0 10px">Os detalhes de preparação abaixo são exemplos estáticos neste protótipo.</p>
+<div class="card"><b>Aulas da jornada</b><div class="dots" style="margin-top:8px"><span class="t-ok">Aula 1 ✓</span><span class="t-ok">Aula 2 ✓</span><span class="t-pe">Aula 3 ✗</span><span class="t-ok">Aula 4 ✓</span></div>
+<p style="font-size:13px;color:var(--mut);margin:8px 0 0">Reposição: aulão 14/11 · inscrita</p></div>
+<div class="card"><b>Preparação</b>
+<div class="row"><div class="m">Cadastro no Ekklesia</div><span class="tag t-ok">OK</span></div>
+<div class="row"><div class="m">Camiseta<div>Optou por ter · tamanho M</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="m">Entrou no grupo</div><span class="tag t-ok">Sim</span></div>
+<div class="row"><div class="m">Verificação de perfil 🔒</div><span class="tag t-ok">OK</span></div></div>
+<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 WhatsApp</button><button type="button" class="btn o" data-demo-action="true">Editar</button></div>
+</section>
+
+<section id="ord">
+<h2 class="t">Ordem · Turma 36</h2>
+<div class="card">
+<div class="row"><span class="hd">⋮⋮</span><span class="n">1</span><div class="m"><b>Marina Souza</b><div>Pr. Gustavo</div></div><span class="tag t-ok">Ficha ✓</span></div>
+<div class="row"><span class="hd">⋮⋮</span><span class="n">2</span><div class="m"><b>Rafael Torres</b><div>Pr. Gustavo</div></div><span class="tag t-ok">Ficha ✓</span></div>
+<div class="row"><span class="hd">⋮⋮</span><span class="n">3</span><div class="m"><b>Ana Paula Reis</b><div>Pra. Erika</div></div><span class="tag t-pe">Ficha ○</span></div>
+<div class="row"><span class="hd">⋮⋮</span><span class="n">4</span><div class="m"><b>João Lima (12)</b><div>Pra. Erika · subgrupo Kids</div></div><span class="tag t-er">Pendência</span></div></div>
+<div class="bb"><button type="button" class="btn">🖨 Imprimir ordem</button><button type="button" class="btn o" data-demo-action="true">+ Pessoa</button></div>
+</section>
+
+<section id="dia">
+<div class="card" style="text-align:center"><small style="color:var(--mut)">BATIZADOS HOJE</small><div class="big"><span id="cnt">18</span> <small style="font-size:20px;color:var(--mut)">/ 57</small></div>
+<div class="bar"><b style="width:32%;background:var(--aq)"></b></div><span class="tag t-ok" style="margin-top:10px">● Offline · sincroniza ao voltar</span></div>
+<input type="search" placeholder="🔍 Buscar na ordem…" aria-label="Buscar pessoas na ordem do batismo">
+<div class="card"><div class="row"><span class="n">19</span><div class="m"><b style="font-size:17px">Marina Souza</b><div>Pr. Gustavo</div></div></div>
+<div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
+<div class="card"><div class="row"><span class="n">20</span><div class="m"><b style="font-size:17px">Rafael Torres</b><div>Pr. Gustavo</div></div></div>
+<div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
+</section>
+
+<section id="pen">
+<h2 class="t">Pendências</h2>
+<div class="k">
+<div class="card"><h3>Abertas · 9</h3><div class="i"><b>Ekklesia</b><br>Carlos Ferreira<br><span class="tag t-er">vencida</span></div><div class="i"><b>Aula 3</b><br>Ana Paula Reis</div></div>
+<div class="card"><h3>Em contato · 4</h3><div class="i"><b>Responsável</b><br>João Lima<br><span class="tag t-pe">vence amanhã</span></div></div>
+<div class="card"><h3>Resolvidas · 22</h3><div class="i"><b>Camiseta G</b><br>Rafael Torres ✓</div></div></div>
+</section>
+
+<section id="cam">
+<h2 class="t">Camisetas</h2>
+<div class="card"><b>Opção de cada pessoa · Turma 36</b>
+<div class="bar" style="display:flex;margin:10px 0"><b style="width:89%;background:var(--aq)"></b><b style="width:7%;background:var(--mut)"></b><b style="width:4%;background:var(--gold)"></b></div>
+<span class="tag t-in">51 querem</span><span class="tag" style="background:var(--ln);color:var(--mut)">4 não querem</span><span class="tag t-pe">2 já têm</span>
+<p style="font-size:12px;color:var(--mut);margin:8px 0 0">Só quem <b>optou por ter</b> entra na cobrança. Quem não quis ou já tem fica sem pendência.</p></div>
+<b style="font-size:13px">Pedido por tamanho (apenas quem optou)</b>
+<div class="card">
+<div class="f"><span>PP</span><div class="bar"><b style="width:25%;background:var(--aq)"></b></div><em>4</em></div>
+<div class="f"><span>P</span><div class="bar"><b style="width:45%;background:var(--aq)"></b></div><em>7</em></div>
+<div class="f"><span>M</span><div class="bar"><b style="width:100%;background:var(--aq)"></b></div><em>16</em></div>
+<div class="f"><span>G</span><div class="bar"><b style="width:75%;background:var(--aq)"></b></div><em>12</em></div>
+<div class="f"><span>GG</span><div class="bar"><b style="width:50%;background:var(--aq)"></b></div><em>8</em></div>
+<div class="f"><span>EG / G1+</span><div class="bar"><b style="width:25%;background:var(--aq)"></b></div><em>4</em></div></div>
+<div class="grid"><div class="card kpi"><span>Pagas</span><b style="color:var(--ok)">40</b></div><div class="card kpi"><span>A receber</span><b style="color:var(--pe)">11</b></div><div class="card kpi"><span>Entregues</span><b>0</b></div></div>
+<div class="card"><b>Cobrança · só quem optou e ainda não pagou</b>
+<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Optou · tamanho M</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Optou · tamanho G</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Optou · tamanho GG</div></div><span class="tag t-ok">Pago</span></div>
+<div class="row"><div class="av" style="background:var(--mut)">JL</div><div class="m"><b>João Lima</b><div>Não optou por camiseta</div></div><span class="tag" style="background:var(--ln);color:var(--mut)">Sem cobrança</span></div></div>
+<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 Cobrar 11 pessoas</button><button type="button" class="btn" data-demo-action="true">⬇ Exportar pedido</button></div>
+</section>
+
+<style>.cert{border:3px double var(--gold);border-radius:14px;padding:22px 14px;text-align:center;background:var(--card)}.cert h2{font-size:24px;color:var(--pri)}.cert .s{width:60%;margin:22px auto 4px;border-top:1px solid var(--mut)}.st{display:flex;gap:6px;margin-bottom:12px}.st span{flex:1;text-align:center;font-size:11px;padding:8px 2px;border-radius:9px;background:var(--ln);color:var(--mut)}.st .d{background:var(--ok);color:#fff}.st .c{background:var(--pri);color:#fff}.sw{width:40px;height:22px;border-radius:99px;background:var(--ok);position:relative;flex:none}.sw:after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}</style>
+<section id="rep"><h2 class="t">Reposição de aulas</h2>
+<div class="card hero"><small>PRÓXIMO AULÃO</small><h2>14 de nov · 19h</h2><small>23 inscritos · 6 vagas livres</small></div>
+<div class="card"><b>Quem precisa repor</b>
+<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36</div></div><span class="tag t-pe">Aula 3</span><span class="tag t-ok">Inscrita</span></div>
+<div class="row"><div class="av">CB</div><div class="m"><b>Caio Batista</b><div>Turma 36</div></div><span class="tag t-pe">Aulas 3 e 4</span><span class="tag t-er">Sem inscrição</span></div>
+<div class="row"><div class="av">DM</div><div class="m"><b>Daniele Matos</b><div>Turma 35</div></div><span class="tag t-pe">Aula 2</span><span class="tag t-er">Sem inscrição</span></div></div>
+<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 Convidar 2 pessoas</button><button type="button" class="btn o">Imprimir chamada</button></div></section>
+<section id="his"><h2 class="t">Histórico de batizados</h2><input type="search" placeholder="🔍 Buscar nome em todos os anos…" aria-label="Buscar nome no histórico de batismos">
+<div class="chips"><span>2023</span><span>2024</span><span>2025</span><span class="a">2026</span></div>
+<div class="card"><div class="row"><span class="n">35</span><div class="m"><b>Turma 35 · 18/07/2026</b><div>36 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">34</span><div class="m"><b>Turma 34 · 30/05/2026</b><div>43 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">36</span><div class="m"><b>Turma 36 · 12/10/2026</b><div>57 inscritos</div></div><span class="tag t-in">Em 3 dias</span></div></div>
+<div class="cert"><small style="color:var(--gold)">✦ CERTIFICADO ✦</small><h2>Marina Souza</h2><p style="margin:8px 0">foi batizada em 18 de julho de 2026<br>Turma 35 · Pr. Gustavo</p><div class="s"></div><small style="color:var(--mut)">Pastor responsável</small></div>
+<div class="bb"><button type="button" class="btn" data-demo-action="true">⬇ Gerar PDF</button><button type="button" class="btn o" data-demo-action="true">Editar modelo</button></div></section>
+<section id="imp"><h2 class="t">Importar planilha</h2>
+<div class="st"><span class="d">1 Enviar ✓</span><span class="d">2 Colunas ✓</span><span class="c">3 Revisar</span><span>4 Confirmar</span></div>
+<div class="grid" style="margin-bottom:12px"><div class="card kpi" style="margin:0"><span>Linhas lidas</span><b>1.562</b></div><div class="card kpi" style="margin:0"><span>Duplicados</span><b style="color:var(--pe)">82</b></div><div class="card kpi" style="margin:0"><span>Sem turma</span><b style="color:var(--pe)">56</b></div><div class="card kpi" style="margin:0"><span>Sem telefone</span><b style="color:var(--er)">93</b></div></div>
+<div class="card"><b>Corrigir antes de importar</b>
+<div class="row"><div class="m">3 datas impossíveis (anos 1977–1985)<div>Sugestão: usar a data da turma</div></div><span class="tag t-ok">Aplicar</span></div>
+<div class="row"><div class="m">Telefones em 6 formatos<div>Padronizar para (16) 9XXXX-XXXX</div></div><span class="tag t-ok">Aplicar</span></div>
+<div class="row"><div class="m">20 textos livres de pendência<div>Agrupar em 9 tipos padrão</div></div><span class="tag t-in">Revisar</span></div>
+<div class="row"><div class="m">82 nomes duplicados<div>Mesclar, manter ambos ou ignorar</div></div><span class="tag t-pe">Decidir</span></div></div>
+<div class="bb"><button type="button" class="btn o" data-demo-action="true">← Voltar</button><button type="button" class="btn" data-demo-action="true">Continuar →</button></div></section>
+<section id="cfg"><h2 class="t">Configurações</h2>
+<div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
+<div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
+<div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
+<div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Ekklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
+<p class="note">Protótipo interativo · dados fictícios · ações não conectadas a uma base de dados</p>
+</main>
+<div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  'use strict';
+
+  var nav = document.getElementById('nav');
+  var toast = document.getElementById('demo-toast');
+  var toastTimer;
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add('show');
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(function () {
+      toast.classList.remove('show');
+    }, 3000);
+  }
+
+  function go(sectionId) {
+    var button = document.querySelector('[data-s="' + sectionId + '"]');
+    if (button) button.click();
+  }
+
+  nav.addEventListener('click', function (event) {
+    var button = event.target.closest('button[data-s]');
+    if (!button) return;
+    document.querySelectorAll('#nav button, main section').forEach(function (item) {
+      item.classList.remove('on');
+    });
+    button.classList.add('on');
+    button.setAttribute('aria-current', 'page');
+    document.querySelectorAll('#nav button').forEach(function (item) {
+      if (item !== button) item.removeAttribute('aria-current');
+    });
+    var section = document.getElementById(button.dataset.s);
+    if (section) section.classList.add('on');
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  });
+
+  document.querySelectorAll('#pes .row').forEach(function (row) {
+    row.style.cursor = 'pointer';
+    row.setAttribute('tabindex', '0');
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', 'Abrir ficha demonstrativa de ' + row.querySelector('.m b').textContent);
+
+    function openPerson() {
+      var name = row.querySelector('.m b').textContent.trim();
+      var metadata = row.querySelector('.m div').textContent.trim();
+      var initials = row.querySelector('.av').textContent.trim();
+      var statusTag = row.querySelector('.tag');
+      var profile = document.querySelector('#fic .card:first-child');
+      var avatar = profile.querySelector('.av');
+      var title = profile.querySelector('h2');
+      var meta = profile.querySelector('.m div');
+      var tags = profile.querySelectorAll('.tag');
+
+      avatar.textContent = initials;
+      title.textContent = name;
+      meta.textContent = metadata;
+      if (tags[0] && statusTag) {
+        tags[0].className = statusTag.className;
+        tags[0].textContent = statusTag.textContent;
+      }
+      if (tags[1]) {
+        tags[1].className = 'tag t-in';
+        tags[1].textContent = 'Ficha demonstrativa';
+      }
+      go('fic');
+    }
+
+    row.addEventListener('click', openPerson);
+    row.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openPerson();
+      }
+    });
+  });
+
+  var peopleSearch = document.querySelector('#pes input');
+  peopleSearch.addEventListener('input', function () {
+    var query = peopleSearch.value.toLowerCase().trim();
+    var visible = 0;
+    document.querySelectorAll('#pes .row').forEach(function (row) {
+      var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
+    });
+    document.getElementById('pes-empty').style.display = visible ? 'none' : 'block';
+  });
+
+  document.querySelectorAll('#dia .btn.g').forEach(function (button) {
+    button.addEventListener('click', function () {
+      if (button.dataset.done) return;
+      button.dataset.done = 'true';
+      button.textContent = '✔ Registrado';
+      button.disabled = true;
+      button.style.opacity = '.65';
+      var count = document.getElementById('cnt');
+      var next = Math.min(57, Number(count.textContent) + 1);
+      count.textContent = String(next);
+      var progress = document.querySelector('#dia .bar b');
+      progress.style.width = ((next / 57) * 100) + '%';
+      showToast('Registro de demonstração atualizado nesta tela. Ele não é salvo em uma base de dados.');
+    });
+  });
+
+  document.querySelectorAll('#dia .btn.o').forEach(function (button) {
+    button.addEventListener('click', function () {
+      if (button.dataset.present) return;
+      button.dataset.present = 'true';
+      button.textContent = '✔ Presente';
+      button.classList.remove('o');
+      button.classList.add('g');
+      showToast('Presença marcada apenas nesta demonstração.');
+    });
+  });
+
+  var openOrder = document.querySelector('.hero .btn');
+  if (openOrder) openOrder.addEventListener('click', function () { go('ord'); });
+
+  document.querySelectorAll('#ord .bb .btn:first-child, #rep .bb .btn.o').forEach(function (button) {
+    button.addEventListener('click', function () { window.print(); });
+  });
+
+  document.getElementById('tm').setAttribute('aria-label', 'Alternar tema claro e escuro');
+  document.getElementById('tm').addEventListener('click', function () {
+    var root = document.documentElement;
+    var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    var currentTheme = root.dataset.theme || systemTheme;
+    root.dataset.theme = currentTheme === 'dark' ? 'light' : 'dark';
+  });
+
+  document.querySelectorAll('[data-demo-action="true"]').forEach(function (button) {
+    button.addEventListener('click', function () {
+      showToast('Esta ação ainda é apenas visual no protótipo. Vamos conectá-la conforme os requisitos forem definidos.');
+    });
+  });
+})();
+</script>
+</body>
+</html>
