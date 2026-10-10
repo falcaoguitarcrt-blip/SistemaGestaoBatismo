@@ -1186,11 +1186,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (!window.confirm(message)) return;
     var button = document.getElementById('confirm-import');
     button.disabled = true;
-    setImportMessage('Salvando a planilha original, as linhas e os registros locais…');
+    setImportMessage('Enviando os registros ao Firebase e salvando a cópia local…');
     try {
       if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase ainda não está pronta. Recarregue a página e entre novamente.');
       await window.firebaseSaveWorkspace(pendingImport, true);
-      await saveWorkspace(pendingImport, true);
+      var localCopyWarning = '';
+      try { await saveWorkspace(pendingImport, true); }
+      catch (localError) { localCopyWarning = ' A sincronização na nuvem foi concluída, mas a cópia local não pôde ser atualizada neste navegador.'; }
       appData = Object.assign({}, pendingImport, { id: 'current' });
       selectedPersonRow = null;
       peopleState = { query: '', turma: '', filter: 'all', page: 1 };
@@ -1202,8 +1204,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       historyState = { query: '', source: 'geral', page: 1 };
       buildAll();
       goTo('home');
+      if (localCopyWarning) setImportMessage(localCopyWarning.trim(), 'error');
     } catch (error) {
-      setImportMessage('Falha ao salvar: ' + (error.message || 'erro desconhecido') + '. A versão anterior não foi removida intencionalmente.', 'error');
+      setImportMessage('Não foi possível concluir o envio ao Firebase: ' + (error.message || 'erro desconhecido') + '. A versão anterior permanece preservada.', 'error');
       button.disabled = false;
     }
   });
@@ -1259,10 +1262,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       try {
         if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
         await window.firebaseSaveWorkspace(appData, false);
-        await saveWorkspace(appData, false);
+        var localCheckinWarning = '';
+        try { await saveWorkspace(appData, false); }
+        catch (localError) { localCheckinWarning = ' A marcação foi salva na nuvem, mas não foi atualizada na cópia local deste navegador.'; }
         drawDayResults();
+        if (localCheckinWarning) setImportMessage(localCheckinWarning.trim(), 'error');
       } catch (error) {
-        setImportMessage('Não foi possível salvar a marcação local: ' + error.message, 'error');
+        setImportMessage('Não foi possível sincronizar a marcação com o Firebase: ' + error.message, 'error');
       }
       return;
     }
@@ -1276,13 +1282,16 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       try {
         if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
         await window.firebaseSaveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
-        await saveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
+        var localRestoreWarning = '';
+        try { await saveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true); }
+        catch (localError) { localRestoreWarning = ' A versão foi restaurada no Firebase, mas a cópia local não foi atualizada.'; }
         appData = Object.assign({}, snapshot, { id: 'current' });
         selectedPersonRow = null;
         buildAll();
         goTo('home');
+        if (localRestoreWarning) setImportMessage(localRestoreWarning.trim(), 'error');
       } catch (error) {
-        setImportMessage('Não foi possível restaurar o backup: ' + error.message, 'error');
+        setImportMessage('Não foi possível restaurar a versão: ' + error.message, 'error');
       }
       return;
     }
