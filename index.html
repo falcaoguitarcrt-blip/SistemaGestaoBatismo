@@ -301,6 +301,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   <b>Importação local e preservação dos dados</b>
   <p>Escolha a planilha original. O arquivo será lido no navegador e guardado neste dispositivo, sem enviar nomes, telefones, idades ou observações ao repositório do GitHub.</p>
   <p><strong>Importante:</strong> este modo não sincroniza os dados entre computadores ou usuários. Mantenha uma cópia segura do Excel e baixe o backup original após importar.</p>
+  <p><strong>Importar não é baixar:</strong> selecione o arquivo Excel que está no seu computador. O sistema mostrará uma prévia; somente depois da sua confirmação enviará os registros ao Firebase. Para baixar uma cópia, use os botões de exportação após os dados estarem carregados.</p>
 </div>
 <div class="card">
   <label for="workbook-file"><b>Arquivo Excel (.xlsx)</b></label>
@@ -308,7 +309,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   <div id="import-status" class="import-status" role="status" aria-live="polite">Selecione “Batismo (1).xlsx” para conferir as abas e os registros antes de importar.</div>
   <div id="import-preview"></div>
   <div class="bb import-actions">
-    <button id="confirm-import" type="button" class="btn" disabled>Importar e salvar neste navegador</button>
+    <button id="confirm-import" type="button" class="btn" disabled>Importar e salvar no Firebase</button>
     <button id="download-source" type="button" class="btn o" disabled>Baixar Excel original</button>
     <button id="download-json" type="button" class="btn o" disabled>Exportar backup JSON</button>
   </div>
@@ -332,7 +333,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
 <div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
 <div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Ekklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
-<p class="note">Protótipo interativo · dados fictícios · ações não conectadas a uma base de dados</p>
 </main>
 <div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -493,9 +493,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   });
 
   document.querySelectorAll('[data-demo-action="true"]').forEach(function (button) {
-    button.addEventListener('click', function () {
-      showToast('Esta ação ainda é apenas visual no protótipo. Vamos conectá-la conforme os requisitos forem definidos.');
-    });
+    button.disabled = true;
+    button.setAttribute('aria-disabled', 'true');
+    button.title = 'Ação demonstrativa indisponível. Importe dados reais para habilitar as funções do sistema.';
   });
 })();
 </script>
@@ -1266,6 +1266,26 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Somente as duas primeiras abas (Batismo e Ordem) e suas linhas de origem serão enviadas ao Firebase. As demais abas serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
   }
 
+  function renderEmptyWorkspace() {
+    var emptySections = {
+      home: { title: 'Visão geral', message: 'Nenhuma planilha foi carregada no banco central. Os números e nomes do arquivo de demonstração não serão exibidos como se fossem dados reais.' },
+      pes: { title: 'Pessoas', message: 'Os cadastros aparecerão aqui depois que você importar a planilha Excel e confirmar o envio ao Firebase.' },
+      fic: { title: 'Ficha individual', message: 'Selecione uma pessoa depois que os registros reais estiverem carregados.' },
+      ord: { title: 'Ordem do batismo', message: 'A ordem será exibida aqui depois que a aba Ordem da planilha for importada.' },
+      dia: { title: 'Dia do batismo', message: 'A lista de presença e o acompanhamento só ficam disponíveis quando há registros reais carregados.' },
+      pen: { title: 'Pendências', message: 'As pendências serão calculadas a partir dos cadastros importados.' },
+      cam: { title: 'Camisetas', message: 'O resumo de tamanhos e pagamentos será calculado a partir da planilha importada.' },
+      rep: { title: 'Reposição de aulas', message: 'Os registros de reposição aparecerão após a importação da planilha.' },
+      his: { title: 'Histórico de batizados', message: 'O histórico será exibido quando houver registros reais disponíveis.' }
+    };
+    Object.keys(emptySections).forEach(function (id) {
+      var section = document.getElementById(id);
+      var item = emptySections[id];
+      if (!section) return;
+      section.innerHTML = '<h2 class="t">' + item.title + '</h2><div class="card"><b>Nenhum dado carregado</b><p class="section-sub">' + item.message + '</p><button type="button" class="btn" data-go="imp">Selecionar planilha Excel →</button></div>';
+    });
+  }
+
   function buildAll() {
     if (!appData) return;
     demoNotice.remove();
@@ -1282,8 +1302,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (appData.sourceWorkbook) sourceInfo += ' Excel original disponível neste navegador.';
     else sourceInfo += ' O Excel formatado fica no navegador usado para importá-lo; os registros estão na nuvem.';
     document.getElementById('config-source').textContent = sourceInfo;
-    document.querySelectorAll('[data-download-current]').forEach(function (button) { button.disabled = false; });
-    document.getElementById('download-source').disabled = false;
+    document.querySelectorAll('[data-download-current="xlsx"]').forEach(function (button) { button.disabled = !appData.sourceWorkbook; });
+    document.querySelectorAll('[data-download-current="json"]').forEach(function (button) { button.disabled = false; });
+    document.getElementById('download-source').disabled = !appData.sourceWorkbook;
     document.getElementById('download-json').disabled = false;
     setImportMessage('Dados carregados do Firebase. ' + numberLabel(appData.people.length) + ' registros na aba Batismo, ' + numberLabel(appData.order.length) + ' posições na Ordem, ' + numberLabel(appData.order35.length) + ' registros na Ordem Batismo 35 e ' + numberLabel(appData.general.length) + ' pessoas no GERAL.', 'success');
     document.getElementById('import-preview').innerHTML = '<div class="card"><b>Dados atualmente carregados</b><p class="section-sub">' + esc(appData.sourceFileName) + ' · ' + numberLabel(appData.sourceFileSize) + ' bytes · ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '</p><p class="section-sub">Os registros estão no Firestore, não no repositório público. Para inserir uma versão atualizada, selecione outro Excel e confirme a importação. A versão anterior continua preservada no Firebase.</p></div>';
@@ -1565,6 +1586,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         goTo('home');
       } else {
         appData = null;
+        renderEmptyWorkspace();
         setImportMessage('Firebase conectado. Ainda não há uma planilha principal na nuvem. Selecione o Excel original e confira os registros antes de importar.', 'success');
         document.getElementById('import-preview').innerHTML = '<div class="card"><b>Nenhuma planilha no banco central</b><p class="section-sub">O banco está pronto e seu login foi validado. Selecione o arquivo Excel original para enviar somente as duas primeiras abas, Batismo e Ordem, ao Firestore. As abas seguintes serão ignoradas. Nada será enviado antes de você conferir e confirmar a importação.</p></div>';
         await refreshBackups();
