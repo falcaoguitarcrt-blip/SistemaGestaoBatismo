@@ -550,7 +550,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   configSection.innerHTML = '<h2 class="t">Dados e privacidade</h2>' +
     '<div class="card"><b>Banco de dados central</b><p class="section-sub">Os registros importados são armazenados no Cloud Firestore do Firebase. O acesso depende do login e das regras de segurança do projeto. O GitHub hospeda somente o código do sistema.</p></div>' +
     '<div class="card"><b>Origem carregada</b><div id="config-source" class="local-only-note">Nenhuma planilha carregada do Firebase.</div><div class="bb"><button type="button" class="btn o" data-go="imp">Abrir importação</button><button type="button" class="btn o" data-download-current="xlsx" disabled>Baixar Excel original deste navegador</button><button type="button" class="btn o" data-download-current="json" disabled>Exportar dados JSON</button></div></div>' +
-    '<div class="card"><b>Preservação</b><p class="section-sub">As quatro abas e as linhas de origem são preservadas no Firestore em blocos. Cada nova importação cria uma nova versão da base, sem apagar a versão anterior. O Excel original, com sua formatação, também fica em cópia local no navegador usado para importar.</p><p class="section-sub">A cópia original em Excel não é sincronizada entre dispositivos. Mantenha o arquivo XLSX original guardado em local seguro.</p></div>' +
+    '<div class="card"><b>Preservação</b><p class="section-sub">Somente as duas primeiras abas, Batismo e Ordem, são importadas para o Firestore, com suas linhas de origem. As abas seguintes são ignoradas na nuvem. Cada nova importação cria uma nova versão da base, sem apagar a versão anterior.</p><p class="section-sub">O arquivo Excel original completo, com todas as abas e formatação, fica somente como cópia local no navegador usado para importar. Mantenha também o XLSX original guardado em local seguro.</p></div>' +
     '<div class="card"><b>Backups locais deste navegador</b><div id="backup-items-config" class="backup-list"><span class="note">Carregando…</span></div></div>';
 
   var homeSection = document.getElementById('home');
@@ -696,7 +696,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var workbook = XLSX.read(buffer, { type: 'array', cellDates: false, raw: true });
     var rawSheets = {};
     var sheetStats = [];
-    workbook.SheetNames.forEach(function (sheetName) {
+    var selectedSheetNames = workbook.SheetNames.slice(0, 2);
+    if (selectedSheetNames.length < 2) throw new Error('O arquivo precisa conter ao menos duas abas: Batismo e Ordem.');
+    selectedSheetNames.forEach(function (sheetName) {
       var rows = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
         header: 1, raw: true, defval: null, blankrows: true
       }).map(function (row) { return Array.from(row); });
@@ -711,14 +713,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
     var mainRows = getSheetRows(rawSheets, 'Batismo');
     var orderRows = getSheetRows(rawSheets, 'Ordem');
-    var order35Rows = getSheetRows(rawSheets, 'Ordem Batismo 35');
-    var generalRows = getSheetRows(rawSheets, 'GERAL');
+    var order35Rows = [];
+    var generalRows = [];
     var missingSheets = [];
-    if (!mainRows) missingSheets.push('Batismo');
-    if (!orderRows) missingSheets.push('Ordem');
-    if (!order35Rows) missingSheets.push('Ordem Batismo 35');
-    if (!generalRows) missingSheets.push('GERAL');
-    if (missingSheets.length) throw new Error('A planilha precisa conter estas quatro abas: ' + missingSheets.join(', ') + '. Nenhum dado foi substituído.');
+    if (!mainRows) missingSheets.push('Batismo (primeira aba)');
+    if (!orderRows) missingSheets.push('Ordem (segunda aba)');
+    if (missingSheets.length) throw new Error('As duas primeiras abas precisam ser Batismo e Ordem. Abas identificadas: ' + selectedSheetNames.join(', ') + '. Nenhum dado foi substituído.');
 
     var people = [];
     var skippedDuplicateHeaders = 0;
@@ -777,7 +777,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       generalUnmapped: generalUnmapped,
       skippedDuplicateHeaders: skippedDuplicateHeaders,
       checkin: {},
-      sourceSheetNames: workbook.SheetNames.slice()
+      sourceSheetNames: selectedSheetNames.slice()
     };
   }
 
@@ -876,8 +876,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '</div><div class="card"><h2 class="t">Conferências sem alterar a fonte</h2><div class="security-list">' +
       '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(duplicateGroups) + '</strong> grupos de nomes repetidos. Nenhum registro foi mesclado.</span></div>' +
       '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(withoutName) + '</strong> linhas de cadastro sem nome, mantidas para revisão.</span></div>' +
-      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(appData.generalUnmapped.length) + '</strong> linhas da aba GERAL sem nome textual; permanecem na origem completa.</span></div>' +
-      '<div class="security-row"><span class="status-dot"></span><span>A coluna BATIZADO está vazia na aba Batismo; o histórico de turma 35 vem da aba própria.</span></div>' +
+       '<div class="security-row"><span class="status-dot"></span><span>Importação restrita às abas Batismo e Ordem, conforme definido. GERAL e Ordem Batismo 35 não entram no banco.</span></div>' +
+       '<div class="security-row"><span class="status-dot"></span><span>As linhas originais das duas abas selecionadas são preservadas, sem mesclar nomes repetidos.</span></div>' +
       '</div><div class="bb"><button type="button" class="btn o" data-go="pen">Ver observações e pendências</button><button type="button" class="btn o" data-go="imp">Ver importação e backups</button></div></div></div>' +
       '<p class="note">Os registros são armazenados no Firebase; alterações feitas aqui ficam disponíveis após novo login em outros dispositivos.</p>';
   }
@@ -1224,9 +1224,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
 
   function buildHistory() {
-    document.getElementById('his').innerHTML = '<h2 class="t">Histórico</h2><div class="card"><p class="section-sub">A aba GERAL contém o histórico consolidado; “Ordem Batismo 35” mantém o registro operacional específico daquela turma.</p><div class="history-tabs"><button type="button" class="active" data-history-tab="geral">GERAL · ' + numberLabel(appData.general.length) + '</button><button type="button" data-history-tab="ord35">Ordem Batismo 35 · ' + numberLabel(appData.order35.length) + '</button></div><div class="data-toolbar"><input id="history-search" type="search" placeholder="Buscar nome, turma, ano ou status…" aria-label="Buscar histórico"><div></div><span class="local-only-note">Os registros não são mesclados entre abas.</span></div><div id="history-count" class="data-summary"></div><div id="history-results" class="data-list"></div><div id="history-pager" class="data-pager"></div></div>';
-    document.getElementById('history-search').addEventListener('input', function () { historyState.query = this.value; historyState.page = 1; drawHistoryResults(); });
-    drawHistoryResults();
+    document.getElementById('his').innerHTML = '<h2 class="t">Histórico</h2><div class="card"><p class="section-sub">Conforme sua escolha, somente as abas Batismo e Ordem foram importadas para o Firebase. As abas GERAL e Ordem Batismo 35 não fazem parte da base central.</p><p class="section-sub">Para consultar e manter os dados atuais, use Pessoas e Ordem. O histórico de versões da base é preservado no Firebase a cada importação ou edição.</p><div class="bb"><button type="button" class="btn" data-go="pes">Abrir pessoas</button><button type="button" class="btn o" data-go="ord">Abrir ordem</button></div></div>';
   }
   function drawHistoryResults() {
     if (!appData || !document.getElementById('history-results')) return;
@@ -1265,7 +1263,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       return '<div class="mapping-row"><strong>' + esc(sheet.name) + '</strong><span>' + numberLabel(sheet.rowCount) + ' linhas lidas · ' + numberLabel(sheet.nonemptyRows) + ' não vazias · ' + esc(sheet.columns) + ' colunas<br>' + esc(extra) + '</span></div>';
     }).join('');
     var skipped = payload.skippedDuplicateHeaders ? '<p class="section-sub">' + numberLabel(payload.skippedDuplicateHeaders) + ' linha(s) repetindo o cabeçalho da aba Batismo será(ão) excluída(s) apenas da lista de pessoas. Ela(s) continua(m) preservada(s) no Excel original e em rawSheets.</p>' : '';
-    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Os registros e as linhas de origem serão enviados ao Firebase. O arquivo Excel original (' + numberLabel(payload.sourceFileSize) + ' bytes) ficará também no armazenamento local deste navegador.</p></div>';
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Somente as duas primeiras abas (Batismo e Ordem) e suas linhas de origem serão enviadas ao Firebase. As demais abas serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
   }
 
   function buildAll() {
@@ -1381,7 +1379,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   document.getElementById('confirm-import').addEventListener('click', async function () {
     if (!pendingImport) return;
-    var message = 'Enviar todos os dados conferidos para o Firebase e guardar uma cópia local?';
+    var message = 'Enviar os dados conferidos das duas primeiras abas (Batismo e Ordem) para o Firebase e guardar uma cópia local?';
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
     if (!window.confirm(message)) return;
@@ -1568,7 +1566,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       } else {
         appData = null;
         setImportMessage('Firebase conectado. Ainda não há uma planilha principal na nuvem. Selecione o Excel original e confira os registros antes de importar.', 'success');
-        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Nenhuma planilha no banco central</b><p class="section-sub">O banco está pronto e seu login foi validado. Selecione o arquivo Excel original para enviar as quatro abas ao Firestore. Nada será enviado antes de você conferir e confirmar a importação.</p></div>';
+        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Nenhuma planilha no banco central</b><p class="section-sub">O banco está pronto e seu login foi validado. Selecione o arquivo Excel original para enviar somente as duas primeiras abas, Batismo e Ordem, ao Firestore. As abas seguintes serão ignoradas. Nada será enviado antes de você conferir e confirmar a importação.</p></div>';
         await refreshBackups();
         goTo('imp');
       }
