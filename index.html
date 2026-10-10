@@ -115,9 +115,44 @@ h2.t{font-size:22px;margin:4px 0 12px}
  .import-actions .btn{width:100%}
 }
 
+
+/* Acesso autenticado ao sistema */
+body.auth-pending{overflow:hidden}
+body.auth-pending>header,body.auth-pending>main{visibility:hidden}
+#auth-shell{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:22px;background:var(--bg);color:var(--tx)}
+#auth-shell[hidden]{display:none!important}
+.auth-card{width:min(100%,420px);background:var(--card);border:1px solid var(--ln);border-radius:20px;padding:24px;box-shadow:0 18px 60px #0002}
+.auth-card h1{font-size:26px;margin-bottom:8px}
+.auth-card p{color:var(--mut);font-size:13px;line-height:1.6}
+.auth-card label{display:block;font-size:13px;font-weight:600;margin:14px 0 6px}
+.auth-card input{display:block;width:100%;margin-top:6px;padding:12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+.auth-card button{width:100%;margin-top:16px}
+#firebase-status{min-height:22px;margin:12px 0;color:var(--mut)}
+#firebase-status.error{color:var(--er)}
+#fb-logout{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 11px;font:inherit;font-size:12px;cursor:pointer}
+#fb-logout[hidden]{display:none}
+
 </style>
 </head>
-<body>
+<body class="auth-pending">
+
+<div id="auth-shell" role="dialog" aria-modal="true" aria-labelledby="firebase-login-title">
+  <form id="firebase-login" class="auth-card">
+    <div class="brand" style="margin-bottom:18px"><i>✦</i>Gestão de Batismo</div>
+    <h1 id="firebase-login-title">Entrar no sistema</h1>
+    <p>Entre com a conta autorizada no Firebase. Os registros só serão carregados depois da autenticação.</p>
+    <label for="firebase-email">E-mail
+      <input id="firebase-email" name="email" type="email" autocomplete="username" required>
+    </label>
+    <label for="firebase-password">Senha
+      <input id="firebase-password" name="password" type="password" autocomplete="current-password" required>
+    </label>
+    <button id="firebase-login-submit" class="btn" type="submit">Entrar com segurança</button>
+    <p id="firebase-status" role="status" aria-live="polite">Use o e-mail e a senha cadastrados no Firebase Authentication.</p>
+    <p style="font-size:11px">Não crie a conta por esta tela. Os usuários são administrados pelo responsável do projeto Firebase.</p>
+  </form>
+</div>
+
 <header>
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
@@ -467,15 +502,15 @@ h2.t{font-size:22px;margin:4px 0 12px}
   var configSection = document.getElementById('cfg');
 
   configSection.innerHTML = '<h2 class="t">Dados e privacidade</h2>' +
-    '<div class="card"><b>Armazenamento local</b><p class="section-sub">A planilha importada e as marcações do dia ficam no armazenamento deste navegador. A página pública não envia esses dados para o GitHub, mas também não sincroniza entre computadores.</p></div>' +
-    '<div class="card"><b>Origem carregada</b><div id="config-source" class="local-only-note">Nenhuma planilha importada neste navegador.</div><div class="bb"><button type="button" class="btn o" data-go="imp">Abrir importação</button><button type="button" class="btn o" data-download-current="xlsx" disabled>Baixar Excel original</button><button type="button" class="btn o" data-download-current="json" disabled>Exportar backup JSON</button></div></div>' +
-    '<div class="card"><b>Preservação e segurança</b><p class="section-sub">Registros duplicados não são mesclados. A importação guarda a planilha original e as linhas de todas as abas. Cada nova importação gera uma cópia de segurança local da versão ativa.</p><p class="section-sub">Não use dados pessoais reais em computador compartilhado. Para acesso conjunto por vários voluntários será necessário um backend privado com autenticação e regras de acesso.</p></div>' +
-    '<div class="card"><b>Backups locais</b><div id="backup-items-config" class="backup-list"><span class="note">Carregando…</span></div></div>';
+    '<div class="card"><b>Banco de dados central</b><p class="section-sub">Os registros importados são armazenados no Cloud Firestore do Firebase. O acesso depende do login e das regras de segurança do projeto. O GitHub hospeda somente o código do sistema.</p></div>' +
+    '<div class="card"><b>Origem carregada</b><div id="config-source" class="local-only-note">Nenhuma planilha carregada do Firebase.</div><div class="bb"><button type="button" class="btn o" data-go="imp">Abrir importação</button><button type="button" class="btn o" data-download-current="xlsx" disabled>Baixar Excel original deste navegador</button><button type="button" class="btn o" data-download-current="json" disabled>Exportar dados JSON</button></div></div>' +
+    '<div class="card"><b>Preservação</b><p class="section-sub">As quatro abas e as linhas de origem são preservadas no Firestore em blocos. Cada nova importação cria uma nova versão da base, sem apagar a versão anterior. O Excel original, com sua formatação, também fica em cópia local no navegador usado para importar.</p><p class="section-sub">A cópia original em Excel não é sincronizada entre dispositivos. Mantenha o arquivo XLSX original guardado em local seguro.</p></div>' +
+    '<div class="card"><b>Backups locais deste navegador</b><div id="backup-items-config" class="backup-list"><span class="note">Carregando…</span></div></div>';
 
   var homeSection = document.getElementById('home');
   var demoNotice = document.createElement('div');
   demoNotice.className = 'card security-callout';
-  demoNotice.innerHTML = '<b>Modo demonstrativo</b><p>Os nomes e números iniciais desta tela são exemplos. Para trabalhar com a planilha verdadeira, abra <strong>Importar</strong> e carregue o arquivo Excel. Os dados serão processados somente neste navegador.</p><button type="button" class="btn" data-go="imp">Importar minha planilha →</button>';
+  demoNotice.innerHTML = '<b>Base ainda não carregada</b><p>Para começar, abra <strong>Importar</strong>, selecione o Excel original e confira os quantitativos. Ao confirmar, os registros serão enviados ao Firestore e uma cópia local será mantida neste navegador.</p><button type="button" class="btn" data-go="imp">Importar minha planilha →</button>';
   homeSection.insertBefore(demoNotice, homeSection.firstChild);
 
   function isBlank(value) {
@@ -592,6 +627,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
             snapshots.put(backup);
           }
           var current = Object.assign({}, payload, { id: 'current' });
+          if (!current.sourceWorkbook && previous && previous.sourceWorkbook && previous.importedAt === current.importedAt) current.sourceWorkbook = previous.sourceWorkbook;
           workspace.put(current);
         };
         transaction.oncomplete = function () { resolve(true); };
@@ -1028,7 +1064,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
       return '<div class="mapping-row"><strong>' + esc(sheet.name) + '</strong><span>' + numberLabel(sheet.rowCount) + ' linhas lidas · ' + numberLabel(sheet.nonemptyRows) + ' não vazias · ' + esc(sheet.columns) + ' colunas<br>' + esc(extra) + '</span></div>';
     }).join('');
     var skipped = payload.skippedDuplicateHeaders ? '<p class="section-sub">' + numberLabel(payload.skippedDuplicateHeaders) + ' linha(s) repetindo o cabeçalho da aba Batismo será(ão) excluída(s) apenas da lista de pessoas. Ela(s) continua(m) preservada(s) no Excel original e em rawSheets.</p>' : '';
-    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">O arquivo original completo (' + numberLabel(payload.sourceFileSize) + ' bytes) também será guardado no armazenamento local, junto com todas as linhas de origem.</p></div>';
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Os registros e as linhas de origem serão enviados ao Firebase. O arquivo Excel original (' + numberLabel(payload.sourceFileSize) + ' bytes) ficará também no armazenamento local deste navegador.</p></div>';
   }
 
   function buildAll() {
@@ -1043,13 +1079,15 @@ h2.t{font-size:22px;margin:4px 0 12px}
     buildShirts();
     buildReturns();
     buildHistory();
-    var sourceInfo = 'Arquivo: ' + appData.sourceFileName + ' · importada em ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '. Dados guardados localmente neste navegador.';
+    var sourceInfo = 'Arquivo: ' + appData.sourceFileName + ' · importada em ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '. Registros sincronizados pelo Firebase.';
+    if (appData.sourceWorkbook) sourceInfo += ' Excel original disponível neste navegador.';
+    else sourceInfo += ' O Excel formatado fica no navegador usado para importá-lo; os registros estão na nuvem.';
     document.getElementById('config-source').textContent = sourceInfo;
     document.querySelectorAll('[data-download-current]').forEach(function (button) { button.disabled = false; });
     document.getElementById('download-source').disabled = false;
     document.getElementById('download-json').disabled = false;
-    setImportMessage('Planilha carregada neste navegador. ' + numberLabel(appData.people.length) + ' registros na aba Batismo, ' + numberLabel(appData.order.length) + ' posições na Ordem, ' + numberLabel(appData.order35.length) + ' registros na Ordem Batismo 35 e ' + numberLabel(appData.general.length) + ' pessoas no GERAL.', 'success');
-    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Dados atualmente carregados</b><p class="section-sub">' + esc(appData.sourceFileName) + ' · ' + numberLabel(appData.sourceFileSize) + ' bytes · ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '</p><p class="section-sub">Os dados estão no navegador, não no repositório público. Para inserir uma versão atualizada, selecione outro Excel e confirme a importação. A versão anterior será arquivada automaticamente.</p></div>';
+    setImportMessage('Dados carregados do Firebase. ' + numberLabel(appData.people.length) + ' registros na aba Batismo, ' + numberLabel(appData.order.length) + ' posições na Ordem, ' + numberLabel(appData.order35.length) + ' registros na Ordem Batismo 35 e ' + numberLabel(appData.general.length) + ' pessoas no GERAL.', 'success');
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Dados atualmente carregados</b><p class="section-sub">' + esc(appData.sourceFileName) + ' · ' + numberLabel(appData.sourceFileSize) + ' bytes · ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '</p><p class="section-sub">Os registros estão no Firestore, não no repositório público. Para inserir uma versão atualizada, selecione outro Excel e confirme a importação. A versão anterior continua preservada no Firebase.</p></div>';
     refreshBackups();
   }
 
@@ -1066,7 +1104,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
   }
   function downloadWorkbook(workspace) {
     if (!workspace || !workspace.sourceWorkbook) {
-      setImportMessage('Não há um Excel original salvo neste registro.', 'error');
+      setImportMessage('O arquivo Excel formatado está salvo localmente no navegador em que a importação foi realizada. Os registros da planilha continuam disponíveis no Firebase; acesse o navegador original para baixar o XLSX.', 'error');
       return;
     }
     downloadBlob(workspace.sourceWorkbook, workspace.sourceFileName || 'backup-batismo.xlsx');
@@ -1134,7 +1172,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
       pendingImport = payload;
       buildImportPreview(payload);
       document.getElementById('confirm-import').disabled = false;
-      setImportMessage('Arquivo conferido. Revise os quantitativos abaixo e confirme para salvar neste navegador.', 'success');
+      setImportMessage('Arquivo conferido. Revise os quantitativos e confirme para enviar os registros ao Firebase.', 'success');
     } catch (error) {
       setImportMessage(error.message || 'Não foi possível ler a planilha. Nenhum dado foi substituído.', 'error');
     }
@@ -1142,14 +1180,16 @@ h2.t{font-size:22px;margin:4px 0 12px}
 
   document.getElementById('confirm-import').addEventListener('click', async function () {
     if (!pendingImport) return;
-    var message = 'Importar todos os dados para este navegador?';
-    if (appData) message += '\n\nA versão ativa será arquivada antes da substituição.';
-    message += '\n\nNenhum dado será enviado ao GitHub, mas também não haverá sincronização com outros dispositivos.';
+    var message = 'Enviar todos os dados conferidos para o Firebase e guardar uma cópia local?';
+    if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
+    message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
     if (!window.confirm(message)) return;
     var button = document.getElementById('confirm-import');
     button.disabled = true;
     setImportMessage('Salvando a planilha original, as linhas e os registros locais…');
     try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase ainda não está pronta. Recarregue a página e entre novamente.');
+      await window.firebaseSaveWorkspace(pendingImport, true);
       await saveWorkspace(pendingImport, true);
       appData = Object.assign({}, pendingImport, { id: 'current' });
       selectedPersonRow = null;
@@ -1217,6 +1257,8 @@ h2.t{font-size:22px;margin:4px 0 12px}
       }
       appData.checkin[rowId] = status;
       try {
+        if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
+        await window.firebaseSaveWorkspace(appData, false);
         await saveWorkspace(appData, false);
         drawDayResults();
       } catch (error) {
@@ -1232,6 +1274,8 @@ h2.t{font-size:22px;margin:4px 0 12px}
       if (!snapshot) { setImportMessage('O backup selecionado não foi encontrado.', 'error'); return; }
       if (!window.confirm('Restaurar esta versão local? A versão ativa atual será arquivada antes da restauração.')) return;
       try {
+        if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
+        await window.firebaseSaveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
         await saveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
         appData = Object.assign({}, snapshot, { id: 'current' });
         selectedPersonRow = null;
@@ -1282,8 +1326,258 @@ h2.t{font-size:22px;margin:4px 0 12px}
     }
   }
 
-  initialize();
+  window.addEventListener('firebase-authenticated', async function (event) {
+    try {
+      var detail = event.detail || {};
+      var remoteWorkspace = detail.workspace || null;
+      var localWorkspace = null;
+      try { localWorkspace = await getCurrentWorkspace(); } catch (localError) {}
+      if (remoteWorkspace) {
+        if (localWorkspace && localWorkspace.importedAt === remoteWorkspace.importedAt && localWorkspace.sourceWorkbook) remoteWorkspace.sourceWorkbook = localWorkspace.sourceWorkbook;
+        appData = Object.assign({}, remoteWorkspace, { id: 'current' });
+        selectedPersonRow = null;
+        buildAll();
+        goTo('home');
+      } else {
+        appData = null;
+        setImportMessage('Firebase conectado. Ainda não há uma planilha principal na nuvem. Selecione o Excel original e confira os registros antes de importar.', 'success');
+        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Nenhuma planilha no banco central</b><p class="section-sub">O banco está pronto e seu login foi validado. Selecione o arquivo Excel original para enviar as quatro abas ao Firestore. Nada será enviado antes de você conferir e confirmar a importação.</p></div>';
+        await refreshBackups();
+        goTo('imp');
+      }
+    } catch (error) {
+      setImportMessage('Não foi possível preparar a tela após o login: ' + (error.message || 'erro desconhecido'), 'error');
+    } finally {
+      window.dispatchEvent(new Event('firebase-ui-ready'));
+    }
+  });
 })();
 </script>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { getFirestore, doc, collection, getDoc, getDocs, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',
+  authDomain: 'batismo-8c5f8.firebaseapp.com',
+  projectId: 'batismo-8c5f8',
+  storageBucket: 'batismo-8c5f8.firebasestorage.app',
+  messagingSenderId: '295480263009',
+  appId: '1:295480263009:web:248a3e15c577eadbcac520'
+};
+const firebaseApp = initializeApp(firebaseConfig);
+const auth = getAuth(firebaseApp);
+const firestore = getFirestore(firebaseApp);
+const loginShell = document.getElementById('auth-shell');
+const loginForm = document.getElementById('firebase-login');
+const loginStatus = document.getElementById('firebase-status');
+const loginButton = document.getElementById('firebase-login-submit');
+const logoutButton = document.createElement('button');
+let lastAuthError = '';
+let handlingUser = false;
+
+logoutButton.id = 'fb-logout';
+logoutButton.type = 'button';
+logoutButton.textContent = 'Sair';
+logoutButton.hidden = true;
+logoutButton.setAttribute('aria-label', 'Sair da conta do sistema');
+const brand = document.querySelector('.brand');
+if (brand) brand.insertBefore(logoutButton, document.getElementById('tm'));
+
+function setLoginStatus(message, isError) {
+  loginStatus.textContent = message;
+  loginStatus.classList.toggle('error', !!isError);
+}
+function explainAuthError(error) {
+  const code = error && error.code ? error.code : '';
+  if (code === 'auth/unauthorized-domain') return 'Este domínio ainda não foi autorizado. No Firebase, abra Authentication > Configurações > Domínios autorizados e adicione falcaoguitarcrt-blip.github.io.';
+  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'E-mail ou senha inválidos. Confira os dados cadastrados no Firebase Authentication.';
+  if (code === 'auth/too-many-requests') return 'Muitas tentativas de acesso. Aguarde um pouco e tente novamente.';
+  if (code === 'permission-denied' || code === 'firestore/permission-denied') return 'O login foi reconhecido, mas as regras do Firestore não autorizaram a leitura. Confira o UID permitido nas regras.';
+  return 'Não foi possível conectar ao Firebase (' + (code || 'erro de conexão') + '). Verifique a conexão e a configuração do projeto.';
+}
+function safeValue(value) {
+  if (value === undefined) return null;
+  if (value === null || typeof value !== 'object') return value;
+  if (value instanceof Date) return value.toISOString();
+  if (Array.isArray(value)) return value.map(safeValue);
+  const result = {};
+  Object.keys(value).forEach(function (key) {
+    if (key !== 'sourceWorkbook' && value[key] !== undefined) result[key] = safeValue(value[key]);
+  });
+  return result;
+}
+function chunkItems(section, items, chunkSize, extra) {
+  const result = [];
+  for (let start = 0, part = 0; start < items.length; start += chunkSize, part++) {
+    result.push({
+      id: (extra && extra.idPrefix ? extra.idPrefix : 's_' + section + '_') + String(part).padStart(4, '0'),
+      section: section,
+      part: part,
+      sheetName: extra && extra.sheetName ? extra.sheetName : null,
+      sheetIndex: extra && Number.isInteger(extra.sheetIndex) ? extra.sheetIndex : -1,
+      items: safeValue(items.slice(start, start + chunkSize))
+    });
+  }
+  return result;
+}
+async function writeInBatches(actions) {
+  for (let start = 0; start < actions.length; start += 400) {
+    const batch = writeBatch(firestore);
+    actions.slice(start, start + 400).forEach(function (action) {
+      if (action.type === 'delete') batch.delete(action.ref);
+      else batch.set(action.ref, action.data);
+    });
+    await batch.commit();
+  }
+}
+function rootRef() { return doc(firestore, 'appData', 'primary'); }
+function versionRef(versionId) { return doc(firestore, 'appData', 'primary', 'versions', versionId); }
+function versionChunksRef(versionId) { return collection(firestore, 'appData', 'primary', 'versions', versionId, 'chunks'); }
+function liveRef() { return doc(firestore, 'appData', 'primary', 'live', 'state'); }
+
+async function saveCloudWorkspace(payload, createVersion) {
+  if (!auth.currentUser) throw new Error('Faça login antes de salvar dados no Firebase.');
+  const metaRef = rootRef();
+  const metaSnap = await getDoc(metaRef);
+  if (!createVersion) {
+    if (!metaSnap.exists() || !metaSnap.data().currentVersion) throw new Error('Ainda não existe uma planilha principal no Firebase. Importe o Excel e confirme a importação primeiro.');
+    await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+    return true;
+  }
+  const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
+  const chunks = [];
+  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped'].forEach(function (section) {
+    chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
+  });
+  const rawNames = Object.keys(payload.rawSheets || {});
+  rawNames.forEach(function (sheetName, sheetIndex) {
+    const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
+    chunks.push.apply(chunks, chunkItems('rawSheet', rows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
+  });
+  const chunksRef = versionChunksRef(versionId);
+  await writeInBatches(chunks.map(function (item) {
+    return { type: 'set', ref: doc(chunksRef, item.id), data: item };
+  }));
+  const versionMeta = {
+    schemaVersion: 1,
+    versionId: versionId,
+    sourceFileName: payload.sourceFileName || 'Planilha de batismo',
+    sourceFileSize: Number(payload.sourceFileSize || 0),
+    importedAt: payload.importedAt || new Date().toISOString(),
+    sheetStats: safeValue(payload.sheetStats || []),
+    sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
+    skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
+    checkin: safeValue(payload.checkin || {}),
+    createdAt: new Date().toISOString(),
+    createdBy: auth.currentUser.uid,
+    counts: {
+      people: Array.isArray(payload.people) ? payload.people.length : 0,
+      order: Array.isArray(payload.order) ? payload.order.length : 0,
+      order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
+      general: Array.isArray(payload.general) ? payload.general.length : 0,
+      rawSheets: rawNames.length,
+      chunks: chunks.length
+    }
+  };
+  await setDoc(versionRef(versionId), versionMeta);
+  await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+  await setDoc(metaRef, { schemaVersion: 1, currentVersion: versionId, updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid }, { merge: true });
+  return true;
+}
+async function loadCloudWorkspace() {
+  const rootSnap = await getDoc(rootRef());
+  if (!rootSnap.exists() || !rootSnap.data().currentVersion) return null;
+  const versionId = rootSnap.data().currentVersion;
+  const versionSnap = await getDoc(versionRef(versionId));
+  if (!versionSnap.exists()) throw new Error('A versão atual da planilha não foi encontrada no Firestore.');
+  const meta = versionSnap.data();
+  const workspace = {
+    id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
+    sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
+    skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
+    general: [], generalAll: [], generalUnmapped: [], checkin: meta.checkin || {}
+  };
+  const chunkSnap = await getDocs(versionChunksRef(versionId));
+  const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
+    if (a.section === 'rawSheet' && b.section !== 'rawSheet') return -1;
+    if (b.section === 'rawSheet' && a.section !== 'rawSheet') return 1;
+    if (a.section === 'rawSheet' && b.section === 'rawSheet') return (a.sheetIndex - b.sheetIndex) || (a.part - b.part);
+    return String(a.section).localeCompare(String(b.section)) || (a.part - b.part);
+  });
+  pieces.forEach(function (piece) {
+    if (piece.section === 'rawSheet') {
+      if (!workspace.rawSheets[piece.sheetName]) workspace.rawSheets[piece.sheetName] = [];
+      workspace.rawSheets[piece.sheetName].push.apply(workspace.rawSheets[piece.sheetName], piece.items || []);
+    } else if (Array.isArray(workspace[piece.section])) {
+      workspace[piece.section].push.apply(workspace[piece.section], piece.items || []);
+    }
+  });
+  const liveSnap = await getDoc(liveRef());
+  if (liveSnap.exists() && liveSnap.data().checkin) workspace.checkin = liveSnap.data().checkin;
+  return workspace;
+}
+window.firebaseSaveWorkspace = saveCloudWorkspace;
+
+loginForm.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const email = document.getElementById('firebase-email').value.trim();
+  const password = document.getElementById('firebase-password').value;
+  loginButton.disabled = true;
+  setLoginStatus('Validando acesso e conectando ao banco…', false);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    lastAuthError = '';
+  } catch (error) {
+    lastAuthError = explainAuthError(error);
+    setLoginStatus(lastAuthError, true);
+  } finally {
+    loginButton.disabled = false;
+  }
+});
+logoutButton.addEventListener('click', async function () {
+  logoutButton.disabled = true;
+  try { await signOut(auth); }
+  catch (error) { setLoginStatus(explainAuthError(error), true); }
+  finally { logoutButton.disabled = false; }
+});
+onAuthStateChanged(auth, async function (user) {
+  if (!user) {
+    handlingUser = false;
+    document.body.classList.add('auth-pending');
+    loginShell.hidden = false;
+    logoutButton.hidden = true;
+    setLoginStatus(lastAuthError || 'Use o e-mail e a senha cadastrados no Firebase Authentication.', !!lastAuthError);
+    return;
+  }
+  if (handlingUser) return;
+  handlingUser = true;
+  document.body.classList.add('auth-pending');
+  loginShell.hidden = false;
+  setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
+  try {
+    const workspace = await loadCloudWorkspace();
+    await new Promise(function (resolve) {
+      const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
+      window.addEventListener('firebase-ui-ready', onReady, { once: true });
+      window.dispatchEvent(new CustomEvent('firebase-authenticated', { detail: { user: { uid: user.uid, email: user.email || '' }, workspace: workspace } }));
+    });
+    loginShell.hidden = true;
+    document.body.classList.remove('auth-pending');
+    logoutButton.hidden = false;
+    logoutButton.title = 'Conectado como ' + (user.email || 'usuário autorizado');
+    lastAuthError = '';
+  } catch (error) {
+    lastAuthError = explainAuthError(error);
+    setLoginStatus(lastAuthError, true);
+    await signOut(auth).catch(function () {});
+  } finally {
+    handlingUser = false;
+  }
+});
+</script>
+
 </body>
 </html>
