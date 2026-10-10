@@ -1392,7 +1392,7 @@ logoutButton.type = 'button';
 logoutButton.textContent = 'Sair';
 logoutButton.hidden = true;
 logoutButton.setAttribute('aria-label', 'Sair da conta do sistema');
-const brand = document.querySelector('.brand');
+const brand = document.querySelector('header .brand');
 if (brand) brand.insertBefore(logoutButton, document.getElementById('tm'));
 
 function setLoginStatus(message, isError) {
