@@ -209,6 +209,7 @@ async function openPersonDetail(id) {
  drawer.querySelector(".module-drawer-scrim").addEventListener("click",close);
  drawer.querySelector('[data-action="close-drawer"]').addEventListener("click",close);
  drawer.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{drawerTab=b.dataset.tab;drawer.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x===b));renderDrawerContent(drawer,p);}));
+ drawer.querySelectorAll("[data-action^=\"person-edit:\"]").forEach(b=>b.addEventListener("click",()=>{drawer.remove();openPersonEditor(id);}));
  renderDrawerContent(drawer,p);
 }
 function renderDrawerContent(drawer,p) {
