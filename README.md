@@ -35,3 +35,12 @@ O GitHub Pages deste repositório é uma prévia de interface pública e não de
 - [Estrutura de dados e migração segura](docs/ESTRUTURA_DADOS_E_MIGRACAO.md)
 
 O pacote de implementação ainda exige configuração dos IDs privados, inicialização da base, prévia e confirmação de importação e implantação restrita na conta Google. Não declarar produção concluída antes da homologação real.
+
+## Protótipo visual alternativo
+
+O HTML de protótipo abaixo fica separado do `index.html` principal para permitir testes visuais sem substituir a versão existente:
+
+- [Abrir protótipo no GitHub Pages](https://falcaoguitarcrt-blip.github.io/SistemaGestaoBatismo/prototipos/gestao-batismo-base.html)
+- [Ver código-fonte no GitHub](https://github.com/falcaoguitarcrt-blip/SistemaGestaoBatismo/blob/main/prototipos/gestao-batismo-base.html)
+
+A página usa dados fictícios. As ações ainda não conectadas exibem um aviso; marcações feitas na tela não são gravadas em uma base de dados. Não usar dados pessoais reais nesta prévia pública.
