@@ -132,6 +132,22 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 #fb-logout{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 11px;font:inherit;font-size:12px;cursor:pointer}
 #fb-logout[hidden]{display:none}
 
+
+.record-editor-shell{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:16px;background:rgba(8,18,14,.62)}
+.record-editor-shell[hidden]{display:none!important}
+.record-editor-card{width:min(100%,760px);max-height:92vh;overflow:auto;background:var(--card);color:var(--tx);border:1px solid var(--ln);border-radius:18px;padding:18px;box-shadow:0 20px 80px #0004}
+.record-editor-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.record-editor-head h2{font-size:23px}
+.record-editor-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.record-editor-field{display:block;min-width:0;font-size:12px;font-weight:700;color:var(--mut)}
+.record-editor-field input,.record-editor-field textarea{display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-weight:400}
+.record-editor-field textarea{min-height:78px;resize:vertical}
+.record-editor-field.wide{grid-column:1/-1}
+.record-editor-status{min-height:20px;font-size:13px;color:var(--mut);margin:10px 0}
+.record-editor-status.error{color:var(--er)}
+.record-editor-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
+.record-editor-actions .btn{min-width:120px}
+@media(max-width:600px){.record-editor-fields{grid-template-columns:1fr}.record-editor-card{padding:14px}.record-editor-field.wide{grid-column:auto}.record-editor-actions{flex-direction:column-reverse}.record-editor-actions .btn{width:100%}}
 </style>
 </head>
 <body class="auth-pending">
@@ -504,6 +520,32 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   var importSection = document.getElementById('imp');
   var configSection = document.getElementById('cfg');
+  var recordEditorState = null;
+  var recordEditorShell = document.createElement('div');
+  recordEditorShell.id = 'record-editor-shell';
+  recordEditorShell.className = 'record-editor-shell';
+  recordEditorShell.hidden = true;
+  recordEditorShell.innerHTML = '<form id="record-editor-form" class="record-editor-card" role="dialog" aria-modal="true" aria-labelledby="record-editor-title">' +
+    '<div class="record-editor-head"><div><h2 id="record-editor-title">Editar cadastro</h2><p id="record-editor-description" class="section-sub">Alterações serão salvas no Firebase.</p></div><button type="button" class="btn o" id="record-editor-close" aria-label="Fechar editor">Fechar</button></div>' +
+    '<div id="record-editor-fields" class="record-editor-fields"></div><p id="record-editor-status" class="record-editor-status" role="status" aria-live="polite"></p>' +
+    '<div class="record-editor-actions"><button type="button" class="btn o" id="record-editor-cancel">Cancelar</button><button type="submit" class="btn" id="record-editor-save">Salvar no sistema</button></div></form>';
+  document.body.appendChild(recordEditorShell);
+  var recordEditorForm = recordEditorShell.querySelector('#record-editor-form');
+  var recordEditorFields = recordEditorShell.querySelector('#record-editor-fields');
+  var recordEditorStatus = recordEditorShell.querySelector('#record-editor-status');
+  var recordEditorSaveButton = recordEditorShell.querySelector('#record-editor-save');
+  function closeRecordEditor() {
+    recordEditorShell.hidden = true;
+    recordEditorState = null;
+  }
+  recordEditorShell.querySelector('#record-editor-close').addEventListener('click', closeRecordEditor);
+  recordEditorShell.querySelector('#record-editor-cancel').addEventListener('click', closeRecordEditor);
+  recordEditorShell.addEventListener('click', function (event) {
+    if (event.target === recordEditorShell) closeRecordEditor();
+  });
+  document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape' && !recordEditorShell.hidden) closeRecordEditor();
+  });
 
   configSection.innerHTML = '<h2 class="t">Dados e privacidade</h2>' +
     '<div class="card"><b>Banco de dados central</b><p class="section-sub">Os registros importados são armazenados no Cloud Firestore do Firebase. O acesso depende do login e das regras de segurança do projeto. O GitHub hospeda somente o código do sistema.</p></div>' +
@@ -815,7 +857,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var turmas = Object.keys(turmaCounts).sort(function (a, b) { return Number(a) - Number(b); });
     var maxTurma = Math.max.apply(null, turmas.map(function (t) { return turmaCounts[t]; }).concat([1]));
     var duplicateGroups = duplicateNameGroups(peopleNamed, function (p) { return p.name; });
-    home.innerHTML = '<div class="card hero"><small>PLANILHA IMPORTADA · DADOS LOCAIS</small><h2>Gestão de Batismo</h2><small>' + esc(appData.sourceFileName) + ' · importada em ' + esc(new Date(appData.importedAt).toLocaleString('pt-BR')) + '</small><div class="bar" style="margin:12px 0"><b style="width:' + Math.round((done / Math.max(people.length, 1)) * 100) + '%"></b></div><button type="button" class="btn" data-go="ord">Abrir ordem de batismo →</button></div>' +
+    home.innerHTML = '<div class="card hero"><small>BASE ATIVA · FIREBASE</small><h2>Gestão de Batismo</h2><small>' + esc(appData.sourceFileName) + ' · importada em ' + esc(new Date(appData.importedAt).toLocaleString('pt-BR')) + '</small><div class="bar" style="margin:12px 0"><b style="width:' + Math.round((done / Math.max(people.length, 1)) * 100) + '%"></b></div><button type="button" class="btn" data-go="ord">Abrir ordem de batismo →</button></div>' +
       '<div class="data-metrics">' +
       metric('Registros na aba Batismo', people.length, 'Sem mesclar linhas repetidas') +
       metric('Registros com nome', peopleNamed.length, 'Cadastros da aba principal') +
@@ -829,7 +871,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<div class="data-metric"><span>Sem telefone preenchido</span><strong>' + numberLabel(noPhone) + '</strong><span class="item-meta">Sem alterar os dados de origem</span></div>' +
       '<div class="data-metric"><span>Camisetas não pagas</span><strong>' + numberLabel(shirts.unpaid.length) + '</strong><span class="item-meta">Somente tamanhos informados</span></div>' +
       '</div></div>' +
-      '<div class="lower"><div class="card"><div class="card-head"><div><h2 class="t">Cadastros por turma</h2><p class="section-sub">Contagem calculada da aba Batismo.</p></div><button type="button" class="btn o" data-go="pes">Ver pessoas</button></div>' +
+      '<div class="lower"><div class="card"><div class="card-head"><div><h2 class="t">Cadastros por turma</h2><p class="section-sub">Contagem calculada da base central.</p></div><button type="button" class="btn o" data-go="pes">Ver pessoas</button></div>' +
       (turmas.length ? turmas.map(function (turma) { return '<div class="data-bar-row"><span>Turma ' + esc(turma) + '</span><div class="data-bar"><i style="width:' + Math.round((turmaCounts[turma] / maxTurma) * 100) + '%"></i></div><em>' + numberLabel(turmaCounts[turma]) + '</em></div>'; }).join('') : '<div class="data-empty">Nenhuma turma preenchida.</div>') +
       '</div><div class="card"><h2 class="t">Conferências sem alterar a fonte</h2><div class="security-list">' +
       '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(duplicateGroups) + '</strong> grupos de nomes repetidos. Nenhum registro foi mesclado.</span></div>' +
@@ -837,13 +879,14 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(appData.generalUnmapped.length) + '</strong> linhas da aba GERAL sem nome textual; permanecem na origem completa.</span></div>' +
       '<div class="security-row"><span class="status-dot"></span><span>A coluna BATIZADO está vazia na aba Batismo; o histórico de turma 35 vem da aba própria.</span></div>' +
       '</div><div class="bb"><button type="button" class="btn o" data-go="pen">Ver observações e pendências</button><button type="button" class="btn o" data-go="imp">Ver importação e backups</button></div></div></div>' +
-      '<p class="note">Os dados são lidos e mantidos neste navegador. Não existe sincronização entre dispositivos.</p>';
+      '<p class="note">Os registros são armazenados no Firebase; alterações feitas aqui ficam disponíveis após novo login em outros dispositivos.</p>';
   }
 
   function buildPeople() {
     var section = document.getElementById('pes');
     var turmas = Array.from(new Set(appData.people.map(function (p) { return clean(p.turma); }).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
     section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
+      '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
       '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '">Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
       '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>' +
       '<p class="note">Os registros repetidos permanecem separados. Toque em um registro para abrir a ficha completa com os campos da planilha.</p>';
@@ -873,7 +916,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('people-results').innerHTML = view.map(function (p) {
       var status = isBlank(p.status) ? (p.name ? 'Status não preenchido' : 'Registro incompleto') : p.status;
       var classes = p.name ? 't-in' : 't-er';
-      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Linha original ' + esc(p.sourceRow) + ' · Jornada: ' + esc(display(p.journey)) + '</div><div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button></div></div>';
+      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Linha original ' + esc(p.sourceRow) + ' · Jornada: ' + esc(display(p.journey)) + '</div><div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhum registro encontrado com estes filtros.</div>';
     document.getElementById('people-pager').innerHTML = '<button type="button" class="btn o" data-page="people:-1" ' + (peopleState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>' + numberLabel(start + (view.length ? 1 : 0)) + '–' + numberLabel(start + view.length) + ' de ' + numberLabel(items.length) + '</span><button type="button" class="btn o" data-page="people:1" ' + (peopleState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
@@ -893,13 +936,167 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     ];
     section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>Linha ' + esc(person.sourceRow) + ' da aba Batismo · Turma ' + esc(display(person.turma)) + '</div></div></div>' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Tem observação', 't-pe') : '') + '</div>' +
       '<div class="card"><b>Todos os campos da planilha</b><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></div>' +
-      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn o" data-go="imp">Importação e backups</button></div>' +
-      '<p class="note">Nenhum campo foi editado ou corrigido automaticamente; o conteúdo original fica disponível no Excel guardado localmente.</p>';
+      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button><button type="button" class="btn o" data-go="imp">Importação e backups</button></div>' +
+      '<p class="note">Use “Editar cadastro” para salvar alterações no Firebase. O arquivo Excel original permanece como cópia de origem.</p>';
   }
+
+
+  function openRecordEditor(kind, record) {
+    if (!appData) return;
+    var isNew = !record;
+    var fields, labels, title, key;
+    if (kind === 'person') {
+      key = 'batismo';
+      labels = ['NOME', 'IDADE', 'TELEFONE', 'TURMA', 'DATA', 'JORNADA', 'AULA P/ REPOR', 'ENTROU NO GRUPO', 'CAMISETA', 'PG CAMISETA', 'STATUS', 'PENDENCIA', 'BATIZADO', 'INVESTIGAÇÃO PERFIL (FBI)'];
+      fields = isNew ? new Array(14).fill(null) : (record.fields || []).slice(0, 14);
+      while (fields.length < 14) fields.push(null);
+      if (!isNew) fields[4] = excelDate(fields[4]);
+      title = isNew ? 'Cadastrar pessoa' : 'Editar cadastro';
+    } else {
+      key = 'ordem';
+      labels = ['FICHAS RETIRADAS', 'NUMERAÇÃO', 'NOME', 'OBSERVAÇÃO'];
+      fields = isNew ? ['', '', '', ''] : (record.fields || []).slice(0, 4);
+      while (fields.length < 4) fields.push(null);
+      if (isNew) {
+        var nextNumber = Math.max.apply(null, appData.order.map(function (item) { return Number(item.number) || 0; }).concat([0])) + 1;
+        fields[1] = nextNumber;
+      }
+      title = isNew ? 'Adicionar posição à ordem' : 'Editar posição da ordem';
+    }
+    recordEditorState = {
+      kind: kind, key: key, sourceRow: record ? record.sourceRow : null,
+      isNew: isNew, returnSection: document.querySelector('section.on') ? document.querySelector('section.on').id : (kind === 'person' ? 'pes' : 'ord')
+    };
+    document.getElementById('record-editor-title').textContent = title;
+    document.getElementById('record-editor-description').textContent = isNew
+      ? 'Preencha os campos e salve para gravar no banco central do Firebase.'
+      : 'As alterações serão salvas no Firebase; os dados originais da planilha permanecem nas versões anteriores.';
+    recordEditorStatus.textContent = '';
+    recordEditorStatus.className = 'record-editor-status';
+    recordEditorFields.innerHTML = labels.map(function (label, index) {
+      var value = fields[index] === null || fields[index] === undefined ? '' : String(fields[index]);
+      var wide = [5, 6, 11, 13].indexOf(index) >= 0;
+      var content = (kind === 'person' && [11, 13].indexOf(index) >= 0)
+        ? '<textarea data-editor-index="' + index + '" aria-label="' + esc(label) + '">' + esc(value) + '</textarea>'
+        : '<input type="text" data-editor-index="' + index + '" aria-label="' + esc(label) + '" value="' + esc(value) + '"' + (isNew && kind === 'person' && index === 0 ? ' required' : (isNew && kind === 'order' && index === 1 ? ' required' : '')) + '>';
+      return '<label class="record-editor-field' + (wide ? ' wide' : '') + '">' + esc(label) + content + '</label>';
+    }).join('');
+    recordEditorShell.hidden = false;
+    var first = recordEditorFields.querySelector('input,textarea');
+    if (first) first.focus();
+  }
+
+  function cloneWorkspaceForEdit() {
+    var rawSheets = {};
+    Object.keys(appData.rawSheets || {}).forEach(function (name) {
+      rawSheets[name] = (appData.rawSheets[name] || []).map(function (row) { return Array.isArray(row) ? row.slice() : []; });
+    });
+    return Object.assign({}, appData, {
+      rawSheets: rawSheets,
+      sheetStats: (appData.sheetStats || []).map(function (item) { return Object.assign({}, item); }),
+      people: (appData.people || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
+      order: (appData.order || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
+      checkin: Object.assign({}, appData.checkin || {})
+    });
+  }
+  function updateSheetStats(workspace, sheetName, rows) {
+    var stat = (workspace.sheetStats || []).find(function (item) { return normal(item.name) === normal(sheetName); });
+    if (!stat) return;
+    stat.rowCount = rows.length;
+    stat.nonemptyRows = rows.filter(hasData).length;
+    stat.columns = rows.reduce(function (max, row) { return Math.max(max, row.length); }, 0);
+  }
+  function personFromFields(fields, sourceRow) {
+    var values = fields.slice(0, 14);
+    while (values.length < 14) values.push(null);
+    return {
+      sourceRow: sourceRow, name: clean(values[0]), age: values[1], phone: values[2], turma: values[3],
+      date: values[4], journey: values[5], lesson: values[6], group: values[7], shirt: values[8],
+      shirtPaid: values[9], status: values[10], pending: values[11], baptized: values[12],
+      profile: values[13], fields: values
+    };
+  }
+  function orderFromFields(fields, sourceRow) {
+    var values = fields.slice();
+    while (values.length < 4) values.push(null);
+    return { sourceRow: sourceRow, fields: values, removed: values[0], number: values[1], name: clean(values[2]), note: values[3], lesson: values[4], baptized: values[5], merged: values[6] };
+  }
+  async function saveEditedRecord() {
+    if (!recordEditorState || !appData) return;
+    var state = recordEditorState;
+    var count = state.kind === 'person' ? 14 : 4;
+    var fields = [];
+    for (var i = 0; i < count; i++) {
+      var input = recordEditorFields.querySelector('[data-editor-index="' + i + '"]');
+      var value = input ? input.value.trim() : '';
+      fields.push(value === '' ? null : value);
+    }
+    var draft = cloneWorkspaceForEdit();
+    var sheetName = Object.keys(draft.rawSheets).find(function (name) { return normal(name) === state.key; });
+    if (!sheetName) throw new Error('A aba de origem "' + state.key + '" não foi encontrada na planilha importada.');
+    var rows = draft.rawSheets[sheetName];
+    var sourceRow = state.sourceRow;
+    if (state.isNew) {
+      sourceRow = rows.length + 1;
+      rows.push(fields.slice());
+    } else {
+      var rowIndex = Number(sourceRow) - 1;
+      if (rowIndex < 1 || rowIndex >= rows.length) throw new Error('A linha original deste registro não foi encontrada.');
+      while (rows.length <= rowIndex) rows.push([]);
+      rows[rowIndex] = fields.slice();
+    }
+    updateSheetStats(draft, sheetName, rows);
+    if (state.kind === 'person') {
+      var person = personFromFields(fields, sourceRow);
+      if (state.isNew) draft.people.push(person);
+      else {
+        var personIndex = draft.people.findIndex(function (item) { return Number(item.sourceRow) === Number(sourceRow); });
+        if (personIndex < 0) throw new Error('Não foi possível localizar este cadastro na lista de pessoas.');
+        draft.people[personIndex] = person;
+      }
+      selectedPersonRow = sourceRow;
+    } else {
+      var orderRecord = orderFromFields(fields, sourceRow);
+      if (state.isNew) draft.order.push(orderRecord);
+      else {
+        var orderIndex = draft.order.findIndex(function (item) { return Number(item.sourceRow) === Number(sourceRow); });
+        if (orderIndex < 0) throw new Error('Não foi possível localizar esta posição da ordem.');
+        draft.order[orderIndex] = orderRecord;
+      }
+    }
+    recordEditorSaveButton.disabled = true;
+    recordEditorStatus.textContent = 'Salvando no Firebase e criando uma versão de segurança…';
+    recordEditorStatus.className = 'record-editor-status';
+    try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível. Atualize a página e entre novamente.');
+      await window.firebaseSaveWorkspace(draft, true);
+      var localWarning = '';
+      try { await saveWorkspace(draft, false); }
+      catch (localError) { localWarning = ' A cópia local deste navegador não foi atualizada, mas a alteração foi salva no Firebase.'; }
+      appData = draft;
+      closeRecordEditor();
+      buildAll();
+      goTo(state.returnSection || (state.kind === 'person' ? 'pes' : 'ord'));
+      setImportMessage((state.isNew ? 'Novo registro cadastrado.' : 'Alterações salvas.') + ' A mudança está no Firebase e a versão anterior foi preservada.' + localWarning, localWarning ? 'error' : 'success');
+    } catch (error) {
+      recordEditorStatus.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido') + '. O cadastro anterior continua ativo.';
+      recordEditorStatus.className = 'record-editor-status error';
+    } finally {
+      recordEditorSaveButton.disabled = false;
+    }
+  }
+  recordEditorForm.addEventListener('submit', async function (event) {
+    event.preventDefault();
+    try { await saveEditedRecord(); }
+    catch (error) {
+      recordEditorStatus.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido');
+      recordEditorStatus.className = 'record-editor-status error';
+    }
+  });
 
   function buildOrder() {
     var section = document.getElementById('ord');
-    section.innerHTML = '<h2 class="t">Ordem de batismo</h2><div class="card"><p class="section-sub">Aba de origem: Ordem. Posições numeradas vazias foram preservadas e aparecem como pendentes de nome.</p><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><div></div><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
+    section.innerHTML = '<h2 class="t">Ordem de batismo</h2><div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-order>+ Adicionar posição</button></div><div class="card"><p class="section-sub">Aba de origem: Ordem. Posições numeradas vazias foram preservadas e aparecem como pendentes de nome. Alterações são salvas no Firebase.</p><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><div></div><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
     document.getElementById('order-search').addEventListener('input', function () { orderState.query = this.value; orderState.page = 1; drawOrderResults(); });
     drawOrderResults();
   }
@@ -916,13 +1113,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var named = appData.order.filter(function (r) { return !!r.name; }).length;
     document.getElementById('order-count').textContent = numberLabel(items.length) + ' linhas com conteúdo · ' + numberLabel(named) + ' posições com nome · ' + numberLabel(appData.order.length - named) + ' posições sem nome';
     document.getElementById('order-results').innerHTML = view.map(function (r) {
-      return '<div class="data-item"><div class="n">' + esc(display(r.number)) + '</div><div class="item-main"><strong>' + esc(r.name || 'Posição reservada sem nome') + '</strong><div class="item-meta">Número original: ' + esc(display(r.number)) + ' · Ficha retirada: ' + esc(display(r.removed)) + (r.note ? '<br>Observação: ' + esc(r.note) : '') + '<br>Linha original ' + esc(r.sourceRow) + '</div><div class="item-badges">' + (r.name ? chip('Nome preenchido', 't-ok') : chip('Precisa conferir', 't-pe')) + (r.note ? chip('Com observação', 't-in') : '') + '</div></div></div>';
+      return '<div class="data-item"><div class="n">' + esc(display(r.number)) + '</div><div class="item-main"><strong>' + esc(r.name || 'Posição reservada sem nome') + '</strong><div class="item-meta">Número original: ' + esc(display(r.number)) + ' · Ficha retirada: ' + esc(display(r.removed)) + (r.note ? '<br>Observação: ' + esc(r.note) : '') + '<br>Linha original ' + esc(r.sourceRow) + '</div><div class="item-badges">' + (r.name ? chip('Nome preenchido', 't-ok') : chip('Precisa conferir', 't-pe')) + (r.note ? chip('Com observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-order="' + esc(r.sourceRow) + '">Editar posição</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhuma posição encontrada.</div>';
     document.getElementById('order-pager').innerHTML = '<button type="button" class="btn o" data-page="order:-1" ' + (orderState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + orderState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="order:1" ' + (orderState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
   function buildDay() {
-    document.getElementById('dia').innerHTML = '<h2 class="t">Dia do batismo · check-in local</h2><div class="card" id="day-summary"></div><div class="data-toolbar"><input id="day-search" type="search" placeholder="Buscar pessoa na ordem…" aria-label="Buscar pessoa na ordem"><div></div><span class="local-only-note">As marcações ficam neste navegador, separadas da planilha original.</span></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div>';
+    document.getElementById('dia').innerHTML = '<h2 class="t">Dia do batismo · check-in sincronizado</h2><div class="card" id="day-summary"></div><div class="data-toolbar"><input id="day-search" type="search" placeholder="Buscar pessoa na ordem…" aria-label="Buscar pessoa na ordem"><div></div><span class="local-only-note">As marcações são sincronizadas pelo Firebase para os usuários autorizados.</span></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div>';
     document.getElementById('day-search').addEventListener('input', function () { dayState.query = this.value; dayState.page = 1; drawDayResults(); });
     drawDayResults();
   }
@@ -941,7 +1138,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var view = records.slice(start, start + PAGE_SIZE);
     var baptized = namedOrder.filter(function (row) { return !!((appData.checkin || {})[String(row.sourceRow)] || {}).baptized; }).length;
     var present = namedOrder.filter(function (row) { return !!((appData.checkin || {})[String(row.sourceRow)] || {}).present; }).length;
-    document.getElementById('day-summary').innerHTML = '<small style="color:var(--mut)">MARCAÇÕES LOCAIS · NÃO ESTÃO NA PLANILHA ORIGINAL</small><div class="data-metrics" style="margin:10px 0 0">' + metric('Pessoas nomeadas na ordem', namedOrder.length, 'Aba Ordem') + metric('Presentes marcados', present, 'Salvo neste navegador') + metric('Batizados marcados', baptized, 'Salvo neste navegador') + '</div>';
+    document.getElementById('day-summary').innerHTML = '<small style="color:var(--mut)">MARCAÇÕES DO DIA · FIREBASE</small><div class="data-metrics" style="margin:10px 0 0">' + metric('Pessoas nomeadas na ordem', namedOrder.length, 'Aba Ordem') + metric('Presentes marcados', present, 'Sincronizado no Firebase') + metric('Batizados marcados', baptized, 'Salvo neste navegador') + '</div>';
     document.getElementById('day-results').innerHTML = view.map(function (entry) {
       var row = entry.row;
       var state = entry.state;
@@ -1219,6 +1416,23 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   document.getElementById('download-json').addEventListener('click', function () { downloadJson(appData); });
 
   document.addEventListener('click', async function (event) {
+    var addPersonButton = event.target.closest('[data-add-person]');
+    if (addPersonButton) { openRecordEditor('person', null); return; }
+    var editPersonButton = event.target.closest('[data-edit-person]');
+    if (editPersonButton && appData) {
+      var editPerson = appData.people.find(function (item) { return Number(item.sourceRow) === Number(editPersonButton.dataset.editPerson); });
+      if (editPerson) openRecordEditor('person', editPerson);
+      return;
+    }
+    var addOrderButton = event.target.closest('[data-add-order]');
+    if (addOrderButton) { openRecordEditor('order', null); return; }
+    var editOrderButton = event.target.closest('[data-edit-order]');
+    if (editOrderButton && appData) {
+      var editOrder = appData.order.find(function (item) { return Number(item.sourceRow) === Number(editOrderButton.dataset.editOrder); });
+      if (editOrder) openRecordEditor('order', editOrder);
+      return;
+    }
+
     var goButton = event.target.closest('[data-go]');
     if (goButton) { goTo(goButton.dataset.go); return; }
 
@@ -1268,7 +1482,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         await window.firebaseSaveWorkspace(appData, false);
         var localCheckinWarning = '';
         try { await saveWorkspace(appData, false); }
-        catch (localError) { localCheckinWarning = ' A marcação foi salva na nuvem, mas não foi atualizada na cópia local deste navegador.'; }
+        catch (localError) { localCheckinWarning = ' A marcação foi salva na nuvem, mas a cópia local deste navegador não foi atualizada.'; }
         drawDayResults();
         if (localCheckinWarning) setImportMessage(localCheckinWarning.trim(), 'error');
       } catch (error) {
