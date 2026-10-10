@@ -124,12 +124,13 @@ h2.t{font-size:22px;margin:4px 0 12px}
 
 <section id="dia">
 <div class="card" style="text-align:center"><small style="color:var(--mut)">BATIZADOS HOJE</small><div class="big"><span id="cnt">18</span> <small style="font-size:20px;color:var(--mut)">/ 57</small></div>
-<div class="bar"><b style="width:32%;background:var(--aq)"></b></div><span class="tag t-ok" style="margin-top:10px">● Offline · sincroniza ao voltar</span></div>
+<div class="bar"><b style="width:32%;background:var(--aq)"></b></div><span class="tag t-ok" style="margin-top:10px">● Protótipo · sem sincronização real</span></div>
 <input type="search" placeholder="🔍 Buscar na ordem…" aria-label="Buscar pessoas na ordem do batismo">
 <div class="card"><div class="row"><span class="n">19</span><div class="m"><b style="font-size:17px">Marina Souza</b><div>Pr. Gustavo</div></div></div>
 <div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
 <div class="card"><div class="row"><span class="n">20</span><div class="m"><b style="font-size:17px">Rafael Torres</b><div>Pr. Gustavo</div></div></div>
 <div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
+<p id="dia-empty" class="note" style="display:none">Nenhuma pessoa encontrada na ordem.</p>
 </section>
 
 <section id="pen">
@@ -173,7 +174,8 @@ h2.t{font-size:22px;margin:4px 0 12px}
 <div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 Convidar 2 pessoas</button><button type="button" class="btn o">Imprimir chamada</button></div></section>
 <section id="his"><h2 class="t">Histórico de batizados</h2><input type="search" placeholder="🔍 Buscar nome em todos os anos…" aria-label="Buscar nome no histórico de batismos">
 <div class="chips"><span>2023</span><span>2024</span><span>2025</span><span class="a">2026</span></div>
-<div class="card"><div class="row"><span class="n">35</span><div class="m"><b>Turma 35 · 18/07/2026</b><div>36 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">34</span><div class="m"><b>Turma 34 · 30/05/2026</b><div>43 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">36</span><div class="m"><b>Turma 36 · 12/10/2026</b><div>57 inscritos</div></div><span class="tag t-in">Em 3 dias</span></div></div>
+<p id="his-empty" class="note" style="display:none">Nenhum registro encontrado no histórico.</p>
+<div class="card"><div class="row"><span class="n">35</span><div class="m"><b>Turma 35 · 18/07/2026</b><div>36 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">34</span><div class="m"><b>Turma 34 · 30/05/2026</b><div>43 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">36</span><div class="m"><b>Turma 36 · 12/10/2026</b><div>57 inscritos</div></div><span class="tag t-in">Em 2 dias</span></div></div>
 <div class="cert"><small style="color:var(--gold)">✦ CERTIFICADO ✦</small><h2>Marina Souza</h2><p style="margin:8px 0">foi batizada em 18 de julho de 2026<br>Turma 35 · Pr. Gustavo</p><div class="s"></div><small style="color:var(--mut)">Pastor responsável</small></div>
 <div class="bb"><button type="button" class="btn" data-demo-action="true">⬇ Gerar PDF</button><button type="button" class="btn o" data-demo-action="true">Editar modelo</button></div></section>
 <section id="imp"><h2 class="t">Importar planilha</h2>
@@ -281,6 +283,30 @@ h2.t{font-size:22px;margin:4px 0 12px}
       if (matches) visible += 1;
     });
     document.getElementById('pes-empty').style.display = visible ? 'none' : 'block';
+  });
+
+  var daySearch = document.querySelector('#dia input[type="search"]');
+  daySearch.addEventListener('input', function () {
+    var query = daySearch.value.toLowerCase().trim();
+    var visible = 0;
+    Array.prototype.slice.call(document.querySelectorAll('#dia .card')).slice(1).forEach(function (card) {
+      var matches = card.textContent.toLowerCase().indexOf(query) !== -1;
+      card.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
+    });
+    document.getElementById('dia-empty').style.display = visible ? 'none' : 'block';
+  });
+
+  var historySearch = document.querySelector('#his input[type="search"]');
+  historySearch.addEventListener('input', function () {
+    var query = historySearch.value.toLowerCase().trim();
+    var visible = 0;
+    document.querySelectorAll('#his .card .row').forEach(function (row) {
+      var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
+    });
+    document.getElementById('his-empty').style.display = visible ? 'none' : 'block';
   });
 
   document.querySelectorAll('#dia .btn.g').forEach(function (button) {
