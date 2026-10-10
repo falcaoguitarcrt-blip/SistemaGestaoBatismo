@@ -729,7 +729,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
     return flags;
   }
   function hasPendingSignal(person) {
-    return signalFlags(person).some(function (flag) { return flag.indexOf('Status:') === 0 || flag.indexOf('Jornada:') === 0 || flag.indexOf('Aula para repor:') === 0 || flag.indexOf('Observação:') === 0; });
+    return signalFlags(person).length > 0;
   }
   function shirtChosen(person) {
     var shirt = normal(person.shirt);
@@ -775,7 +775,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
     var turmas = Object.keys(turmaCounts).sort(function (a, b) { return Number(a) - Number(b); });
     var maxTurma = Math.max.apply(null, turmas.map(function (t) { return turmaCounts[t]; }).concat([1]));
     var duplicateGroups = duplicateNameGroups(peopleNamed, function (p) { return p.name; });
-    home.innerHTML = '<div class="card hero"><small>PLANILHA IMPORTADA · DADOS LOCAIS</small><h2>Gestão de Batismo</h2><small>' + esc(appData.sourceFileName) + ' · importada em ' + esc(new Date(appData.importedAt).toLocaleString('pt-BR')) + '</small><div class="bar" style="margin:12px 0"><b style="width:' + Math.round((done / Math.max(people.length, 1)) * 100) + '%"></b></div><span class="btn" data-go="ord">Abrir ordem de batismo →</span></div>' +
+    home.innerHTML = '<div class="card hero"><small>PLANILHA IMPORTADA · DADOS LOCAIS</small><h2>Gestão de Batismo</h2><small>' + esc(appData.sourceFileName) + ' · importada em ' + esc(new Date(appData.importedAt).toLocaleString('pt-BR')) + '</small><div class="bar" style="margin:12px 0"><b style="width:' + Math.round((done / Math.max(people.length, 1)) * 100) + '%"></b></div><button type="button" class="btn" data-go="ord">Abrir ordem de batismo →</button></div>' +
       '<div class="data-metrics">' +
       metric('Registros na aba Batismo', people.length, 'Sem mesclar linhas repetidas') +
       metric('Registros com nome', peopleNamed.length, 'Cadastros da aba principal') +
