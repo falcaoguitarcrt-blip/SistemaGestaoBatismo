@@ -11,6 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/tokens.css">
   <link rel="stylesheet" href="./css/app.css">
+  <link rel="stylesheet" href="./css/modules.css">
 </head>
 <body>
   <main class="page-shell">
@@ -62,12 +63,18 @@
           <div class="funnel-row"><span>Jornada</span><div class="track"><span style="width:67%"></span></div><strong>67%</strong></div>
           <div class="funnel-row"><span>Pronto para o evento</span><div class="track"><span style="width:54%"></span></div><strong>54%</strong></div>
         </section>
-        <p class="footer-note">Fundação da Etapa 1 · Os módulos operacionais serão liberados após validação.</p>
+        <section id="modulesRoot" class="modules-root" hidden aria-live="polite"></section>
+        <div class="module-launchers" aria-label="Módulos do sistema">
+          <button hidden class="button secondary" type="button" data-open-module="pessoas">Pessoas</button>
+          <button hidden class="button secondary" type="button" data-open-module="pendencias">Pendências</button>
+        </div>
+        <p class="footer-note">Etapas 1 e 2 · Acesso restrito conforme as permissões configuradas no Firebase.</p>
       </section>
       <p class="workspace-foot">Use somente uma conta autorizada. Nunca compartilhe sua senha ou códigos de verificação.</p>
     </section>
   </main>
   <script type="module" src="./js/auth.js"></script>
   <script type="module" src="./js/dashboard.js"></script>
+  <script type="module" src="./js/modules.js"></script>
 </body>
 </html>
