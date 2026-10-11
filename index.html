@@ -1603,7 +1603,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
 import { getFirestore, doc, collection, getDoc, getDocs, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -1779,6 +1779,8 @@ googleLoginButton.addEventListener('click', async function () {
   try {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
+    // Persistência explícita para manter a sessão após o retorno do fluxo Google em navegadores móveis.
+    await setPersistence(auth, browserLocalPersistence);
     await signInWithPopup(auth, provider);
     lastAuthError = '';
   } catch (error) {
