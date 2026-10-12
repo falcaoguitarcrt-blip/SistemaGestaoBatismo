@@ -167,8 +167,12 @@ assert.ok(saveHandlerStart >= 0 && saveHandlerEnd > saveHandlerStart, 'não enco
 assert.ok(!/firebaseSaveWorkspace|saveWorkspace\s*\(/.test(refreshHandler), 'Atualizar agora não deve salvar automaticamente');
 assert.ok(refreshHandler.includes('Dados atualizados, revise antes de salvar.'), 'o editor deve avisar para revisar antes de salvar');
 
-const markHandlerStart = html.indexOf("window.firebaseToggleDayMark=async function(id,fields,row)");
-const markHandlerEnd = html.indexOf("\n};", markHandlerStart);
+const markHandlerStart = html.indexOf("window.firebaseToggleDayMark=async function");
+const undoStart = html.indexOf("window.firebaseUndoDayMark=async function", markHandlerStart);
+const refreshStart = html.indexOf("window.firebaseRefreshDayMark=async function", markHandlerStart);
+const legacyStart = html.indexOf("window.addEventListener('day-legacy-marks'", markHandlerStart);
+const possibleEnds = [undoStart, refreshStart, legacyStart].filter(index => index > markHandlerStart);
+const markHandlerEnd = possibleEnds.length ? Math.min(...possibleEnds) : -1;
 const markHandler = html.slice(markHandlerStart, markHandlerEnd);
 assert.ok(markHandlerStart >= 0 && markHandlerEnd > markHandlerStart, 'não encontrou o fluxo independente de marcacoesBatismo');
 assert.ok(!/workspaceVersionConflict/.test(markHandler), 'o conflito do workspace não deve bloquear marcações de presença/batismo');
