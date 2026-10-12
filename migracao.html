@@ -138,7 +138,7 @@ function buildPlan(){
   mergeScalar('idade',p=>p.idade,(p,v)=>{p.idade=v;p.faixaEtaria=v<18?'menor':v<30?'jovem_adulto':v<60?'adulto':'60_mais';p.menor=v<18},v=>v==null);
   mergeScalar('jornada.status',p=>p.jornada.status,(p,v)=>p.jornada.status=v,v=>!v);
   for(const n of [1,2,3,4])mergeScalar('aulas.'+n,p=>p.aulas[n],(p,v)=>p.aulas[n]=v,v=>v==null);
-  mergeScalar('aulao.inscrito',p=>p.aulao.inscrito,(p,v)=>p.aulao={...p.aulao,inscrito:v},v=>!v);
+  mergeScalar('aulao.inscrito',p=>p.aulao.inscrito,(p,v)=>p.aulao={...p.aulao,inscrito:v},v=>!v);mergeScalar('aulao.data',p=>p.aulao.data,(p,v)=>p.aulao={...p.aulao,data:v},v=>!v);
   mergeScalar('camiseta.opcao',p=>p.camiseta.opcao,(p,v)=>p.camiseta.opcao=v,v=>v==='nao_respondeu');
   mergeScalar('camiseta.tamanho',p=>p.camiseta.tamanho,(p,v)=>p.camiseta.tamanho=v,v=>!v);
   mergeScalar('camiseta.pago',p=>p.camiseta.pago,(p,v)=>p.camiseta.pago=v,v=>v==null);
@@ -215,9 +215,15 @@ async function applyMigration(){
     const snaps=await Promise.all(refs.map(x=>tx.get(x.ref)));
     const fresh=[];
     snaps.forEach((s,n)=>{if(!s.exists())fresh.push(refs[n]);else skipped++});
-    fresh.forEach(({w,ref})=>tx.set(ref,w.data));
+    fresh.forEach(({w,ref},n)=>{
+     tx.set(ref,w.data);
+     const auditId=runId+'_doc_'+stableHash(w.path);
+     const auditRef=doc(db,'auditoria',auditId);
+     const changes=Object.entries(w.data).filter(([field])=>field!=='updatedAt').map(([field,value])=>({campo:field,valorAntigo:null,valorNovo:w.path.includes('/privado/')?'[restrito; preservado no documento de origem]':value}));
+     tx.set(auditRef,{acao:'criacao_migracao',migrationId:runId,uid:user.uid,email:user.email||'',quando:new Date().toISOString(),documento:w.path,alteracoes:changes,criadoEm:serverTimestamp()});
+    });
     const auditRef=doc(db,'auditoria',runId+'_lote_'+String(i/size).padStart(4,'0'));
-    tx.set(auditRef,{acao:'migracao_estruturada',migrationId:runId,uid:user.uid,email:user.email||'',quando:new Date().toISOString(),documentosCriados:fresh.map(x=>x.w.path),documentosIgnorados:snaps.length-fresh.length,origemVersionId:source.versionId,camposNovos:['turmas','pessoas','ordem','gruposDuplicados','regrasInterpretacao'],valoresPessoais:'não replicados na auditoria',criadoEm:serverTimestamp()});
+    tx.set(auditRef,{acao:'migracao_estruturada',migrationId:runId,uid:user.uid,email:user.email||'',quando:new Date().toISOString(),documentosCriados:fresh.map(x=>x.w.path),documentosIgnorados:snaps.length-fresh.length,origemVersionId:source.versionId,camposNovos:['turmas','pessoas','ordem','gruposDuplicados','regrasInterpretacao'],criadoEm:serverTimestamp()});
     return {created:fresh.length,skipped:snaps.length-fresh.length};
    });
    created+=inserted.created;skipped+=inserted.skipped;
