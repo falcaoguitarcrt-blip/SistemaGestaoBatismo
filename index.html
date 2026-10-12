@@ -534,6 +534,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var db = null;
   var appData = null;
   var pendingImport = null;
+  var replaceBackupDownloaded = false;
+  var lastImportReport = null;
   var importPreflightRunning = false;
   var selectedPersonRow = null;
   var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
@@ -1829,6 +1831,69 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped +
       '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
 
+    var comparison = inspectImportRows(payload.people || [], appData && appData.people || []);
+    var fieldLabels = [['name','Nome'],['age','Idade'],['phone','Telefone'],['turma','Turma'],['date','Data do batismo'],['journey','Jornada'],['lesson','Aula'],['group','Grupo'],['shirt','Camiseta'],['shirtPaid','Camiseta paga'],['status','Status'],['pending','Pendência'],['baptized','Batizado'],['profile','Perfil']];
+    document.getElementById('update-field-options').innerHTML = fieldLabels.map(function (field) {
+      return '<label class="check-row"><input type="checkbox" data-update-field="' + field[0] + '" checked> ' + field[1] + '</label>';
+    }).join('');
+    var sampleRows = (payload.people || []).slice(0, 10);
+    var sampleHtml = sampleRows.map(function (person) {
+      return '<tr><td>' + esc(person.sourceRow || '') + '</td><td>' + esc(person.name || '(sem nome)') + '</td><td>' + esc(person.phone || '') + '</td><td>' + esc(person.turma || '') + '</td></tr>';
+    }).join('');
+    var changedHtml = comparison.changed.slice(0, 10).map(function (item) {
+      var diffs = item.diffs.slice(0, 4).map(function (diff) {
+        return '<div><b>' + esc(diff.field) + ':</b> <span>' + esc(display(diff.before)) + '</span> → <span>' + esc(display(diff.after)) + '</span></div>';
+      }).join('');
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(item.after.name || item.before.name) + '</strong>' + diffs + '</div></div>';
+    }).join('');
+    var problemHtml = comparison.invalid.slice(0, 20).map(function (item) {
+      return '<div class="item-meta">Linha ' + esc(item.sourceRow) + ' · ' + esc(item.name || '(sem nome)') + ': ' + esc(item.issue) + '</div>';
+    }).join('');
+    var absentHtml = comparison.absent.slice(0, 10).map(function (person) {
+      return '<span class="tag">' + esc(person.name || '(sem nome)') + '</span> ';
+    }).join('');
+    document.getElementById('import-preview').innerHTML +=
+      '<div class="card"><b>Prévia comparativa com a base ativa</b><div class="grid">' +
+      '<div class="data-summary">Novos: ' + numberLabel(comparison.newRows.length) + '</div>' +
+      '<div class="data-summary">Alterados: ' + numberLabel(comparison.changed.length) + '</div>' +
+      '<div class="data-summary">Ausentes no arquivo: ' + numberLabel(comparison.absent.length) + '</div>' +
+      '<div class="data-summary">Duplicados no arquivo: ' + numberLabel(comparison.duplicates.length) + '</div>' +
+      '<div class="data-summary">Linhas com problema: ' + numberLabel(comparison.invalid.length) + '</div></div>' +
+      '<h4>Amostra de 10 linhas mapeadas</h4><div style="overflow:auto"><table><thead><tr><th>Linha</th><th>Nome</th><th>Telefone</th><th>Turma</th></tr></thead><tbody>' + sampleHtml + '</tbody></table></div>' +
+      '<h4>Alterações propostas (antes → depois)</h4>' + (changedHtml || '<p class="section-sub">Nenhuma alteração comparável encontrada.</p>') +
+      '<h4>Ausentes no arquivo, não serão apagados no modo padrão</h4>' + (absentHtml || '<p class="section-sub">Nenhum cadastro ausente.</p>') +
+      '<h4>Problemas para revisão</h4>' + (problemHtml || '<p class="section-sub">Nenhum problema encontrado.</p>') +
+      '<p class="note">A chave de comparação é nome normalizado + dígitos do telefone. No modo padrão, cadastros ausentes permanecem na base. O modo Substituir tudo fica bloqueado enquanto houver problemas de dados.</p></div>';
+    var modeSelect = document.getElementById('import-mode');
+    var replaceWrap = document.getElementById('replace-confirm-wrap');
+    var replaceText = document.getElementById('replace-confirm-text');
+    var backupButton = document.getElementById('download-replace-backup');
+    var reportButton = document.getElementById('download-import-report');
+    replaceBackupDownloaded = false;
+    function refreshModeGate() {
+      var replacing = !!(modeSelect && modeSelect.value === 'replace');
+      if (replaceWrap) replaceWrap.hidden = !replacing;
+      var typed = !!(replaceText && replaceText.value === 'CONFIRMAR');
+      var safeReplace = !replacing || (replaceBackupDownloaded && typed && comparison.invalid.length === 0);
+      if (importButton) importButton.disabled = !confirmedImportOrderTurmaId || (hasPriorOrder && !(closureDownloaded || (closureAlreadySaved && closureAlreadySaved.checked))) || !safeReplace;
+      if (replacing && comparison.invalid.length && document.getElementById('replace-backup-status')) {
+        document.getElementById('replace-backup-status').textContent = 'Substituir tudo bloqueado: corrija ' + comparison.invalid.length + ' ocorrência(s) antes de continuar.';
+      }
+    }
+    if (modeSelect) modeSelect.addEventListener('change', function () { replaceBackupDownloaded = false; if (replaceText) replaceText.value = ''; refreshModeGate(); });
+    if (replaceText) replaceText.addEventListener('input', refreshModeGate);
+    if (backupButton) backupButton.addEventListener('click', function () {
+      if (!appData) { setImportMessage('Não há base ativa para gerar backup. Substituir tudo permanece bloqueado.', 'error'); return; }
+      var backup = Object.assign({}, appData);
+      delete backup.sourceWorkbook;
+      var json = JSON.stringify({ backupFormat: 'gestao-batismo-workspace-v1', createdAt: new Date().toISOString(), workspace: backup }, null, 2);
+      downloadBlob(new Blob([json], { type: 'application/json;charset=utf-8' }), 'backup-base-ativa-' + new Date().toISOString().slice(0,10) + '.json');
+      replaceBackupDownloaded = true;
+      var status = document.getElementById('replace-backup-status');
+      if (status) status.textContent = 'Backup JSON solicitado para download. Confira se o arquivo foi salvo antes de continuar.';
+      refreshModeGate();
+    });
+    if (reportButton) reportButton.disabled = true;
     var closureButton = document.getElementById('download-prior-order-closure');
     var closureAlreadySaved = document.getElementById('prior-order-closure-already-saved');
     var closureDownloaded = false;
@@ -1837,7 +1902,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (hasPriorOrder && importButton) importButton.disabled = true;
     function refreshImportGate() {
       var closureSatisfied = !hasPriorOrder || closureDownloaded || !!(closureAlreadySaved && closureAlreadySaved.checked);
-      if (importButton) importButton.disabled = !confirmedImportOrderTurmaId || !closureSatisfied;
+      var modeSelect = document.getElementById('import-mode');
+      var replaceText = document.getElementById('replace-confirm-text');
+      var replacing = !!(modeSelect && modeSelect.value === 'replace');
+      var comparisonNow = inspectImportRows(payload.people || [], appData && appData.people || []);
+      var replaceSatisfied = !replacing || (replaceBackupDownloaded && !!(replaceText && replaceText.value === 'CONFIRMAR') && comparisonNow.invalid.length === 0);
+      if (importButton) importButton.disabled = !confirmedImportOrderTurmaId || !closureSatisfied || !replaceSatisfied;
       if (hasPriorOrder && !closureSatisfied) {
         var status = document.getElementById('prior-order-closure-status');
         if (status) status.textContent = 'Obrigatório: baixe o CSV ou marque que já guardou o fechamento antes de importar.';
