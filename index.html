@@ -1675,7 +1675,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       turmaId = String(Number(turmaId));
       pendingImport.ordemTurmaId = turmaId;
       confirmedImportOrderTurmaId = turmaId;
-      ensureTurmaRegistry(pendingImport);
+      ensureTurmaRegistry(pendingImport, true); // registrar a turma da ordem sem alterar turmaPadrao automaticamente.
       selector.disabled = true;
       customInput.disabled = true;
       confirmButton.disabled = true;
@@ -1707,7 +1707,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     });
   }
 
-  function ensureTurmaRegistry(workspace) {
+  function ensureTurmaRegistry(workspace, preserveDefaultTurma) {
     if (!workspace) return;
     if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
     var known = new Set(workspace.turmas.map(function (t) { return String(t.id); }));
@@ -1720,7 +1720,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       known.add(String(number));
     });
     workspace.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
-    if (!workspace.turmaPadrao || !workspace.turmas.some(function (t) { return String(t.id) === String(workspace.turmaPadrao); })) workspace.turmaPadrao = workspace.turmas.some(function (t) { return String(t.id) === '36'; }) ? '36' : (workspace.turmas[0] ? String(workspace.turmas[0].id) : '');
+    if (!preserveDefaultTurma && (!workspace.turmaPadrao || !workspace.turmas.some(function (t) { return String(t.id) === String(workspace.turmaPadrao); }))) workspace.turmaPadrao = workspace.turmas.some(function (t) { return String(t.id) === '36'; }) ? '36' : (workspace.turmas[0] ? String(workspace.turmas[0].id) : '');
   }
 
   function buildTurmas() {
@@ -1919,6 +1919,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var message = 'Importar a ordem para a Turma ' + targetTurmaId + ' e enviar os dados conferidos das duas primeiras abas (Batismo e Ordem) para o Firebase?';
     if (hasExistingMarks) message += '\n\nVocê confirmou digitando o número da turma. As marcações existentes permanecerão intactas, mas podem ficar associadas às novas pessoas/posições.';
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
+    message += '\n\nA checagem de marcações é repetida imediatamente antes de salvar. Ainda existe uma janela curta entre essa leitura e a gravação; marcações simultâneas nesse intervalo residual podem não ser detectadas pela pré-checagem.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
     if (!window.confirm(message)) return;
     // Segunda checagem após a janela do diálogo de confirmação. Resta uma janela residual até o salvamento.
@@ -2408,7 +2409,7 @@ async function saveCloudWorkspace(payload, createVersion) {
       importedAt: payload.importedAt || new Date().toISOString(),
       sheetStats: safeValue(payload.sheetStats || []),
       sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
-      turmaPadrao: String(payload.turmaPadrao || '36'),
+      turmaPadrao: Object.prototype.hasOwnProperty.call(payload, 'turmaPadrao') ? String(payload.turmaPadrao || '') : '36',
       skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
       checkin: safeValue(payload.checkin || {}),
       createdAt: new Date().toISOString(),
@@ -2515,7 +2516,7 @@ async function loadCloudWorkspace() {
     id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
     sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
-    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: Object.prototype.hasOwnProperty.call(meta, 'turmaPadrao') ? String(meta.turmaPadrao || '') : '36', checkin: meta.checkin || {}
   };
   if (Object.prototype.hasOwnProperty.call(meta, 'ordemTurmaId')) workspace.ordemTurmaId = String(meta.ordemTurmaId);
   const chunkSnap = await getDocs(versionChunksRef(versionId));
