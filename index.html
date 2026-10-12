@@ -2139,7 +2139,7 @@ function startDayListener(user){
  dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
   const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites){dayPending.add(d.id);}});
   dayOnline=navigator.onLine;dayServerConnected=!snap.metadata.fromCache;daySyncError=false;
-  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:true,error:false}}}));
+  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,serverConnected:dayServerConnected,pending:new Set([...dayPending,...dayAuditPending]).size,ready:true,error:false}}}));
  },function(e){console.error(e);dayServerConnected=false;daySyncError=true;emitDayStatus(!!dayUnsub);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:'Não foi possível conectar ao servidor: '+e.message}}));});
  user.getIdTokenResult().then(function(t){window.firebaseIsAdmin=t.claims.admin===true;window.dispatchEvent(new Event('firebase-admin-status'));}).catch(function(){});
 }
