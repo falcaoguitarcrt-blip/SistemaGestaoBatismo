@@ -87,4 +87,4 @@ console.log('OK: cabeçalho trocado é bloqueado antes de ler colunas por posiç
 console.log('OK: importação duplicada é idempotente; modo aditivo nunca apaga ausentes.');
 console.log('OK: prévia sinaliza duplicados, data impossível, telefone inválido e turma vazia.');
 console.log('OK: restaurar versão chama salvamento de nova versão, mantendo CAS e sem apagar histórico.');
-console.log('OK: controles de substituição, relatório seguro, diálogos acessíveis e SheetJS corrigido.');
+console.log('OK: controles de substituição, relatório seguro, diálogos acessíveis, SRI e SheetJS corrigido.');
