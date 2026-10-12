@@ -107,6 +107,9 @@ assert.ok(html.includes("if (Object.prototype.hasOwnProperty.call(payload, 'orde
 assert.ok(html.includes("var turmaAtual = String(appData.turmaPadrao || '36')"), 'Home deve seguir turmaPadrao');
 assert.ok(html.includes("if(String(workspace.ordemTurmaId || '36')!=='36')return;"), 'migração legada não pode rodar para outra turma');
 assert.equal(h.turmaDateSummary({}), '', 'sem dataBatismo não deve mostrar contagem regressiva');
+const futureDateSummary = h.turmaDateSummary({ dataBatismo: '2099-01-01' });
+assert.ok(futureDateSummary.includes('1 de janeiro de 2099'), 'dataBatismo deve ser exibida em formato local sem deslocamento de fuso');
+assert.ok(futureDateSummary.includes('Faltam '), 'dataBatismo futura deve mostrar contagem regressiva');
 
 console.log('OK: workspace legado usa turma 36 e mantém IDs 36_n; IDs de outras turmas são isolados.');
 console.log('OK: consulta de marcações da turma 37/99 filtra por turma e não lê documentos da 36.');
