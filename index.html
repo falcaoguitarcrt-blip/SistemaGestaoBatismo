@@ -2200,7 +2200,17 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
     message += '\n\nA checagem de marcações é repetida imediatamente antes de salvar. Ainda existe uma janela residual entre essa leitura e a conclusão do salvamento da versão, incluindo gravação dos blocos e atualização do ponteiro; marcações simultâneas nesse intervalo podem não ser detectadas pela pré-checagem.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
-    if (!(await accessibleConfirm(message))) return;
+    var modeNode = document.getElementById('import-mode');
+    var importMode = modeNode ? modeNode.value : 'add-update';
+    var replaceTextNode = document.getElementById('replace-confirm-text');
+    var previewComparison = inspectImportRows(pendingImport.people || [], appData && appData.people || []);
+    if (importMode === 'replace' && (!replaceBackupDownloaded || !replaceTextNode || replaceTextNode.value !== 'CONFIRMAR' || previewComparison.invalid.length)) {
+      setImportMessage('Substituir tudo bloqueado: baixe o backup JSON, digite CONFIRMAR e corrija todas as linhas com problema.', 'error');
+      return;
+    }
+    if (importMode === 'replace') message += '\\n\\nMODO SUBSTITUIR TUDO: a ação exige backup JSON baixado e confirmação digitada CONFIRMAR.';
+    else message += '\\n\\nMODO ADICIONAR E ATUALIZAR: cadastros ausentes no arquivo serão mantidos; somente os campos marcados serão atualizados.';
+    if (!(await accessibleConfirm(message, importMode === 'replace' ? { typedPhrase: 'CONFIRMAR', acceptLabel: 'Substituir tudo' } : {}))) return;
     // Segunda checagem após a janela do diálogo de confirmação. Resta uma janela residual até o salvamento.
     button.disabled = true;
     setImportMessage('Rechecando marcações no servidor antes de importar…');
@@ -2228,11 +2238,47 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     setImportMessage('Enviando os registros ao Firebase e salvando a cópia local…');
     try {
       if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase ainda não está pronta. Recarregue a página e entre novamente.');
-      await window.firebaseSaveWorkspace(pendingImport, true);
+      var incomingForSave = Object.assign({}, pendingImport);
+      var sourceRows = pendingImport.people || [];
+      var validRows = [];
+      var seenImportKeys = new Set();
+      var ignoredInvalid = 0;
+      sourceRows.forEach(function (person) {
+        var key = importPersonKey(person);
+        var digits = String(person.phone == null ? '' : person.phone).replace(/\\D/g, '');
+        var valid = !!String(person.name || '').trim() && digits.length >= 10 && digits.length <= 13 &&
+          String(person.turma == null ? '' : person.turma).trim() !== '' && importDateIsValid(person.date);
+        if (!valid || !key || seenImportKeys.has(key)) { ignoredInvalid++; return; }
+        seenImportKeys.add(key);
+        validRows.push(person);
+      });
+      incomingForSave.people = validRows;
+      var importReport;
+      var finalPayload;
+      if (importMode === 'replace') {
+        finalPayload = incomingForSave;
+        importReport = { read: sourceRows.length, imported: validRows.length, ignored: ignoredInvalid, corrected: 0 };
+      } else {
+        var selectedFields = Array.prototype.slice.call(document.querySelectorAll('[data-update-field]:checked')).map(function (node) { return node.getAttribute('data-update-field'); });
+        var mergedResult = mergeImportWorkspace(appData || {}, incomingForSave, selectedFields);
+        finalPayload = mergedResult.workspace;
+        importReport = { read: sourceRows.length, imported: mergedResult.report.imported, ignored: mergedResult.report.ignored + ignoredInvalid, corrected: mergedResult.report.corrected };
+      }
+      finalPayload.importReport = importReport;
+      finalPayload.sourceFileName = pendingImport.sourceFileName;
+      finalPayload.sourceFileSize = pendingImport.sourceFileSize;
+      finalPayload.sourceWorkbook = pendingImport.sourceWorkbook;
+      finalPayload.rawSheets = pendingImport.rawSheets;
+      finalPayload.sheetStats = pendingImport.sheetStats;
+      finalPayload.sourceSheetNames = pendingImport.sourceSheetNames;
+      await window.firebaseSaveWorkspace(finalPayload, true);
       var localCopyWarning = '';
-      try { await saveWorkspace(pendingImport, true); }
+      try { await saveWorkspace(finalPayload, true); }
       catch (localError) { localCopyWarning = ' A sincronização na nuvem foi concluída, mas a cópia local não pôde ser atualizada neste navegador.'; }
-      appData = Object.assign({}, pendingImport, { id: 'current' });
+      appData = Object.assign({}, finalPayload, { id: 'current' });
+      lastImportReport = importReport;
+      var reportButtonAfterSave = document.getElementById('download-import-report');
+      if (reportButtonAfterSave) reportButtonAfterSave.disabled = false;
       pendingImport = null;
       confirmedImportOrderTurmaId = '';
       selectedPersonRow = null;
@@ -2254,6 +2300,17 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   document.getElementById('download-source').addEventListener('click', function () { downloadWorkbook(appData); });
   document.getElementById('download-json').addEventListener('click', function () { downloadJson(appData); });
+  document.getElementById('download-import-report').addEventListener('click', function () {
+    if (!lastImportReport) return;
+    var rows = [
+      { tipo: 'lidos', quantidade: lastImportReport.read, detalhe: 'Linhas de pessoas lidas do arquivo' },
+      { tipo: 'importados', quantidade: lastImportReport.imported, detalhe: 'Cadastros novos' },
+      { tipo: 'ignorados', quantidade: lastImportReport.ignored, detalhe: 'Duplicados ou linhas com dados inválidos' },
+      { tipo: 'corrigidos', quantidade: lastImportReport.corrected, detalhe: 'Cadastros existentes atualizados nos campos escolhidos' }
+    ];
+    var csv = buildClosureCsv(['tipo','quantidade','detalhe'], rows);
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'relatorio-importacao-' + new Date().toISOString().slice(0,10) + '.csv');
+  });
 
   document.addEventListener('click', async function (event) {
     var addPersonButton = event.target.closest('[data-add-person]');
