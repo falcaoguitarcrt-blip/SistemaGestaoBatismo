@@ -156,6 +156,80 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .day-count{display:grid;grid-template-columns:minmax(110px,auto) 1fr;align-items:center;gap:10px;margin:8px 0}.day-toast{display:none;position:fixed;left:50%;bottom:18px;z-index:30;transform:translateX(-50%);width:min(92vw,480px);padding:12px;background:var(--tx);color:var(--card);border-radius:12px;text-align:center}.day-toast.show{display:block}.day-undo{min-height:48px;border:0;border-radius:8px;padding:0 14px;background:var(--gold);font-weight:700}#day-print-list{display:none}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
 @media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
+
+/* Pessoas e ficha profissional */
+.people-toolbar{display:grid;grid-template-columns:minmax(220px,2fr) repeat(3,minmax(130px,1fr));gap:8px;margin:10px 0}
+.people-toolbar input,.people-toolbar select,.people-subfilters select{width:100%;min-width:0;margin:0;min-height:46px;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
+.people-subfilters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.people-subfilters label{display:flex;align-items:center;gap:6px;min-height:42px;color:var(--tx);font-size:13px}
+.people-subfilters input[type=checkbox],.people-table input[type=checkbox],.people-cards input[type=checkbox]{width:20px;height:20px;accent-color:var(--pri)}
+.people-saved{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.people-saved button{min-height:42px;border:1px solid var(--ln);border-radius:999px;background:var(--card);color:var(--tx);padding:7px 12px;font:inherit;font-size:12px}
+.people-saved button.active{background:var(--pri);border-color:var(--pri);color:#fff}
+.people-bulk{display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:8px 0}
+.people-bulk .btn{min-height:46px}
+.people-table-wrap{overflow:auto;max-height:68vh;border:1px solid var(--ln);border-radius:12px;background:var(--card)}
+.people-table{width:100%;border-collapse:separate;border-spacing:0;min-width:1050px;font-size:13px}
+.people-table th{position:sticky;top:0;z-index:2;background:var(--bg);text-align:left;color:var(--mut);font-size:11px;white-space:nowrap;border-bottom:1px solid var(--ln);padding:10px 8px}
+.people-table td{padding:8px;border-bottom:1px solid var(--ln);vertical-align:middle}
+.people-table tbody tr{cursor:pointer}
+.people-table tbody tr:hover{background:color-mix(in srgb,var(--pri) 5%,var(--card))}
+.people-table .person-name{font-weight:700}
+.people-table .person-actions{display:flex;gap:4px}
+.people-table .person-actions .btn{min-height:40px;padding:7px 9px;font-size:11px;white-space:nowrap}
+.people-sort{border:0;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer;padding:0}
+.people-cards{display:none}
+.people-card{display:grid;grid-template-columns:24px 1fr;gap:8px;border:1px solid var(--ln);border-radius:12px;background:var(--card);padding:11px;margin:8px 0}
+.people-card-main{min-width:0}
+.people-card-head{display:flex;justify-content:space-between;gap:8px}
+.people-card-title{font-weight:700;overflow-wrap:anywhere}
+.people-card-meta{color:var(--mut);font-size:12px;margin-top:3px}
+.people-card .item-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.people-card-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.people-card-actions .btn{min-height:46px;flex:1;padding:8px;font-size:12px}
+.person-sheet{position:fixed;inset:0;z-index:9100;background:#08120e99;display:flex;justify-content:flex-end}
+.person-sheet[hidden]{display:none!important}
+.person-sheet-card{width:min(760px,94vw);height:100%;overflow:auto;background:var(--bg);color:var(--tx);padding:18px;box-shadow:-18px 0 54px #0003}
+.person-sheet-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:-18px;z-index:3;background:var(--bg);padding:12px 0;border-bottom:1px solid var(--ln)}
+.person-sheet-head h2{font-size:22px}
+.person-tabs{display:flex;gap:6px;overflow:auto;padding:10px 0;position:sticky;top:54px;background:var(--bg);z-index:2}
+.person-tabs button{min-height:46px;border:1px solid var(--ln);border-radius:999px;background:var(--card);color:var(--tx);padding:8px 12px;font:inherit;font-size:12px;white-space:nowrap}
+.person-tabs button.active{background:var(--pri);color:#fff;border-color:var(--pri)}
+.person-sheet-content{padding:10px 0 38px}
+.person-sheet-content label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:8px 0}
+.person-sheet-content input,.person-sheet-content select,.person-sheet-content textarea{display:block;width:100%;min-height:46px;padding:10px 11px;margin-top:4px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
+.person-sheet-content textarea{min-height:90px;resize:vertical}
+.person-sheet-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.person-sheet-status{position:sticky;bottom:8px;background:var(--tx);color:var(--card);padding:9px 12px;border-radius:10px;font-size:12px;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.person-sheet-status button{min-height:40px}
+.person-lesson-toggle{min-height:52px;min-width:48px;padding:8px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
+.person-lesson-toggle.done{background:#2e8b5722;color:var(--ok);border-color:var(--ok)}
+.person-form-overlay{position:fixed;inset:0;z-index:9200;background:#08120e99;display:grid;place-items:center;padding:12px}
+.person-form-overlay[hidden]{display:none!important}
+.person-form-card{width:min(620px,100%);max-height:94vh;overflow:auto;background:var(--card);color:var(--tx);border:1px solid var(--ln);border-radius:18px;padding:18px}
+.person-form-card h2{margin-bottom:10px}
+.person-form-card label{display:block;font-size:12px;font-weight:700;color:var(--mut);margin:9px 0}
+.person-form-card input,.person-form-card select{display:block;width:100%;min-height:48px;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;margin-top:4px}
+.person-form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.person-skeleton{height:54px;background:linear-gradient(90deg,var(--ln),var(--card),var(--ln));background-size:220% 100%;animation:person-shimmer 1.1s linear infinite;border-radius:10px;margin:8px 0}
+@keyframes person-shimmer{to{background-position:-220% 0}}
+@media(max-width:700px){
+ .people-toolbar{grid-template-columns:1fr 1fr}
+ .people-toolbar input{grid-column:1/-1}
+ .people-table-wrap{display:none}
+ .people-cards{display:block}
+ .person-sheet{inset:0}
+ .person-sheet-card{width:100%;padding:12px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+ .person-sheet-head{top:-12px}
+ .person-tabs{top:50px}
+ .person-sheet-grid{grid-template-columns:1fr}
+ .people-subfilters{gap:4px}
+ .person-form-actions{flex-direction:column-reverse}
+ .person-form-actions .btn{width:100%}
+}
+@media(min-width:701px){
+ main{max-width:1500px}
+}
 </style>
 </head>
 <body class="auth-pending">
@@ -184,7 +258,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <header>
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
-<button class="on" data-s="home">▦ Visão geral</button><button data-s="pes">♙ Pessoas</button><button data-s="fic">📋 Ficha</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
+<button class="on" data-s="home">▦ Visão geral</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
 </nav>
 </header>
 <main>
@@ -223,7 +297,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <p class="note">Toque numa pessoa para abrir a ficha demonstrativa</p>
 </section>
 
-<section id="fic">
+<aside id="fic" class="person-sheet" hidden role="dialog" aria-modal="true" aria-label="Ficha da pessoa">
 <div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">AP</div><div class="m"><h2 style="font-size:20px">Ana Paula Reis</h2><div>28 anos · (16) 9XXXX-XXXX · Turma 36</div></div></div>
 <span class="tag t-pe">2 pendências</span><span class="tag t-in">Pr. Gustavo</span></div>
 <p class="note" style="margin:0 0 10px">Os detalhes de preparação abaixo são exemplos estáticos neste protótipo.</p>
@@ -235,7 +309,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <div class="row"><div class="m">Entrou no grupo</div><span class="tag t-ok">Sim</span></div>
 <div class="row"><div class="m">Verificação de perfil 🔒</div><span class="tag t-ok">OK</span></div></div>
 <div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 WhatsApp</button><button type="button" class="btn o" data-demo-action="true">Editar</button></div>
-</section>
+</aside>
 
 <section id="ord">
 <h2 class="t">Ordem · Turma 36</h2>
@@ -379,59 +453,15 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     });
     var section = document.getElementById(button.dataset.s);
     if (section) section.classList.add('on');
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  });
-
-  document.querySelectorAll('#pes .row').forEach(function (row) {
-    row.style.cursor = 'pointer';
-    row.setAttribute('tabindex', '0');
-    row.setAttribute('role', 'button');
-    row.setAttribute('aria-label', 'Abrir ficha demonstrativa de ' + row.querySelector('.m b').textContent);
-
-    function openPerson() {
-      var name = row.querySelector('.m b').textContent.trim();
-      var metadata = row.querySelector('.m div').textContent.trim();
-      var initials = row.querySelector('.av').textContent.trim();
-      var statusTag = row.querySelector('.tag');
-      var profile = document.querySelector('#fic .card:first-child');
-      var avatar = profile.querySelector('.av');
-      var title = profile.querySelector('h2');
-      var meta = profile.querySelector('.m div');
-      var tags = profile.querySelectorAll('.tag');
-
-      avatar.textContent = initials;
-      title.textContent = name;
-      meta.textContent = metadata;
-      if (tags[0] && statusTag) {
-        tags[0].className = statusTag.className;
-        tags[0].textContent = statusTag.textContent;
+    if (!window.__routeRendering) {
+      var routeBySection = { home:'inicio', pes:'pessoas', ord:'ordem', dia:'dia', pen:'pendencias', cam:'camisetas', rep:'reposicao', his:'historico', imp:'importar', cfg:'config' };
+      var route = routeBySection[button.dataset.s];
+      if (route) {
+        var targetHash = '#/' + route;
+        if (window.location.hash !== targetHash) { window.history.pushState({ appRoute: true }, '', targetHash); window.dispatchEvent(new Event('app-route-change')); }
       }
-      if (tags[1]) {
-        tags[1].className = 'tag t-in';
-        tags[1].textContent = 'Ficha demonstrativa';
-      }
-      go('fic');
     }
-
-    row.addEventListener('click', openPerson);
-    row.addEventListener('keydown', function (event) {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        openPerson();
-      }
-    });
-  });
-
-  var peopleSearch = document.querySelector('#pes input');
-  peopleSearch.addEventListener('input', function () {
-    var query = peopleSearch.value.toLowerCase().trim();
-    var visible = 0;
-    document.querySelectorAll('#pes .row').forEach(function (row) {
-      var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
-      row.style.display = matches ? '' : 'none';
-      if (matches) visible += 1;
-    });
-    document.getElementById('pes-empty').style.display = visible ? 'none' : 'block';
+    window.scrollTo({ top: 0, behavior: 'auto' });
   });
 
   var daySearch = document.querySelector('#dia input[type="search"]');
@@ -518,7 +548,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var appData = null;
   var pendingImport = null;
   var selectedPersonRow = null;
-  var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
+  var peopleState = { query: '', turma: '36', journey: '', pending: '', shirt: '', age: '', noPhone: false, duplicates: false, minors: false, page: 1, pageSize: 25, sort: 'nome', direction: 1, selected: {} };
   var orderState = { query: '', page: 1 };
   var dayState = { query: '' , page: 1 };
   var pendingState = { query: '', page: 1 };
@@ -890,65 +920,403 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<p class="note">Os registros são armazenados no Firebase; alterações feitas aqui ficam disponíveis após novo login em outros dispositivos.</p>';
   }
 
+  var structuredPeople = [];
+  var structuredPeopleReady = false;
+  var peopleAccessRestricted = false;
+  var currentPersonId = '';
+  var currentPerson = null;
+  var currentPersonPrivate = { contato: {}, perfil: {} };
+  var currentPersonTab = 'Resumo';
+  var currentPersonSaving = false;
+  var currentPersonConflict = false;
+  var currentUndo = null;
+  var personSaveTimer = 0;
+  var personTabs = ['Resumo','Jornada','Camiseta','Pendências','Batismo','Histórico','Privado'];
+
+  function titleCasePerson(value) {
+    var words = clean(value).replace(/\s+/g, ' ').toLocaleLowerCase('pt-BR').split(' ');
+    return words.map(function (word, index) {
+      if (/^(da|das|de|do|dos|e)$/.test(word) && index > 0) return word;
+      return word ? word.charAt(0).toLocaleUpperCase('pt-BR') + word.slice(1) : word;
+    }).join(' ');
+  }
+  function personName(person) {
+    var value = person.nomeExibicao || person.name || '';
+    return titleCasePerson(value) || 'Nome não informado';
+  }
+  function personTurma(person) {
+    var value = person.turmaId || person.turma || '';
+    return String(value).replace(/^turma_/, '') || '—';
+  }
+  function personAge(person) {
+    var value = person.idade !== undefined ? person.idade : person.age;
+    var n = Number(value);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  }
+  function personPhone(person) {
+    return person.telefone || person.phone || '';
+  }
+  function formatPhone(value) {
+    var digits = String(value || '').replace(/\D/g, '');
+    if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) digits = digits.slice(2);
+    if (digits.length === 11) return '(' + digits.slice(0, 2) + ') ' + digits.slice(2, 7) + '-' + digits.slice(7);
+    if (digits.length === 10) return '(' + digits.slice(0, 2) + ') ' + digits.slice(2, 6) + '-' + digits.slice(6);
+    return value || 'Não informado';
+  }
+  function maskedPhone(value) {
+    if (!value) return 'Não informado';
+    if (window.firebaseUserProfile && window.firebaseUserProfile.perfil === 'voluntario') return '•••••' + String(value).replace(/\D/g, '').slice(-4);
+    return formatPhone(value);
+  }
+  function personStructuredView(person) {
+    var value = Object.assign({}, person);
+    value.__id = person.__id || person.id || '';
+    value.id = value.__id;
+    value.__legacyOnly = !!person.__legacyOnly;
+    value.nomeExibicao = person.nomeExibicao || person.name || '';
+    value.nomeBusca = person.nomeBusca || normal(value.nomeExibicao);
+    value.telefone = person.telefone || person.phone || '';
+    value.turmaId = person.turmaId || (person.turma ? 'turma_' + String(person.turma).replace(/^turma_/, '') : '');
+    value.idade = personAge(person);
+    value.jornada = person.jornada || { status: normal(person.journey).indexOf('conclu') >= 0 ? 'concluida' : normal(person.journey).indexOf('repor') >= 0 ? 'repor' : '' };
+    value.aulas = person.aulas || { 1: null, 2: null, 3: null, 4: null };
+    value.camiseta = person.camiseta || { opcao: person.shirt ? 'quer' : '', tamanho: person.shirt || '', pago: asBoolean(person.shirtPaid), entregue: null };
+    value.pendencia = person.pendencia || { texto: person.pending || '' };
+    value.menor = person.menor === true || (value.idade !== null && value.idade < 18);
+    value.telefoneValido = person.telefoneValido !== undefined ? person.telefoneValido : (value.telefone ? [10,11].indexOf(String(value.telefone).replace(/\D/g,'').replace(/^55/,'').length)>=0 : null);
+    value.origem = person.origem || (person.sourceRow ? { aba: 'Batismo', linha: person.sourceRow } : {});
+    return value;
+  }
+  function getPeopleViewData() {
+    var migrated = (structuredPeople || []).map(personStructuredView);
+    var covered = new Set(migrated.map(function (p) { return p.origem && p.origem.aba === 'Batismo' && p.origem.linha ? String(p.origem.linha) : ''; }).filter(Boolean));
+    var legacy = (appData && appData.people || []).filter(function (p) { return !covered.has(String(p.sourceRow)); }).map(function (p) {
+      var value = personStructuredView(p);
+      value.id = 'legado-' + String(p.sourceRow);
+      value.__id = value.id;
+      value.__legacyOnly = true;
+      value.sourceRow = p.sourceRow;
+      return value;
+    });
+    return migrated.concat(legacy);
+  }
+  function personPending(person) {
+    var p = person.pendencia || {};
+    return !!clean(p.texto || p.descricao || person.pending) || (person.jornada && person.jornada.status === 'repor') ||
+      (person.menor === true && person.responsavelInformado === false);
+  }
+  function currentContact(person) {
+    return currentPerson && currentPerson.id === person.id ? (currentPersonPrivate.contato || {}) : (person.contato || {});
+  }
+  function personBadges(person, duplicateCount) {
+    var badges = [];
+    if (person.jornada && person.jornada.status === 'concluida') badges.push(chip('Jornada concluída','t-ok'));
+    if (personPending(person)) badges.push(chip('Pendência','t-pe'));
+    if (person.camiseta && person.camiseta.opcao === 'quer' && person.camiseta.pago !== true) badges.push(chip('Camiseta a pagar','t-pe'));
+    if (person.menor && person.responsavelInformado === false) badges.push(chip('Menor sem responsável','t-er'));
+    if (person.telefoneRevisar || person.telefoneValido === false) badges.push(chip('Telefone inválido','t-er'));
+    if (duplicateCount > 1) badges.push(chip('Nome repetido','t-in'));
+    return badges.join('') || chip('Sem alertas','t-in');
+  }
+  function ensurePersonCreateForm() {
+    if (document.getElementById('person-create-shell')) return;
+    var shell = document.createElement('div');
+    shell.id = 'person-create-shell';
+    shell.className = 'person-form-overlay';
+    shell.hidden = true;
+    shell.innerHTML = '<form id="person-create-form" class="person-form-card" role="dialog" aria-modal="true" aria-labelledby="person-create-title"><h2 id="person-create-title">Cadastrar pessoa</h2><p class="section-sub">O cadastro será salvo no banco privado da igreja.</p><div class="person-sheet-grid"><label>Nome<input name="nome" autocomplete="name" required maxlength="120"></label><label>Idade<input name="idade" type="number" min="0" max="120" inputmode="numeric"></label><label>Telefone<input name="telefone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(00) 00000-0000"></label><label>Turma<input name="turma" type="number" min="1" value="36"></label><label class="responsavel-field">Nome do responsável<input name="responsavelNome" maxlength="120"></label><label class="responsavel-field">Telefone do responsável<input name="responsavelTelefone" type="tel" inputmode="tel" placeholder="(00) 00000-0000"></label></div><p id="person-create-status" class="record-editor-status" role="status"></p><div class="person-form-actions"><button type="button" class="btn o" data-close-create>Cancelar</button><button class="btn" type="submit">Salvar pessoa</button></div></form>';
+    document.body.appendChild(shell);
+    var form = shell.querySelector('form');
+    var ageInput = form.elements.idade;
+    ageInput.addEventListener('input', function () {
+      var minor = ageInput.value !== '' && Number(ageInput.value) < 18;
+      form.querySelectorAll('.responsavel-field').forEach(function (field) { field.hidden = !minor; });
+      if (minor) {
+        form.elements.responsavelNome.required = true;
+        form.elements.responsavelTelefone.required = true;
+      } else {
+        form.elements.responsavelNome.required = false;
+        form.elements.responsavelTelefone.required = false;
+      }
+    });
+    form.elements.telefone.addEventListener('input', function () { this.value = formatPhone(this.value); });
+    form.elements.responsavelTelefone.addEventListener('input', function () { this.value = formatPhone(this.value); });
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      var status = document.getElementById('person-create-status');
+      var name = titleCasePerson(form.elements.nome.value);
+      var age = form.elements.idade.value === '' ? null : Number(form.elements.idade.value);
+      var phone = form.elements.telefone.value.replace(/\D/g,'');
+      var turma = Number(form.elements.turma.value || 36);
+      var responsibleName = titleCasePerson(form.elements.responsavelNome.value);
+      var responsiblePhone = form.elements.responsavelTelefone.value.replace(/\D/g,'');
+      if (!name) { status.textContent = 'Informe o nome.'; return; }
+      if (phone && [10,11].indexOf(phone.length) < 0) { status.textContent = 'Confira o telefone. Use DDD e 10 ou 11 números.'; return; }
+      if (age !== null && age < 18 && (!responsibleName || [10,11].indexOf(responsiblePhone.length) < 0)) { status.textContent = 'Para menor de 18 anos, informe o nome e o telefone do responsável.'; return; }
+      var nameSearch = normal(name);
+      var duplicates = getPeopleViewData().filter(function (p) { return p.nomeBusca === nameSearch; });
+      if (duplicates.length && !window.confirm('Há ' + duplicates.length + ' cadastro(s) com nome parecido. Deseja salvar mesmo assim?')) return;
+      if (typeof window.firebasePeopleApi !== 'object' || typeof window.firebasePeopleApi.save !== 'function') { status.textContent = 'O banco estruturado ainda não está conectado.'; return; }
+      status.textContent = 'Salvando…';
+      try {
+        var personId = 'p_' + (Number.isFinite(turma) ? turma : 'sem_turma') + '_manual_' + crypto.randomUUID().replace(/-/g,'').slice(0,16);
+        var idadeInfo = age === null ? { faixaEtaria:'desconhecida', menor:null } : { faixaEtaria:age<18?'menor':age<30?'jovem_adulto':age<60?'adulto':'60_mais', menor:age<18 };
+        await window.firebasePeopleApi.save(personId, {
+          root: { nomeExibicao:name, nomeBusca:nameSearch, turmaId:Number.isFinite(turma)?'turma_'+turma:null, idade:age, faixaEtaria:idadeInfo.faixaEtaria, menor:idadeInfo.menor, responsavelInformado:age!==null&&age<18?!!(responsibleName&&responsiblePhone):null, telefone:phone?'+55'+phone:null, telefoneValido:phone?true:null, jornada:{status:'',arquivadaRevisao:false}, aulas:{1:null,2:null,3:null,4:null}, camiseta:{opcao:'',tamanho:null,pago:null,valor:null,data:null,entregue:null}, pendencia:{texto:'',arquivadaRevisao:false}, origem:{tipo:'cadastro_manual',criadoEm:new Date().toISOString()} },
+          contato: { telefone: phone?'+55'+phone:null, responsavelNome:responsibleName||null, responsavelTelefone:responsiblePhone?'+55'+responsiblePhone:null }
+        }, null, { criar:true });
+        shell.hidden = true;
+        form.reset();
+        form.elements.turma.value = '36';
+        document.querySelectorAll('.responsavel-field').forEach(function (field) { field.hidden = true; });
+        showToast('Pessoa cadastrada.');
+      } catch (error) { status.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido'); }
+    });
+  }
   function buildPeople() {
     var section = document.getElementById('pes');
-    var turmas = Array.from(new Set(appData.people.map(function (p) { return clean(p.turma); }).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
-    section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
-      '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
-      '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '">Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
-      '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>' +
-      '<p class="note">Os registros repetidos permanecem separados. Toque em um registro para abrir a ficha completa com os campos da planilha.</p>';
-    document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
-    document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
-    document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
+    ensurePersonCreateForm();
+    var people = getPeopleViewData();
+    var turmas = Array.from(new Set(people.map(personTurma).filter(function (value) { return value !== '—'; }))).sort(function (a,b) { return Number(a)-Number(b); });
+    section.innerHTML = '<div class="people-head"><h2 class="t">Pessoas</h2><button type="button" class="btn o" data-add-person>+ Pessoa</button></div>' +
+      '<div class="people-toolbar"><input id="people-search" type="search" value="' + esc(peopleState.query) + '" placeholder="Buscar por nome ou telefone" aria-label="Buscar por nome ou telefone"><select id="people-turma" aria-label="Turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '"' + (peopleState.turma === t ? ' selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-journey" aria-label="Jornada"><option value="">Todas as jornadas</option><option value="concluida">Concluída</option><option value="repor">A repor</option><option value="vazia">Sem classificação</option></select><select id="people-pending" aria-label="Pendências"><option value="">Todas as pendências</option><option value="sim">Com pendência</option><option value="nao">Sem pendência</option></select><select id="people-shirt" aria-label="Camiseta"><option value="">Todas as camisetas</option><option value="quer">Quer</option><option value="pagar">A pagar</option><option value="nao_quer">Não quer</option><option value="ja_tem">Já tem</option><option value="vazio">Não respondeu</option></select><select id="people-age" aria-label="Faixa etária"><option value="">Todas as idades</option><option value="menor">Menor de 18</option><option value="jovem_adulto">18 a 29</option><option value="adulto">30 a 59</option><option value="60_mais">60 ou mais</option><option value="desconhecida">Não informada</option></select></div>' +
+      '<div class="people-subfilters"><label><input id="people-no-phone" type="checkbox"' + (peopleState.noPhone?' checked':'') + '> Sem telefone</label><label><input id="people-duplicates" type="checkbox"' + (peopleState.duplicates?' checked':'') + '> Nome repetido</label><label><input id="people-minors" type="checkbox"' + (peopleState.minors?' checked':'') + '> Menores</label><label>Tamanho da página <select id="people-page-size"><option value="25">25</option><option value="50">50</option><option value="100">100</option></select></label></div>' +
+      '<div class="people-saved"><button type="button" data-saved-filter="pendentes36">Pendentes da turma 36</button><button type="button" data-saved-filter="menores">Menores</button><button type="button" data-saved-filter="semTelefone">Sem telefone</button><button type="button" data-saved-filter="camiseta">Camiseta a pagar</button></div>' +
+      '<div class="people-bulk"><span id="people-count" class="data-summary"></span><button type="button" class="btn o" data-bulk-pending>Adicionar pendência</button><button type="button" class="btn o" data-bulk-turma>Mudar turma</button>' + ((window.firebaseUserProfile && window.firebaseUserProfile.perfil==='admin')?'<button type="button" class="btn o" data-bulk-export>Exportar seleção</button>':'') + '</div>' +
+      '<div id="people-results"></div><div id="people-pager" class="data-pager"></div><p class="note">Cada cadastro é salvo individualmente no banco protegido. Cadastros antigos ainda não migrados aparecem para consulta; edite após a estrutura ser preparada.</p>';
+    var search = section.querySelector('#people-search');
+    search.addEventListener('input', function () { peopleState.query=this.value;peopleState.page=1;drawPeopleResults(); });
+    ['turma','journey','pending','shirt','age'].forEach(function (name) {
+      var el=section.querySelector('#people-'+name);el.value=peopleState[name]||'';
+      el.addEventListener('change',function(){peopleState[name]=this.value;peopleState.page=1;drawPeopleResults();});
+    });
+    [['no-phone','noPhone'],['duplicates','duplicates'],['minors','minors']].forEach(function(pair){
+      section.querySelector('#people-'+pair[0]).addEventListener('change',function(){peopleState[pair[1]]=this.checked;peopleState.page=1;drawPeopleResults();});
+    });
+    var pageSize=section.querySelector('#people-page-size');pageSize.value=String(peopleState.pageSize||25);
+    pageSize.addEventListener('change',function(){peopleState.pageSize=Number(this.value);peopleState.page=1;drawPeopleResults();});
     drawPeopleResults();
   }
   function drawPeopleResults() {
-    if (!appData || !document.getElementById('people-results')) return;
-    var query = normal(peopleState.query);
-    var items = appData.people.filter(function (p) {
-      var text = normal([p.name, p.phone, p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.sourceRow].join(' '));
-      if (query && text.indexOf(query) < 0) return false;
-      if (peopleState.turma && clean(p.turma) !== peopleState.turma) return false;
-      if (peopleState.filter === 'pending' && !hasPendingSignal(p)) return false;
-      if (peopleState.filter === 'without-phone' && !isBlank(p.phone) ) return false;
-      if (peopleState.filter === 'without-name' && p.name) return false;
-      if (peopleState.filter === 'no-group' && asBoolean(p.group) !== false) return false;
+    var results=document.getElementById('people-results');
+    if(!results) return;
+    if(!structuredPeopleReady&&!appData){results.innerHTML='<div class="person-skeleton"></div><div class="person-skeleton"></div><div class="person-skeleton"></div><div class="person-skeleton"></div>';return;}
+    var all=getPeopleViewData();
+    var nameCounts={};
+    all.forEach(function(p){if(p.nomeBusca)nameCounts[p.nomeBusca]=(nameCounts[p.nomeBusca]||0)+1;});
+    var nameQuery=normal(peopleState.query);
+    var digitQuery=String(peopleState.query||'').replace(/\D/g,'');
+    var items=all.filter(function(p){
+      var phoneDigits=String(personPhone(p)||'').replace(/\D/g,'');
+      if(nameQuery && normal(personName(p)).indexOf(nameQuery)<0 && (!digitQuery || phoneDigits.indexOf(digitQuery)<0)) return false;
+      if(peopleState.turma && personTurma(p)!==peopleState.turma) return false;
+      if(peopleState.journey && (peopleState.journey==='vazia'?!!p.jornada.status:p.jornada.status!==peopleState.journey)) return false;
+      if(peopleState.pending==='sim'&&!personPending(p))return false;
+      if(peopleState.pending==='nao'&&personPending(p))return false;
+      var shirt=p.camiseta||{},option=shirt.opcao||'';
+      if(peopleState.shirt==='pagar'&&!(option==='quer'&&shirt.pago!==true))return false;
+      if(peopleState.shirt==='vazio'&&option)return false;
+      if(peopleState.shirt&&['pagar','vazio'].indexOf(peopleState.shirt)<0&&option!==peopleState.shirt)return false;
+      if(peopleState.age && (p.faixaEtaria||'desconhecida')!==peopleState.age)return false;
+      if(peopleState.noPhone&&!!personPhone(p))return false;
+      if(peopleState.duplicates&&(nameCounts[p.nomeBusca]||0)<2)return false;
+      if(peopleState.minors&&!p.menor)return false;
       return true;
     });
-    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
-    peopleState.page = Math.min(Math.max(1, peopleState.page), pages);
-    var start = (peopleState.page - 1) * PAGE_SIZE;
-    var view = items.slice(start, start + PAGE_SIZE);
-    document.getElementById('people-count').textContent = numberLabel(items.length) + ' registros encontrados · página ' + peopleState.page + ' de ' + pages;
-    document.getElementById('people-results').innerHTML = view.map(function (p) {
-      var status = isBlank(p.status) ? (p.name ? 'Status não preenchido' : 'Registro incompleto') : p.status;
-      var classes = p.name ? 't-in' : 't-er';
-      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Linha original ' + esc(p.sourceRow) + ' · Jornada: ' + esc(display(p.journey)) + '</div><div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
-    }).join('') || '<div class="data-empty">Nenhum registro encontrado com estes filtros.</div>';
-    document.getElementById('people-pager').innerHTML = '<button type="button" class="btn o" data-page="people:-1" ' + (peopleState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>' + numberLabel(start + (view.length ? 1 : 0)) + '–' + numberLabel(start + view.length) + ' de ' + numberLabel(items.length) + '</span><button type="button" class="btn o" data-page="people:1" ' + (peopleState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+    items.sort(function(a,b){var key=peopleState.sort||'nome',av,bv;
+      if(key==='turma'){av=Number(personTurma(a))||0;bv=Number(personTurma(b))||0;}
+      else if(key==='idade'){av=personAge(a)||0;bv=personAge(b)||0;}
+      else if(key==='telefone'){av=personPhone(a)||'';bv=personPhone(b)||'';}
+      else if(key==='jornada'){av=a.jornada.status||'';bv=b.jornada.status||'';}
+      else if(key==='camiseta'){av=(a.camiseta||{}).opcao||'';bv=(b.camiseta||{}).opcao||'';}
+      else if(key==='pendencia'){av=personPending(a)?1:0;bv=personPending(b)?1:0;}
+      else {av=personName(a);bv=personName(b);}
+      if(typeof av==='string')return av.localeCompare(bv,'pt-BR')*(peopleState.direction||1);
+      return (av-bv)*(peopleState.direction||1);
+    });
+    var pageSize=Number(peopleState.pageSize||25),pages=Math.max(1,Math.ceil(items.length/pageSize));
+    peopleState.page=Math.min(Math.max(1,peopleState.page),pages);
+    var start=(peopleState.page-1)*pageSize,view=items.slice(start,start+pageSize);
+    var count=document.getElementById('people-count');
+    if(count)count.textContent=numberLabel(items.length)+' resultado(s) · '+numberLabel(all.length)+' cadastro(s)';
+    var sortHeader=function(key,label){return '<button type="button" class="people-sort" data-sort="'+key+'">'+label+(peopleState.sort===key?(peopleState.direction===1?' ↑':' ↓'):'')+'</button>'};
+    var table='<div class="people-table-wrap"><table class="people-table"><thead><tr><th><input type="checkbox" data-select-page aria-label="Selecionar página"></th><th>'+sortHeader('nome','Nome')+'</th><th>'+sortHeader('turma','Turma')+'</th><th>'+sortHeader('idade','Idade')+'</th><th>'+sortHeader('telefone','Telefone')+'</th><th>'+sortHeader('jornada','Jornada')+'</th><th>'+sortHeader('camiseta','Camiseta')+'</th><th>'+sortHeader('pendencia','Pendências')+'</th><th>Ações</th></tr></thead><tbody>';
+    table+=view.map(function(p){var id=esc(p.id),name=personName(p),phone=personPhone(p),journey=p.jornada.status==='concluida'?'Concluída':p.jornada.status==='repor'?'A repor':'—',shirt=(p.camiseta||{}).opcao==='quer'?((p.camiseta||{}).tamanho||'Quer'):(p.camiseta||{}).opcao==='ja_tem'?'Já tem':(p.camiseta||{}).opcao==='nao_quer'?'Não quer':'—';
+      return '<tr data-person-id="'+id+'"><td><input type="checkbox" data-select-person="'+id+'"'+(peopleState.selected[id]?' checked':'')+' aria-label="Selecionar '+esc(name)+'"></td><td class="person-name">'+esc(name)+'</td><td>'+esc(personTurma(p))+'</td><td>'+(personAge(p)===null?'—':personAge(p)+' anos')+'</td><td>'+esc(maskedPhone(phone))+'</td><td>'+esc(journey)+'</td><td>'+esc(shirt)+'</td><td>'+personBadges(p,nameCounts[p.nomeBusca]||0)+'</td><td><div class="person-actions"><button type="button" class="btn o" data-whatsapp="'+id+'" aria-label="WhatsApp">WhatsApp</button><button type="button" class="btn o" data-add-person-pending="'+id+'">+ Pendência</button></div></td></tr>';
+    }).join('');
+    table+='</tbody></table></div>';
+    var cards='<div class="people-cards">'+view.map(function(p){var id=esc(p.id),name=personName(p),phone=personPhone(p);
+      return '<article class="people-card"><input type="checkbox" data-select-person="'+id+'"'+(peopleState.selected[id]?' checked':'')+' aria-label="Selecionar '+esc(name)+'"><div class="people-card-main"><div class="people-card-head"><div class="people-card-title" data-person-id="'+id+'">'+esc(name)+'</div><div>'+personBadges(p,nameCounts[p.nomeBusca]||0)+'</div></div><div class="people-card-meta">Turma '+esc(personTurma(p))+' · '+(personAge(p)===null?'idade não informada':personAge(p)+' anos')+' · '+esc(maskedPhone(phone))+'<br>Jornada: '+esc(p.jornada.status==='concluida'?'Concluída':p.jornada.status==='repor'?'A repor':'—')+'</div><div class="people-card-actions"><button type="button" class="btn o" data-person-id="'+id+'">Abrir ficha</button><button type="button" class="btn o" data-whatsapp="'+id+'">WhatsApp</button><button type="button" class="btn o" data-add-person-pending="'+id+'">+ Pendência</button></div></div></article>';
+    }).join('')+'</div>';
+    results.innerHTML=view.length?table+cards:'<div class="data-empty">'+(all.length?'Nenhum cadastro corresponde aos filtros escolhidos. Ajuste a busca ou os filtros.':(peopleAccessRestricted?'Seu perfil não tem acesso à lista de Pessoas. Consulte o responsável do sistema.':'Os cadastros ainda não estão disponíveis. Tente atualizar a página ou peça ao administrador para conferir o acesso.'))+'</div>';
+    var pager=document.getElementById('people-pager');
+    if(pager)pager.innerHTML='<button type="button" class="btn o" data-page="people:-1" '+(peopleState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+peopleState.page+' de '+pages+'</span><button type="button" class="btn o" data-page="people:1" '+(peopleState.page>=pages?'disabled':'')+'>Próxima →</button>';
   }
-
+  function ficheField(label,scope,field,value,type,wide) {
+    var safeValue=value===null||value===undefined?'':String(value),tag='';
+    if(type==='textarea')tag='<textarea data-person-scope="'+scope+'" data-person-field="'+field+'">'+esc(safeValue)+'</textarea>';
+    else if(type==='select')tag='<select data-person-scope="'+scope+'" data-person-field="'+field+'"></select>';
+    else tag='<input type="'+(type||'text')+'" data-person-scope="'+scope+'" data-person-field="'+field+'" value="'+esc(safeValue)+'">';
+    return '<label'+(wide?' style="grid-column:1/-1"':'')+'>'+esc(label)+tag+'</label>';
+  }
   function buildFiche(person) {
-    var section = document.getElementById('fic');
-    if (!person) {
-      section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="data-empty">Importe a planilha e selecione uma pessoa na aba Pessoas para abrir a ficha completa.</div>';
-      return;
-    }
-    var fields = [
-      ['NOME', person.fields[0]], ['IDADE', person.fields[1]], ['TELEFONE', person.fields[2]], ['TURMA', person.fields[3]],
-      ['DATA', excelDate(person.fields[4])], ['JORNADA', person.fields[5]], ['AULA P/ REPOR', person.fields[6]],
-      ['ENTROU NO GRUPO', person.fields[7]], ['CAMISETA', person.fields[8]], ['PG CAMISETA', person.fields[9]],
-      ['STATUS', person.fields[10]], ['PENDENCIA', person.fields[11]], ['BATIZADO', person.fields[12]],
-      ['INVESTIGAÇÃO PERFIL (FBI)', person.fields[13]]
-    ];
-    section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>Linha ' + esc(person.sourceRow) + ' da aba Batismo · Turma ' + esc(display(person.turma)) + '</div></div></div>' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Tem observação', 't-pe') : '') + '</div>' +
-      '<div class="card"><b>Todos os campos da planilha</b><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></div>' +
-      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button><button type="button" class="btn o" data-go="imp">Importação e backups</button></div>' +
-      '<p class="note">Use “Editar cadastro” para salvar alterações no Firebase. O arquivo Excel original permanece como cópia de origem.</p>';
+    var sheet=document.getElementById('fic');
+    if(!person){sheet.hidden=true;sheet.innerHTML='';currentPerson=null;return;}
+    currentPerson=personStructuredView(person);currentPersonId=currentPerson.id;
+    var role=window.firebaseUserProfile&&window.firebaseUserProfile.perfil||'';
+    var allowedPrivate=role==='admin'||role==='pastor';
+    var tabs=personTabs.filter(function(t){return t!=='Privado'||allowedPrivate;});
+    if(tabs.indexOf(currentPersonTab)<0)currentPersonTab='Resumo';
+    var panel='<div class="person-sheet-card"><div class="person-sheet-head"><div><h2>'+esc(personName(currentPerson))+'</h2><div class="section-sub">Turma '+esc(personTurma(currentPerson))+(currentPerson.origem&&currentPerson.origem.linha?' · cadastro da turma':'')+'</div></div><button type="button" class="btn o" data-close-fiche>Fechar</button></div><div class="person-tabs">'+tabs.map(function(t){return '<button type="button" data-person-tab="'+esc(t)+'" class="'+(currentPersonTab===t?'active':'')+'">'+esc(t)+'</button>';}).join('')+'</div><div class="person-sheet-content" id="person-sheet-content">'+renderFicheTab(currentPerson,allowedPrivate)+'</div><div class="person-sheet-status" id="person-sheet-status" role="status"><span>'+(currentPersonConflict?'Outra pessoa atualizou este cadastro. Recarregue antes de salvar.':'Alterações salvam automaticamente.')+'</span><span><button type="button" class="btn o" data-person-reload'+(!currentPersonConflict?' hidden':'')+'>Recarregar</button> <button type="button" class="btn o" data-person-undo'+(!currentUndo?' disabled':'')+'>Desfazer</button></span></div></div>';
+    sheet.innerHTML=panel;sheet.hidden=false;sheet.classList.toggle('person-sheet-readonly',!!currentPerson.__legacyOnly);
+    bindFicheFields();
   }
-
-
+  function renderFicheTab(p,allowedPrivate) {
+    if(p.__legacyOnly) {
+      var fields=[['Nome',p.nomeExibicao],['Idade',p.idade],['Telefone',maskedPhone(personPhone(p))],['Turma',personTurma(p)],['Jornada',p.jornada.status],['Camiseta',p.camiseta.tamanho],['Pendência',p.pendencia.texto]];
+      return '<div class="data-empty">Este cadastro ainda está na versão antiga e está disponível para consulta. Depois que a migração estruturada for concluída, as alterações ficam disponíveis nesta ficha.</div><div class="person-sheet-grid">'+fields.map(function(f){return '<div class="data-field"><small>'+esc(f[0])+'</small><strong>'+esc(f[1]||'Não informado')+'</strong></div>';}).join('')+'</div>';
+    }
+    if(currentPersonTab==='Resumo')return '<div class="person-sheet-grid">'+ficheField('Nome','root','nomeExibicao',p.nomeExibicao,'text')+ficheField('Idade','root','idade',p.idade,'number')+ficheField('Turma','root','turmaId',personTurma(p),'text')+ficheField('Telefone','contato','telefone',currentPersonPrivate.contato.telefone||p.telefone,'tel')+ficheField('Responsável','contato','responsavelNome',currentPersonPrivate.contato.responsavelNome,'text')+ficheField('Telefone do responsável','contato','responsavelTelefone',currentPersonPrivate.contato.responsavelTelefone,'tel')+'</div>';
+    if(currentPersonTab==='Jornada')return '<div class="card"><b>Jornada · selecione para alternar</b><div class="dots">'+[1,2,3,4].map(function(n){var value=p.aulas[n];return '<button type="button" class="person-lesson-toggle '+(value===true?'done':'')+'" data-toggle-lesson="'+n+'">Aula '+n+' · '+(value===true?'Concluída':value===false?'Pendente':'—')+'</button>';}).join('')+'</div></div>'+ficheField('Situação geral','root','jornada.status',p.jornada.status,'select');
+    if(currentPersonTab==='Camiseta')return '<div class="person-sheet-grid">'+ficheField('Opção','root','camiseta.opcao',p.camiseta.opcao,'select')+ficheField('Tamanho','root','camiseta.tamanho',p.camiseta.tamanho,'text')+ficheField('Valor (R$)','root','camiseta.valor',p.camiseta.valor,'number')+ficheField('Data','root','camiseta.data',p.camiseta.data,'date')+ficheField('Pago','root','camiseta.pago',p.camiseta.pago,'select')+ficheField('Entregue','root','camiseta.entregue',p.camiseta.entregue,'select')+'</div>';
+    if(currentPersonTab==='Pendências')return ficheField('Observações e pendências','root','pendencia.texto',p.pendencia.texto,'textarea',true);
+    if(currentPersonTab==='Batismo')return '<div class="person-sheet-grid">'+ficheField('Turma','root','turmaId',personTurma(p),'text')+ficheField('Número na ordem','root','ordemNumero',p.ordemNumero,'number')+ficheField('Pastor','root','pastor',p.pastor,'text')+ficheField('Batizado','root','batizado',p.batizado,'select')+'</div>';
+    if(currentPersonTab==='Histórico')return '<div id="person-history" class="data-empty">Carregando histórico…</div>';
+    if(currentPersonTab==='Privado'&&allowedPrivate)return '<div class="person-sheet-grid">'+ficheField('Verificação de perfil','perfil','verificacaoPerfil',currentPersonPrivate.perfil.verificacaoPerfil,'text')+ficheField('Observações restritas','perfil','observacoesRestritas',currentPersonPrivate.perfil.observacoesRestritas,'textarea',true)+'</div>';
+    return '<div class="data-empty">Esta área não está disponível para seu perfil.</div>';
+  }
+  function setNested(target,path,value) {
+    var keys=path.split('.'),node=target;
+    for(var i=0;i<keys.length-1;i++){if(!node[keys[i]]||typeof node[keys[i]]!=='object')node[keys[i]]={};node=node[keys[i]];}
+    node[keys[keys.length-1]]=value;return target;
+  }
+  function getNested(target,path) {
+    return path.split('.').reduce(function(node,key){return node&&node[key];},target);
+  }
+  function bindFicheFields() {
+    var content=document.getElementById('person-sheet-content');if(!content)return;
+    content.querySelectorAll('select[data-person-field]').forEach(function(select){
+      var field=select.dataset.personField,scope=select.dataset.personScope,raw=scope==='root'?getNested(currentPerson,field):scope==='contato'?getNested(currentPersonPrivate.contato,field):getNested(currentPersonPrivate.perfil,field);
+      var options=field==='jornada.status'?[['','Não definida'],['concluida','Concluída'],['repor','A repor']]:field==='camiseta.opcao'?[['','Não respondeu'],['quer','Quer'],['nao_quer','Não quer'],['ja_tem','Já tem']]:field==='camiseta.pago'||field==='camiseta.entregue'||field==='batizado'?[['','Não informado'],['true','Sim'],['false','Não']]:[];
+      select.innerHTML=options.map(function(o){return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>';}).join('');
+      select.value=raw===true?'true':raw===false?'false':raw==null?'':String(raw);
+    });
+    content.querySelectorAll('[data-person-scope][data-person-field]').forEach(function(input){
+      if(input.type==='tel')input.addEventListener('input',function(){this.value=formatPhone(this.value);});
+      input.addEventListener('input',function(){window.clearTimeout(personSaveTimer);personSaveTimer=window.setTimeout(function(){saveFicheField(input);},550);});
+      input.addEventListener('change',function(){window.clearTimeout(personSaveTimer);saveFicheField(input);});
+    });
+    if(currentPersonTab==='Histórico')loadPersonHistory();
+  }
+  async function saveFicheField(input) {
+    if(!currentPerson||currentPerson.__legacyOnly||currentPersonConflict||currentPersonSaving)return;
+    var scope=input.dataset.personScope,field=input.dataset.personField,value=input.value;
+    if(scope==='contato'&&['telefone','responsavelTelefone'].indexOf(field)>=0){
+      var phoneDigits=String(value||'').replace(/\D/g,'');if(phoneDigits.startsWith('55')&&(phoneDigits.length===12||phoneDigits.length===13))phoneDigits=phoneDigits.slice(2);
+      if(value&&[10,11].indexOf(phoneDigits.length)<0){updatePersonSaveStatus('Confira o telefone: informe DDD e 10 ou 11 números.');return;}
+      value=phoneDigits?'+55'+phoneDigits:null;
+    }
+    if(input.type==='number')value=value===''?null:Number(value);
+    if(['camiseta.pago','camiseta.entregue','batizado'].indexOf(field)>=0)value=value===''?null:value==='true';
+    if(scope==='root'&&field==='turmaId'&&value&&!String(value).startsWith('turma_'))value='turma_'+String(value).replace(/^turma_/,'');
+    var target=scope==='root'?currentPerson:scope==='contato'?currentPersonPrivate.contato:currentPersonPrivate.perfil;
+    var before=getNested(target,field);
+    if(JSON.stringify(before)===JSON.stringify(value))return;
+    var rootPatch={},contactPatch={},profilePatch={},undoBefore={root:{},contato:{},perfil:{}};
+    if(scope==='root')setNested(rootPatch,field,value);
+    else if(scope==='contato')setNested(contactPatch,field,value);
+    else setNested(profilePatch,field,value);
+    setNested(undoBefore[scope],field,before===undefined?null:before);
+    if(scope==='contato'&&field==='telefone')rootPatch.telefone=value;
+    if(scope==='contato'&&['responsavelNome','responsavelTelefone'].indexOf(field)>=0){
+      var contactNow=currentPersonPrivate.contato||{};
+      var nameNow=field==='responsavelNome'?value:contactNow.responsavelNome;
+      var phoneNow=field==='responsavelTelefone'?value:contactNow.responsavelTelefone;
+      rootPatch.responsavelInformado=!!(nameNow&&phoneNow);
+    }
+    if(scope==='root'&&field==='idade'){
+      rootPatch.faixaEtaria=value==null?'desconhecida':value<18?'menor':value<30?'jovem_adulto':value<60?'adulto':'60_mais';
+      rootPatch.menor=value==null?null:value<18;
+      if(value!==null&&value<18){
+        var contact=currentPersonPrivate.contato||{};
+        if(!contact.responsavelNome||!contact.responsavelTelefone){updatePersonSaveStatus('Informe o nome e telefone do responsável na aba Resumo antes de salvar idade de menor.');return;}
+        rootPatch.responsavelInformado=true;
+      }
+    }
+    Object.keys(rootPatch).forEach(function(path){
+      if(scope==='root'&&path===field)return;
+      setNested(undoBefore.root,path,getNested(currentPerson,path)===undefined?null:getNested(currentPerson,path));
+    });
+    currentPersonSaving=true;updatePersonSaveStatus('Salvando…');
+    try{
+      var response=await window.firebasePeopleApi.save(currentPerson.id,{root:rootPatch,contato:contactPatch,perfil:profilePatch},currentPerson.__revision);
+      currentUndo={id:currentPerson.id,patch:undoBefore,revision:response.revision};
+      Object.keys(rootPatch).forEach(function(path){setNested(currentPerson,path,rootPatch[path]);});
+      if(scope==='contato')setNested(currentPersonPrivate.contato,field,value);
+      else if(scope==='perfil')setNested(currentPersonPrivate.perfil,field,value);
+      currentPerson.__revision=response.revision;currentPersonConflict=false;updatePersonSaveStatus('Salvo');
+      drawPeopleResults();
+      var undoButton=document.querySelector('[data-person-undo]');if(undoButton)undoButton.disabled=false;
+    }catch(error){
+      if(error&&error.code==='app/person-conflict'){currentPersonConflict=true;updatePersonSaveStatus('Outra pessoa salvou antes. Atualize a ficha para não perder alterações.');}
+      else updatePersonSaveStatus('Não foi possível salvar. '+(error.message||'Confira o acesso à ficha.'));
+    }finally{currentPersonSaving=false;}
+  }
+  function updatePersonSaveStatus(message) {
+    var node=document.querySelector('#fic #person-sheet-status>span:first-child');if(node)node.textContent=message;
+    var reload=document.querySelector('[data-person-reload]');if(reload)reload.hidden=!currentPersonConflict;
+  }
+  async function undoPersonSave() {
+    if(!currentUndo||!currentPerson||currentPerson.id!==currentUndo.id)return;
+    try{
+      var response=await window.firebasePeopleApi.save(currentPerson.id,currentUndo.patch,currentPerson.__revision);
+      currentUndo=null;currentPersonConflict=false;
+      var fresh=await window.firebasePeopleApi.getPerson(currentPerson.id);
+      currentPerson=personStructuredView(fresh);
+      currentPerson.__revision=response.revision;
+      currentPersonPrivate=await window.firebasePeopleApi.getPrivate(currentPerson.id);
+      buildFiche(currentPerson);updatePersonSaveStatus('Alteração desfeita.');
+    }catch(error){updatePersonSaveStatus('Não foi possível desfazer. '+(error.message||''));}
+  }
+  async function loadPersonHistory() {
+    var box=document.getElementById('person-history');if(!box||!currentPerson)return;
+    if(!window.firebaseUserProfile||['admin','pastor'].indexOf(window.firebaseUserProfile.perfil)<0){box.textContent='O histórico detalhado é restrito a admin e pastor.';return;}
+    try{
+      var rows=await window.firebasePeopleApi.audit(currentPerson.id);
+      box.innerHTML=rows.length?rows.map(function(item){return '<div class="data-item"><div class="item-main"><strong>'+esc(item.acao||'Alteração')+'</strong><div class="item-meta">'+esc(item.quando||'')+' · '+esc(item.porNome||item.uid||'Equipe')+'<br>'+esc((item.alteracoes||[]).map(function(a){return a.campo;}).join(', '))+'</div></div></div>';}).join(''):'<div class="data-empty">Ainda não há alterações registradas.</div>';
+    }catch(error){box.textContent='O histórico está indisponível para este perfil.';}
+  }
+  function openPersonById(id) {
+    var p=getPeopleViewData().find(function(item){return item.id===id;});
+    if(!p)return;
+    currentPersonTab='Resumo';currentPersonConflict=false;currentUndo=null;currentPersonPrivate={contato:{},perfil:{}};
+    buildFiche(p);
+    if(!p.__legacyOnly&&window.firebasePeopleApi){
+      window.firebasePeopleApi.getPrivate(p.id).then(function(data){if(currentPerson&&currentPerson.id===p.id){currentPersonPrivate=data||{contato:{},perfil:{}};buildFiche(currentPerson);}}).catch(function(){});
+    }
+  }
+  function setAppRoute() {
+    var raw=(location.hash||'').replace(/^#\/?/,''),parts=raw.split('/').filter(Boolean);
+    var route=parts[0]||'inicio',map={inicio:'home',home:'home',pessoas:'pes',ordem:'ord',dia:'dia',pendencias:'pen',camisetas:'cam',reposicao:'rep',historico:'his',importar:'imp',config:'cfg'};
+    var sectionId=map[route]||'home';
+    window.__routeRendering=true;
+    var button=document.querySelector('#nav [data-s="'+sectionId+'"]');if(button)button.click();
+    window.__routeRendering=false;
+    if(route==='pessoas'&&parts[1]){
+      currentPersonId=decodeURIComponent(parts.slice(1).join('/'));openPersonById(currentPersonId);
+    } else {
+      var sheet=document.getElementById('fic');if(sheet)sheet.hidden=true;
+      currentPersonId='';currentPerson=null;
+    }
+  }
+  function navigateToPerson(id) {
+    var target='#/pessoas/'+encodeURIComponent(id);
+    if(location.hash===target){openPersonById(id);return;}
+    location.hash=target;
+  }
+  window.addEventListener('hashchange',setAppRoute);
+  window.addEventListener('popstate',setAppRoute);
+  window.addEventListener('app-route-change',setAppRoute);
   function openRecordEditor(kind, record) {
     if (!appData) return;
     var isNew = !record;
@@ -1304,7 +1672,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     demoNotice.remove();
     buildHome();
     buildPeople();
-    buildFiche(appData.people.find(function (p) { return p.sourceRow === selectedPersonRow; }) || null);
+    buildFiche(currentPersonId ? getPeopleViewData().find(function (p) { return p.id === currentPersonId; }) || null : null);
     buildOrder();
     buildDay();
     buildPending();
@@ -1436,7 +1804,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       returnState = { query: '', page: 1 };
       historyState = { query: '', source: 'geral', page: 1 };
       buildAll();
-      goTo('home');
+      if (location.hash) setAppRoute(); else goTo('home');
       if (localCopyWarning) setImportMessage(localCopyWarning.trim(), 'error');
     } catch (error) {
       setImportMessage('Não foi possível concluir o envio ao Firebase: ' + (error.message || 'erro desconhecido') + '. A versão anterior permanece preservada.', 'error');
@@ -1449,7 +1817,92 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   document.addEventListener('click', async function (event) {
     var addPersonButton = event.target.closest('[data-add-person]');
-    if (addPersonButton) { openRecordEditor('person', null); return; }
+    if (addPersonButton) { ensurePersonCreateForm(); document.getElementById('person-create-shell').hidden=false; document.querySelector('#person-create-form [name="responsavelNome"]').closest('label').hidden=true; document.querySelector('#person-create-form [name="responsavelTelefone"]').closest('label').hidden=true; document.querySelector('#person-create-form [name="nome"]').focus(); return; }
+    var closeCreate = event.target.closest('[data-close-create]');
+    if(closeCreate){document.getElementById('person-create-shell').hidden=true;return;}
+    var createOverlay=event.target.id==='person-create-shell';
+    if(createOverlay){event.target.hidden=true;return;}
+    var closeFiche=event.target.closest('[data-close-fiche]');
+    if(closeFiche){if(location.hash.indexOf('#/pessoas/')===0)history.back();else{location.hash='#/pessoas';}return;}
+    var personTabButton=event.target.closest('[data-person-tab]');
+    if(personTabButton){currentPersonTab=personTabButton.dataset.personTab;buildFiche(currentPerson);return;}
+    var reloadPerson=event.target.closest('[data-person-reload]');
+    if(reloadPerson&&currentPerson){try{var refreshed=await window.firebasePeopleApi.getPerson(currentPerson.id);currentPerson=personStructuredView(refreshed);currentPersonPrivate=await window.firebasePeopleApi.getPrivate(currentPerson.id);currentPersonConflict=false;currentUndo=null;buildFiche(currentPerson);}catch(error){updatePersonSaveStatus('Não foi possível atualizar a ficha: '+error.message);}return;}
+    var undoPersonButton=event.target.closest('[data-person-undo]');
+    if(undoPersonButton){await undoPersonSave();return;}
+    var lessonToggle=event.target.closest('[data-toggle-lesson]');
+    if(lessonToggle&&currentPerson&&window.firebasePeopleApi){
+      var lesson=lessonToggle.dataset.toggleLesson,prior=currentPerson.aulas[lesson];
+      var next=prior===true?false:true,patch={root:{aulas:Object.assign({},currentPerson.aulas)}};
+      patch.root.aulas[lesson]=next;
+      currentPersonSaving=true;
+      try{var saved=await window.firebasePeopleApi.save(currentPerson.id,patch,currentPerson.__revision);currentUndo={id:currentPerson.id,patch:{root:{aulas:Object.assign({},currentPerson.aulas)}},revision:saved.revision};currentPerson.aulas[lesson]=next;currentPerson.__revision=saved.revision;currentPersonConflict=false;buildFiche(currentPerson);updatePersonSaveStatus('Salvo');}catch(error){updatePersonSaveStatus(error.code==='app/person-conflict'?'Outra pessoa salvou antes. Recarregue a ficha.':'Não foi possível salvar. '+error.message);}finally{currentPersonSaving=false;}
+      return;
+    }
+    var savedFilter=event.target.closest('[data-saved-filter]');
+    if(savedFilter){
+      peopleState.query='';peopleState.turma='';peopleState.pending='';peopleState.noPhone=false;peopleState.duplicates=false;peopleState.minors=false;peopleState.shirt='';peopleState.age='';
+      if(savedFilter.dataset.savedFilter==='pendentes36'){peopleState.turma='36';peopleState.pending='sim';}
+      if(savedFilter.dataset.savedFilter==='menores')peopleState.minors=true;
+      if(savedFilter.dataset.savedFilter==='semTelefone')peopleState.noPhone=true;
+      if(savedFilter.dataset.savedFilter==='camiseta')peopleState.shirt='pagar';
+      peopleState.page=1;buildPeople();return;
+    }
+    var sortButton=event.target.closest('[data-sort]');
+    if(sortButton){var key=sortButton.dataset.sort;if(peopleState.sort===key)peopleState.direction*=-1;else{peopleState.sort=key;peopleState.direction=1;}drawPeopleResults();return;}
+    var rowPerson=event.target.closest('[data-person-id]');
+    if(rowPerson && (event.target.closest('button[data-person-id]') || !event.target.closest('button,input,select,a'))){
+      navigateToPerson(rowPerson.dataset.personId);return;
+    }
+    var whatsappButton=event.target.closest('[data-whatsapp]');
+    if(whatsappButton){
+      var whatsappPerson=getPeopleViewData().find(function(p){return p.id===whatsappButton.dataset.whatsapp;});
+      var number=String(personPhone(whatsappPerson)||'').replace(/\D/g,'');
+      if(number&&window.firebaseUserProfile&&window.firebaseUserProfile.perfil!=='voluntario')window.open('https://wa.me/'+number+'?text='+encodeURIComponent('Olá, '+personName(whatsappPerson)+'! Tudo bem?'),'_blank','noopener');
+      else showToast('Telefone indisponível para seu perfil.');
+      return;
+    }
+    var pendingPersonButton=event.target.closest('[data-add-person-pending]');
+    if(pendingPersonButton){
+      var pendingPerson=getPeopleViewData().find(function(p){return p.id===pendingPersonButton.dataset.addPersonPending;});
+      if(!pendingPerson||pendingPerson.__legacyOnly){showToast('Esta ficha antiga ainda não pode ser editada.');return;}
+      var pendingText=window.prompt('Descreva a pendência:');
+      if(pendingText&&pendingText.trim()){
+        try{var pendingSave=await window.firebasePeopleApi.save(pendingPerson.id,{root:{pendencia:Object.assign({},pendingPerson.pendencia,{texto:pendingText.trim()})}},pendingPerson.__revision);showToast('Pendência salva.');}
+        catch(error){showToast('Não foi possível salvar a pendência: '+error.message);}
+      }
+      return;
+    }
+    var selectPerson=event.target.closest('[data-select-person]');
+    if(selectPerson){peopleState.selected[selectPerson.dataset.selectPerson]=selectPerson.checked;return;}
+    var selectPage=event.target.closest('[data-select-page]');
+    if(selectPage){document.querySelectorAll('[data-select-person]').forEach(function(cb){cb.checked=selectPage.checked;peopleState.selected[cb.dataset.selectPerson]=selectPage.checked;});return;}
+    var bulkPending=event.target.closest('[data-bulk-pending]');
+    if(bulkPending){
+      var selectedIds=Object.keys(peopleState.selected).filter(function(id){return peopleState.selected[id]&&id.indexOf('legado-')!==0;});
+      if(!selectedIds.length){showToast('Selecione pelo menos uma pessoa com cadastro estruturado.');return;}
+      var bulkText=window.prompt('Pendência para '+selectedIds.length+' pessoa(s):');
+      if(!bulkText)return;
+      try{for(var personId of selectedIds){var rec=getPeopleViewData().find(function(p){return p.id===personId;});if(rec)await window.firebasePeopleApi.save(rec.id,{root:{pendencia:Object.assign({},rec.pendencia,{texto:bulkText.trim()})}},rec.__revision);}showToast('Pendência adicionada às pessoas selecionadas.');}
+      catch(error){showToast('Não foi possível concluir o lote: '+error.message);}
+      return;
+    }
+    var bulkTurma=event.target.closest('[data-bulk-turma]');
+    if(bulkTurma){
+      var ids=Object.keys(peopleState.selected).filter(function(id){return peopleState.selected[id]&&id.indexOf('legado-')!==0;});
+      var targetTurma=window.prompt('Número da nova turma:');
+      if(!targetTurma||!/^\d+$/.test(targetTurma)){showToast('Informe o número da turma.');return;}
+      try{for(var idTurma of ids){var recTurma=getPeopleViewData().find(function(p){return p.id===idTurma;});if(recTurma)await window.firebasePeopleApi.save(recTurma.id,{root:{turmaId:'turma_'+targetTurma}},recTurma.__revision);}showToast('Turma alterada para os cadastros selecionados.');}
+      catch(error){showToast('Não foi possível concluir o lote: '+error.message);}
+      return;
+    }
+    var bulkExport=event.target.closest('[data-bulk-export]');
+    if(bulkExport){
+      if(!window.firebaseUserProfile||window.firebaseUserProfile.perfil!=='admin'){showToast('Exportação restrita ao administrador.');return;}
+      var selected=getPeopleViewData().filter(function(p){return peopleState.selected[p.id]&&!p.__legacyOnly;});
+      var csv='nome,turma,idade,telefone,jornada\n'+selected.map(function(p){return [personName(p),personTurma(p),personAge(p)||'',personPhone(p),p.jornada.status].map(function(v){return '"'+String(v||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+      downloadBlob(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),'pessoas-selecionadas.csv');return;
+    }
     var editPersonButton = event.target.closest('[data-edit-person]');
     if (editPersonButton && appData) {
       var editPerson = appData.people.find(function (item) { return Number(item.sourceRow) === Number(editPersonButton.dataset.editPerson); });
@@ -1472,8 +1925,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (openPersonButton && appData) {
       selectedPersonRow = Number(openPersonButton.dataset.openPerson);
       var person = appData.people.find(function (p) { return p.sourceRow === selectedPersonRow; });
-      buildFiche(person);
-      goTo('fic');
+      if(person)navigateToPerson('legado-'+String(person.sourceRow));
       return;
     }
 
@@ -1523,7 +1975,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         appData = Object.assign({}, snapshot, { id: 'current' });
         selectedPersonRow = null;
         buildAll();
-        goTo('home');
+        if(location.hash)setAppRoute();else goTo('home');
         if (localRestoreWarning) setImportMessage(localRestoreWarning.trim(), 'error');
       } catch (error) {
         setImportMessage('Não foi possível restaurar a versão: ' + error.message, 'error');
@@ -1570,9 +2022,30 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     }
   }
 
+  window.addEventListener('structured-people-error', function(event){peopleAccessRestricted=true;structuredPeopleReady=true;buildPeople();});
+  window.addEventListener('structured-people-updated', function(event) {
+    var detail=event.detail||{};
+    structuredPeople=detail.people||[];
+    peopleAccessRestricted=!!detail.restricted;
+    structuredPeopleReady=true;
+    buildPeople();
+    if(currentPersonId&&!currentPerson){openPersonById(currentPersonId);return;}
+    if(currentPersonId){
+      var fresh=getPeopleViewData().find(function(p){return p.id===currentPersonId;});
+      if(fresh&&currentPerson&&fresh.__revision!==currentPerson.__revision&&!currentPersonSaving&&!currentPersonConflict){
+        currentPersonConflict=true;
+        updatePersonSaveStatus('Outra pessoa atualizou este cadastro. Recarregue antes de salvar.');
+      } else if(fresh&&currentPerson&&!currentPersonSaving){
+        currentPerson=Object.assign(currentPerson,fresh);
+      }
+    }
+  });
   window.addEventListener('firebase-authenticated', async function (event) {
     try {
       var detail = event.detail || {};
+      window.firebaseUserProfile=detail.profile||{};
+      var peopleNav=document.querySelector('#nav [data-s="pes"]');
+      if(peopleNav)peopleNav.hidden=window.firebaseUserProfile.perfil==='voluntario';
       var remoteWorkspace = detail.workspace || null;
       var localWorkspace = null;
       try { localWorkspace = await getCurrentWorkspace(); } catch (localError) {}
@@ -1582,14 +2055,15 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         appData = Object.assign({}, remoteWorkspace, { id: 'current' });
         selectedPersonRow = null;
         buildAll();
-        goTo('home');
+        if(location.hash)setAppRoute();else goTo('home');
       } else {
         appData = null;
         renderEmptyWorkspace();
-        setImportMessage('Firebase conectado. Ainda não há uma planilha principal na nuvem. Selecione o Excel original e confira os registros antes de importar.', 'success');
-        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Nenhuma planilha no banco central</b><p class="section-sub">O banco está pronto e seu login foi validado. Selecione o arquivo Excel original para enviar somente as duas primeiras abas, Batismo e Ordem, ao Firestore. As abas seguintes serão ignoradas. Nada será enviado antes de você conferir e confirmar a importação.</p></div>';
+        buildPeople();
+        setImportMessage('Conectado ao banco. As telas de Pessoas e Ficha consultam os cadastros estruturados em tempo real.', 'success');
+        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Banco conectado</b><p class="section-sub">Os cadastros estruturados são lidos diretamente do banco protegido. Não é necessário anexar uma planilha para usar Pessoas e Ficha.</p></div>';
         await refreshBackups();
-        goTo('imp');
+        if(location.hash)setAppRoute();else goTo('home');
       }
     } catch (error) {
       setImportMessage('Não foi possível preparar a tela após o login: ' + (error.message || 'erro desconhecido'), 'error');
@@ -1782,6 +2256,88 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
+
+let peopleUnsub=null;
+window.firebaseUserProfile=null;
+function personAuditValues(scope,patch,before){
+ const list=[];
+ Object.keys(patch||{}).forEach(function(field){
+  const oldValue=before&&before[scope]&&before[scope][field]!==undefined?before[scope][field]:null;
+  list.push({campo:scope+'.'+field,valorAntigo:safeValue(oldValue),valorNovo:safeValue(patch[field])});
+ });
+ return list;
+}
+window.firebasePeopleApi={
+ subscribe:function(profile){
+  if(peopleUnsub)peopleUnsub();
+  let source;
+  if(profile.perfil==='lider'){
+   if(!profile.turmaId)throw new Error('Seu perfil de líder precisa ter uma turma vinculada.');
+   source=query(collection(firestore,'pessoas'),where('turmaId','==',String(profile.turmaId)));
+  } else if(['admin','secretaria','pastor'].indexOf(profile.perfil)>=0){
+   source=collection(firestore,'pessoas');
+  } else {
+   window.dispatchEvent(new CustomEvent('structured-people-updated',{detail:{people:[],restricted:true}}));
+   return;
+  }
+  peopleUnsub=onSnapshot(source,{includeMetadataChanges:true},function(snapshot){
+   const people=snapshot.docs.map(function(item){const data=item.data();return Object.assign({},data,{id:item.id,__id:item.id,__revision:Number(data.revision||0),__hasPendingWrites:item.metadata.hasPendingWrites});});
+   window.dispatchEvent(new CustomEvent('structured-people-updated',{detail:{people:people,restricted:false}}));
+  },function(error){
+   window.dispatchEvent(new CustomEvent('structured-people-error',{detail:{message:error.message||'Não foi possível ler os cadastros.'}}));
+  });
+ },
+ getPerson:async function(personId){const snap=await getDoc(doc(firestore,'pessoas',personId));if(!snap.exists())throw new Error('Cadastro não encontrado.');const data=snap.data();return Object.assign({},data,{id:snap.id,__id:snap.id,__revision:Number(data.revision||0)});},
+ getPrivate:async function(personId){
+  const bundle={contato:{},perfil:{}};
+  try{const c=await getDoc(doc(firestore,'pessoas',personId,'privado','contato'));if(c.exists())bundle.contato=c.data();}catch(error){}
+  if(window.firebaseUserProfile&&['admin','pastor'].indexOf(window.firebaseUserProfile.perfil)>=0){
+   try{const p=await getDoc(doc(firestore,'pessoas',personId,'privado','perfil'));if(p.exists())bundle.perfil=p.data();}catch(error){}
+  }
+  return bundle;
+ },
+ audit:async function(personId){
+  if(!window.firebaseUserProfile||['admin','pastor'].indexOf(window.firebaseUserProfile.perfil)<0)throw new Error('Histórico restrito a admin e pastor.');
+  const q=query(collection(firestore,'auditoria'),where('documento','==','pessoas/'+personId));
+  const snap=await getDocs(q);
+  return snap.docs.map(function(d){return Object.assign({id:d.id},d.data());}).sort(function(a,b){return String(b.quando||'').localeCompare(String(a.quando||''));});
+ },
+ save:async function(personId,patch,expectedRevision,options){
+  if(!auth.currentUser)throw new Error('Entre novamente para salvar.');
+  options=options||{};
+  const rootRef=doc(firestore,'pessoas',personId);
+  const contactRef=doc(firestore,'pessoas',personId,'privado','contato');
+  const profileRef=doc(firestore,'pessoas',personId,'privado','perfil');
+  const auditRef=doc(collection(firestore,'auditoria'));
+  return runTransaction(firestore,async function(tx){
+   const rootSnap=await tx.get(rootRef);
+   const contactSnap=Object.keys(patch.contato||{}).length?await tx.get(contactRef):null;
+   const profileSnap=Object.keys(patch.perfil||{}).length?await tx.get(profileRef):null;
+   if(options.criar&&rootSnap.exists())throw new Error('Este cadastro já existe; atualize a lista antes de tentar de novo.');
+   if(!options.criar&&!rootSnap.exists())throw new Error('Cadastro não encontrado. Atualize a lista.');
+   const before={root:rootSnap.exists()?rootSnap.data():{},contato:contactSnap&&contactSnap.exists()?contactSnap.data():{},perfil:profileSnap&&profileSnap.exists()?profileSnap.data():{}};
+   const revision=Number(before.root.revision||0);
+   if(expectedRevision!==null&&expectedRevision!==undefined&&revision!==Number(expectedRevision)){
+    const conflict=new Error('Outra pessoa alterou este cadastro. Recarregue a ficha antes de continuar.');conflict.code='app/person-conflict';throw conflict;
+   }
+   const changes=[].concat(personAuditValues('root',patch.root,before),personAuditValues('contato',patch.contato,before),personAuditValues('perfil',patch.perfil,before));
+   const nextRevision=revision+1,now=new Date().toISOString();
+   const rootUpdate=Object.assign({},safeValue(patch.root||{}),{revision:nextRevision,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(rootRef,rootUpdate,{merge:true});
+   if(Object.keys(patch.contato||{}).length)tx.set(contactRef,Object.assign({},safeValue(patch.contato),{updatedAt:now,updatedBy:auth.currentUser.uid}),{merge:true});
+   if(Object.keys(patch.perfil||{}).length)tx.set(profileRef,Object.assign({},safeValue(patch.perfil),{updatedAt:now,updatedBy:auth.currentUser.uid}),{merge:true});
+   const actor=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
+   tx.set(auditRef,{acao:options.criar?'cadastro_criado':'cadastro_atualizado',documento:'pessoas/'+personId,uid:auth.currentUser.uid,porNome:actor,quando:now,alteracoes:changes});
+   return {revision:nextRevision};
+  });
+ }
+};
+function startPeopleListener(user,profile){
+ if(peopleUnsub){peopleUnsub();peopleUnsub=null;}
+ if(!user||!profile)return;
+ try{window.firebasePeopleApi.subscribe(profile);}catch(error){window.dispatchEvent(new CustomEvent('structured-people-error',{detail:{message:error.message}}));}
+}
+
 let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine;
 window.firebaseIsAdmin=false;
 function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,pending:dayPending.size,ready:!!ready}}));}
@@ -1863,6 +2419,8 @@ logoutButton.addEventListener('click', async function () {
 onAuthStateChanged(auth, async function (user) {
   if (!user) {
     handlingUser = false;
+    if(peopleUnsub){peopleUnsub();peopleUnsub=null;}
+    window.firebaseUserProfile=null;
     document.body.classList.add('auth-pending');
     loginShell.hidden = false;
     logoutButton.hidden = true;
@@ -1875,12 +2433,20 @@ onAuthStateChanged(auth, async function (user) {
   loginShell.hidden = false;
   setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
   try {
-    const workspace = await loadCloudWorkspace();
+    const userSnap=await getDoc(doc(firestore,'usuarios',user.uid));
+    const profile=userSnap.exists()?userSnap.data():null;
+    if(!profile||profile.ativo!==true||profile.email!==user.email)throw new Error('Esta conta ainda não está cadastrada como ativa em usuarios/{uid}.');
+    window.firebaseUserProfile=profile;
+    let workspace=null;
+    try{workspace=await loadCloudWorkspace();}catch(readError){
+      if(readError.code!=='permission-denied'&&readError.code!=='firestore/permission-denied')throw readError;
+    }
+    startPeopleListener(user,profile);
     startDayListener(user);
     await new Promise(function (resolve) {
       const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
       window.addEventListener('firebase-ui-ready', onReady, { once: true });
-      window.dispatchEvent(new CustomEvent('firebase-authenticated', { detail: { user: { uid: user.uid, email: user.email || '' }, workspace: workspace } }));
+      window.dispatchEvent(new CustomEvent('firebase-authenticated', { detail: { user: { uid: user.uid, email: user.email || '' }, profile:profile, workspace: workspace } }));
     });
     loginShell.hidden = true;
     document.body.classList.remove('auth-pending');
