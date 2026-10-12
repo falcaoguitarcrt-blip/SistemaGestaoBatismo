@@ -13,12 +13,12 @@ function extractSection(startText, endText) {
 }
 
 const helperSource = [
-  extractSection('function workspaceOrderTurmaId(', '\\n  function dayMarkIdForRow('),
-  extractSection('function dayMarkIdForRow(', '\\n  function importMarksConfirmationValid('),
-  extractSection('function importMarksConfirmationValid(', '\\n  function matchPersonToOrder('),
-  extractSection('function matchPersonToOrder(', '\\n  function turmaDateSummary('),
-  extractSection('function turmaDateSummary(', '\\n  var importSection =')
-].join('\\n') + '\\nglobalThis.testHelpers = { workspaceOrderTurmaId, dayMarkIdForRow, importMarksConfirmationValid, matchPersonToOrder, turmaDateSummary };';
+  extractSection('function workspaceOrderTurmaId(', '\n  function dayMarkIdForRow('),
+  extractSection('function dayMarkIdForRow(', '\n  function importMarksConfirmationValid('),
+  extractSection('function importMarksConfirmationValid(', '\n  function matchPersonToOrder('),
+  extractSection('function matchPersonToOrder(', '\n  function turmaDateSummary('),
+  extractSection('function turmaDateSummary(', '\n  var importSection =')
+].join('\n') + '\nglobalThis.testHelpers = { workspaceOrderTurmaId, dayMarkIdForRow, importMarksConfirmationValid, matchPersonToOrder, turmaDateSummary };';
 
 const mainContext = {
   Date,
