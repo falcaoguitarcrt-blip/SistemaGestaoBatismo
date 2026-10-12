@@ -70,7 +70,7 @@ function propose(field,text){
  if(field==='AULA P/ REPOR'){
   const nums=[...n.matchAll(/(?:aula\s*)?([1-4])/g)].map(m=>Number(m[1]));
   const uniq=[...new Set(nums)];
-  if(/aul[aã]o|aulao/.test(n)&&/inscrit/.test(n))return {type:'aulao_inscrito',value:{status:'inscrito',data:null,dataTexto:(String(text).match(/\d{1,2}\/\d{1,2}/)||[])[0]||null}};
+  if(/aul[aã]o|aulao/.test(n)&&/inscrit/.test(n))return {type:'aulao_inscrito',value:{inscrito:true,data:null,dataTexto:(String(text).match(/\d{1,2}\/\d{1,2}/)||[])[0]||null}};
   if(/repor/.test(n)&&uniq.length)return {type:'repor_aulas',value:{aulas:uniq}};
   return {type:'revisao_manual',value:{texto:String(text)}};
  }
@@ -90,7 +90,7 @@ function textGroups(){
 function personObject(row,index,approved,duplicateMap){
  const f=row.fields,name=f[index.NOME]??'',ageRaw=f[index.IDADE],age=ageRaw==null||ageRaw===''?null:Number(ageRaw);
  const turmaNum=Number(String(f[index.TURMA]??'').replace(',','.'));
- const digits=String(f[index.TELEFONE]??'').replace(/\D/g,'');
+ const phoneRaw=String(f[index.TELEFONE]??''),digits=phoneRaw.replace(/\D/g,'');
  let nat=digits;if(nat.startsWith('55')&&(nat.length===12||nat.length===13))nat=nat.slice(2);
  const ddd=nat.length>=10?nat.slice(0,2):'',local=nat.length>=10?nat.slice(2):'';
  const valid=nat.length===10||nat.length===11;
@@ -117,7 +117,7 @@ function personObject(row,index,approved,duplicateMap){
  const id='p_'+(courseNo??'sem_turma')+'_r'+row.sourceRow;
  const canonical=duplicateMap[id]||id;
  const oldDate=f[index.DATA]??null;
- return {id,turmaId:courseNo?'turma_'+courseNo:null,nomeExibicao:titleCase(name),nomeBusca:norm(name),telefone:valid?'+55'+ddd+local:null,telefoneValido:valid,telefoneRevisar:!!digits&&!valid,idade:years,faixaEtaria:years==null?'desconhecida':years<18?'menor':years<30?'jovem_adulto':years<60?'adulto':'60_mais',menor:years==null?null:years<18,jornada:{status:journeyStatus,arquivadaRevisao:!!courseNo&&courseNo<36},aulas:lessons,aulao:dates[0]||{status:'',data:null},camiseta:{opcao:shirtOpt,tamanho:shirtOpt==='quer'?shirtRaw.toUpperCase():null,pago:paid,valor:null,entregue:null,arquivadaRevisao:!!courseNo&&courseNo<36},pendencia:{texto:pendingOld,arquivadaRevisao:!!courseNo&&courseNo<36},origem:{aba:'Batismo',linha:row.sourceRow,versao:source.versionId},_privateOrigin:f,_canonical:canonical,_ageRaw:ageRaw,_dateOriginal:oldDate};
+ return {id,turmaId:courseNo?'turma_'+courseNo:null,nomeExibicao:titleCase(name),nomeBusca:norm(name),telefone:valid?'+55'+ddd+local:null,telefoneValido:valid,telefoneRevisar:(!!digits&&!valid)||(valid&&/\d{4}-\d{5}\s*$/.test(phoneRaw.replace(/\s/g,'')),idade:years,faixaEtaria:years==null?'desconhecida':years<18?'menor':years<30?'jovem_adulto':years<60?'adulto':'60_mais',menor:years==null?null:years<18,jornada:{status:journeyStatus,arquivadaRevisao:!!courseNo&&courseNo<36},aulas:lessons,aulao:dates[0]||{inscrito:false,data:null},camiseta:{opcao:shirtOpt,tamanho:shirtOpt==='quer'?shirtRaw.toUpperCase():null,pago:paid,valor:null,entregue:null,arquivadaRevisao:!!courseNo&&courseNo<36},pendencia:{texto:pendingOld,arquivadaRevisao:!!courseNo&&courseNo<36},origem:{aba:'Batismo',linha:row.sourceRow,versao:source.versionId},_privateOrigin:f,_canonical:canonical,_ageRaw:ageRaw,_dateOriginal:oldDate};
 }
 function titleCase(s){const words=String(s??'').trim().replace(/\s+/g,' ').toLocaleLowerCase('pt-BR').split(' ');return words.map((w,i)=>i>0&&/^(da|das|de|do|dos|e)$/.test(w)?w:w? w[0].toLocaleUpperCase('pt-BR')+w.slice(1):w).join(' ')}
 function buildPlan(){
@@ -138,7 +138,7 @@ function buildPlan(){
   mergeScalar('idade',p=>p.idade,(p,v)=>{p.idade=v;p.faixaEtaria=v<18?'menor':v<30?'jovem_adulto':v<60?'adulto':'60_mais';p.menor=v<18},v=>v==null);
   mergeScalar('jornada.status',p=>p.jornada.status,(p,v)=>p.jornada.status=v,v=>!v);
   for(const n of [1,2,3,4])mergeScalar('aulas.'+n,p=>p.aulas[n],(p,v)=>p.aulas[n]=v,v=>v==null);
-  mergeScalar('aulao.status',p=>p.aulao.status,(p,v)=>p.aulao={...p.aulao,status:v},v=>!v);
+  mergeScalar('aulao.inscrito',p=>p.aulao.inscrito,(p,v)=>p.aulao={...p.aulao,inscrito:v},v=>!v);
   mergeScalar('camiseta.opcao',p=>p.camiseta.opcao,(p,v)=>p.camiseta.opcao=v,v=>v==='nao_respondeu');
   mergeScalar('camiseta.tamanho',p=>p.camiseta.tamanho,(p,v)=>p.camiseta.tamanho=v,v=>!v);
   mergeScalar('camiseta.pago',p=>p.camiseta.pago,(p,v)=>p.camiseta.pago=v,v=>v==null);
