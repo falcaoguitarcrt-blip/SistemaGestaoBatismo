@@ -33,8 +33,11 @@ service cloud.firestore {
         ])
         && request.resource.data.turmaId is string
         && request.resource.data.posicaoOuPessoaId is string
-        && request.resource.data.presente is bool
-        && request.resource.data.batizado is bool
+        && request.resource.data.keys().hasAny(['presente','batizado'])
+        && (!('presente' in request.resource.data) || request.resource.data.presente is bool)
+        && (!('batizado' in request.resource.data) || request.resource.data.batizado is bool)
+        && (!('presenteEm' in request.resource.data) || request.resource.data.presenteEm is string || request.resource.data.presenteEm is timestamp)
+        && (!('batizadoEm' in request.resource.data) || request.resource.data.batizadoEm is string || request.resource.data.batizadoEm is timestamp)
         && request.resource.data.porUid == request.auth.uid
         && request.resource.data.porNome is string;
     }
@@ -92,7 +95,7 @@ service cloud.firestore {
       allow read: if staffRead()
         || leaderOwnsTurma(resource.data.turmaId)
         || (voluntario()
-          && resource.data.turmaId == get(/databases/$(database)/documents/turmas/turma_36).data.id
+          && resource.data.turmaId == 'turma_36'
           && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa');
       allow create, update: if staffWrite() || leaderOwnsTurma(request.resource.data.turmaId);
       allow delete: if false;
