@@ -568,17 +568,24 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     });
     return sameOrderRows.length === 1 ? sameOrderRows[0] : null;
   }
-  function turmaDateSummary(turma) {
+  function turmaDateSummary(turma, now) {
     var raw = turma && turma.dataBatismo;
     if (!raw) return '';
-    var match = typeof raw === 'string' ? raw.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
+    // dataBatismo é uma data de calendário (YYYY-MM-DD), não um instante UTC.
+    var match = typeof raw === 'string' ? raw.match(/^(\d{4})-(\d{2})-(\d{2})$/) : null;
     if (!match && raw instanceof Date && !isNaN(raw.getTime())) {
-      match = [String(raw.getFullYear()), String(raw.getFullYear()), String(raw.getMonth() + 1).padStart(2, '0'), String(raw.getDate()).padStart(2, '0')];
+      var rawParts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(raw);
+      var rawCalendar = {};
+      rawParts.forEach(function (part) { if (part.type !== 'literal') rawCalendar[part.type] = part.value; });
+      match = [rawCalendar.year + '-' + rawCalendar.month + '-' + rawCalendar.day, rawCalendar.year, rawCalendar.month, rawCalendar.day];
     }
     if (!match && raw && typeof raw.toDate === 'function') {
       var converted = raw.toDate();
       if (converted instanceof Date && !isNaN(converted.getTime())) {
-        match = [String(converted.getFullYear()), String(converted.getFullYear()), String(converted.getMonth() + 1).padStart(2, '0'), String(converted.getDate()).padStart(2, '0')];
+        var convertedParts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(converted);
+        var convertedCalendar = {};
+        convertedParts.forEach(function (part) { if (part.type !== 'literal') convertedCalendar[part.type] = part.value; });
+        match = [convertedCalendar.year + '-' + convertedCalendar.month + '-' + convertedCalendar.day, convertedCalendar.year, convertedCalendar.month, convertedCalendar.day];
       }
     }
     if (!match) return '';
@@ -586,13 +593,14 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var targetUtc = Date.UTC(year, month - 1, day);
     var checkDate = new Date(targetUtc);
     if (checkDate.getUTCFullYear() !== year || checkDate.getUTCMonth() !== month - 1 || checkDate.getUTCDate() !== day) return '';
-    var parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    var instant = now instanceof Date ? now : new Date();
+    var parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(instant);
     var todayParts = {};
     parts.forEach(function (part) { if (part.type !== 'literal') todayParts[part.type] = Number(part.value); });
     var todayUtc = Date.UTC(todayParts.year, todayParts.month - 1, todayParts.day);
     var delta = Math.round((targetUtc - todayUtc) / 86400000);
     var dateLabel = new Intl.DateTimeFormat('pt-BR', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(targetUtc));
-    var countdown = delta === 0 ? 'É hoje' : (delta > 0 ? 'Faltam ' + delta + (delta === 1 ? ' dia' : ' dias') : 'Data passada há ' + Math.abs(delta) + (delta === -1 ? ' dia' : ' dias'));
+    var countdown = delta === 0 ? 'Hoje' : (delta > 0 ? 'Em ' + delta + (delta === 1 ? ' dia' : ' dias') : 'Realizado');
     return 'Data do batismo: ' + dateLabel + ' · ' + countdown;
   }
 
@@ -1621,8 +1629,29 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<div class="bb"><button type="button" class="btn" id="confirm-import-order-turma" disabled>Confirmar turma escolhida</button></div>' +
       '<p id="import-order-turma-confirmed" class="section-sub" role="status" aria-live="polite">A turma só será aplicada à importação após confirmação explícita.</p>' +
       '<div id="import-marks-confirm-wrap" hidden><p class="note">Já existem marcações de presença/batismo nesta turma. Importar uma nova ordem pode associar essas marcações às novas pessoas. Para prosseguir, digite exatamente o número da turma.</p><label for="import-marks-confirmation">Digite o número da turma para confirmar<input id="import-marks-confirmation" type="text" inputmode="numeric" autocomplete="off"></label></div>' +
-      '</div><div class="card"><b>Conferência antes de importar</b>' + stats + skipped +
+      '</div>' +
+      (appData && (appData.order || []).length ? '<div class="card"><b>Proteção da ordem anterior</b><p class="note">A importação substitui a ordem ativa em <code>appData.order</code>. As marcações antigas, como <code>36_n</code>, não são apagadas, mas a ordem/nome que permite interpretá-las deixa de ser a ordem ativa. Antes de confirmar a nova turma, baixe o fechamento da ordem atualmente carregada com posição, nome, presente, batizado e horários.</p><button type="button" class="btn o" id="download-prior-order-closure">Baixar fechamento da ordem anterior (CSV)</button><p id="prior-order-closure-status" class="section-sub" role="status">O download não migra nem apaga dados.</p></div>' : '') +
+      '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped +
       '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
+
+    var closureButton = document.getElementById('download-prior-order-closure');
+    if (closureButton) closureButton.addEventListener('click', function () {
+      var oldTurmaId = workspaceOrderTurmaId(appData);
+      var rows = (appData.order || []).map(function (row) {
+        var markId = dayMarkIdForRow(Object.assign({}, row, { __turmaId: oldTurmaId }), oldTurmaId);
+        var mark = dayMarks[markId] || {};
+        return { turma: oldTurmaId, posicao: row.number || row.sourceRow || '', nome: row.name || '',
+          presente: mark.presente ? 'Sim' : 'Não', presenteEm: mark.presenteEm || '',
+          batizado: mark.batizado ? 'Sim' : 'Não', batizadoEm: mark.batizadoEm || '', observacao: row.note || '' };
+      });
+      function csvCell(value) { return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"'; }
+      var headers = ['turma','posicao','nome','presente','presenteEm','batizado','batizadoEm','observacao'];
+      var csv = '\uFEFF' + [headers].concat(rows.map(function (row) { return headers.map(function (key) { return row[key]; }); }))
+        .map(function (values) { return values.map(csvCell).join(';'); }).join('\r\n');
+      downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'fechamento-turma-' + oldTurmaId + '-' + new Date().toISOString().slice(0,10) + '.csv');
+      var status = document.getElementById('prior-order-closure-status');
+      if (status) status.textContent = 'Fechamento baixado: ' + rows.length + ' posições. A ordem e as marcações originais permanecem intactas.';
+    });
 
     var selector = document.getElementById('import-order-turma-select');
     var customLabel = document.getElementById('import-order-turma-custom-label');
@@ -1892,7 +1921,27 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
     if (!window.confirm(message)) return;
+    // Segunda checagem após a janela do diálogo de confirmação. Resta uma janela residual até o salvamento.
     button.disabled = true;
+    setImportMessage('Rechecando marcações no servidor antes de importar…');
+    try {
+      var hasMarksImmediatelyBeforeSave = await window.firebaseHasMarksForTurma(targetTurmaId);
+      if (hasMarksImmediatelyBeforeSave && !(marksInput && marksInput.value.trim() === targetTurmaId)) {
+        if (marksWrap) marksWrap.hidden = false;
+        if (marksInput) marksInput.focus();
+        setImportMessage('A rechecagem encontrou marcações nesta turma. Nenhuma importação foi feita. Digite exatamente ' + targetTurmaId + ' e confirme novamente.', 'error');
+        return;
+      }
+      if (hasMarksImmediatelyBeforeSave && !hasExistingMarks) {
+        if (marksWrap) marksWrap.hidden = false;
+        if (marksInput) marksInput.focus();
+        setImportMessage('Foram encontradas marcações novas desde a primeira checagem. Revise-as e digite exatamente ' + targetTurmaId + ' para confirmar antes de importar.', 'error');
+        return;
+      }
+    } catch (recheckError) {
+      setImportMessage('Não foi possível revalidar as marcações imediatamente antes do salvamento. Importação bloqueada. ' + (recheckError.message || ''), 'error');
+      return;
+    }
     setImportMessage('Enviando os registros ao Firebase e salvando a cópia local…');
     try {
       if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase ainda não está pronta. Recarregue a página e entre novamente.');
