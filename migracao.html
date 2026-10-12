@@ -30,7 +30,7 @@ import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithEmailAndPassword,on
 import {getFirestore,doc,getDoc,collection,getDocs,query,runTransaction,serverTimestamp} from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
 const app=initializeApp({apiKey:'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',authDomain:'batismo-8c5f8.firebaseapp.com',projectId:'batismo-8c5f8',storageBucket:'batismo-8c5f8.firebasestorage.app',messagingSenderId:'295480263009',appId:'1:295480263009:web:248a3e15c577eadbcac520'});
 const auth=getAuth(app),db=getFirestore(app),$=s=>document.querySelector(s);
-let user=null,profile=null,source=null,plan=null,tab='interpret',backupReady=false;
+let user=null,profile=null,source=null,plan=null,tab='interpret',backupReady=false,backupFingerprint='';
 const decisions={texts:new Map(),duplicates:new Map(),order:new Map()};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
@@ -181,11 +181,12 @@ function render(){
  }
 }
 function dateValue(v){if(v instanceof Date)return v.toISOString().slice(0,10);if(typeof v==='number'&&v>20000&&v<80000)return new Date(Date.UTC(1899,11,30)+v*86400000).toISOString().slice(0,10);const s=String(v??'').trim();if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);return m?m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'):null}
+function stateFingerprint(){return JSON.stringify({version:source.versionId,counts:{pessoas:source.existing.pessoas.size,turmas:source.existing.turmas.size,ordem:source.existing.ordem.size},text:[...decisions.texts],duplicates:[...decisions.duplicates],order:[...decisions.order]})}
 function backupObject(){
  return {exportadoEm:new Date().toISOString(),aviso:'Contém dados pessoais. Guarde em local privado e não publique.',versionId:source.versionId,source,decisoes:{textos:[...decisions.texts],duplicados:[...decisions.duplicates],ordem:[...decisions.order]},simulacao:{contagens:plan.sourceCounts,novasTurmas:plan.turmas,novasPessoas:plan.people,novasPosicoes:plan.positions}};
 }
 function downloadBackup(){
- const blob=new Blob([JSON.stringify(backupObject())],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='backup-privado-migracao-batismo-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);backupReady=true;$('#apply').disabled=false;msg('Backup gerado e baixado. Guarde-o em local privado; confirme que o download foi concluído antes de aplicar.');
+ const blob=new Blob([JSON.stringify(backupObject())],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='backup-privado-migracao-batismo-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);backupReady=true;backupFingerprint=stateFingerprint();$('#apply').disabled=false;msg('Backup gerado e baixado. Guarde-o em local privado; confirme que o download foi concluído antes de aplicar.');
 }
 function buildWrites(){
  const writes=[];
@@ -202,9 +203,9 @@ function buildWrites(){
 }
 async function applyMigration(){
  if(!backupReady){alert('Baixe o backup antes de migrar.');return}
- if(!confirm('Vou atualizar as contagens antes de aplicar. Se a origem mudou, será necessário baixar um backup novo. Continuar?'))return;
- try{source=await loadSource();report();backupReady=false;$('#apply').disabled=true;msg('Dados e contagens atualizados. Baixe novamente o backup para confirmar esta versão.');return}catch(e){msg('Não foi possível atualizar a simulação: '+e.message,true);return}
- if(!confirm('Antes de continuar, confirme que revisou a simulação e baixou o backup. Digite MIGRAR na próxima janela.'))return;
+ const prior=backupFingerprint;
+ try{source=await loadSource();plan=buildPlan();if(prior!==stateFingerprint()){backupReady=false;report();msg('A base mudou desde o backup. Revise e baixe um backup atualizado antes de migrar.');return}report()}catch(e){msg('Não foi possível atualizar a simulação: '+e.message,true);return}
+ if(!confirm('Confirme que revisou a simulação e baixou o backup atualizado.'))return;
  if(prompt('Digite MIGRAR para confirmar a criação dos documentos:')!=='MIGRAR')return;
  const writes=buildWrites(),runId='migracao_'+Date.now()+'_'+user.uid.slice(0,8);
  $('#apply').disabled=true;let created=0,skipped=0;msg('Aplicando de forma idempotente e sem sobrescrever documentos existentes…');
@@ -240,7 +241,7 @@ function report(){
  $('#metrics').innerHTML=[['Pessoas · antes → depois',source.existing.pessoas.size+' → '+(source.existing.pessoas.size+proposed.pessoas)],['Turmas · antes → depois',source.existing.turmas.size+' → '+(source.existing.turmas.size+proposed.turmas)],['Ordem · antes → depois',source.existing.ordem.size+' → '+(source.existing.ordem.size+proposed.ordem)],['Posições fonte',plan.sourceCounts.order],['Grupos repetidos',plan.sourceCounts.duplicates],['Ordem vinculada',mapped],['Dados a revisar',plan.suspicious.length]].map(([a,b])=>'<div class="metric"><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>').join('');
  render();
 }
-$('#simulate').onclick=async()=>{try{backupReady=false;$('#apply').disabled=true;msg('Atualizando simulação e contagens do Firestore…');source=await loadSource();report();msg('Simulação atualizada. Nenhuma escrita foi feita. Baixe novo backup antes de aplicar.')}catch(e){msg(e.message,true)}};
+$('#simulate').onclick=async()=>{try{backupReady=false;backupFingerprint='';$('#apply').disabled=true;msg('Atualizando simulação e contagens do Firestore…');source=await loadSource();report();msg('Simulação atualizada. Nenhuma escrita foi feita. Baixe novo backup antes de aplicar.')}catch(e){msg(e.message,true)}};
 $('#backup').onclick=downloadBackup;$('#apply').onclick=applyMigration;
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));render()});
 $('#emailLogin').onclick=async()=>{try{await signInWithEmailAndPassword(auth,$('#email').value.trim(),$('#password').value)}catch(e){$('#loginStatus').textContent='Falha de acesso ao Firebase: '+e.message}};
