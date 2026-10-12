@@ -88,8 +88,8 @@ function textGroups(){
  return [...groups.values()].sort((a,b)=>a.field.localeCompare(b.field)||b.count-a.count||a.text.localeCompare(b.text));
 }
 function personObject(row,index,approved,duplicateMap){
- const f=row.fields,name=f[index.NOME]??'',ageRaw=f[index.IDADE],age=ageRaw==null||ageRaw===''?null:Number(ageRaw);
- const turmaNum=Number(String(f[index.TURMA]??'').replace(',','.'));
+ const f=row.fields,name=f[index.NOME]??'',ageRaw=f[index.IDADE],age=blank(ageRaw)?null:Number(ageRaw);
+ const turmaRaw=f[index.TURMA],turmaNum=blank(turmaRaw)?NaN:Number(String(turmaRaw).replace(',','.'));
  const phoneRaw=String(f[index.TELEFONE]??''),digits=phoneRaw.replace(/\D/g,'');
  let nat=digits;if(nat.startsWith('55')&&(nat.length===12||nat.length===13))nat=nat.slice(2);
  const ddd=nat.length>=10?nat.slice(0,2):'',local=nat.length>=10?nat.slice(2):'';
