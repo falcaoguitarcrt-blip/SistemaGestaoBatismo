@@ -19,6 +19,8 @@ const contextFactory = () => {
     console,
     Date,
     Math,
+    setTimeout,
+    clearTimeout,
     navigator: { onLine: true },
     firestore,
     auth,
