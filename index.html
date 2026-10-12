@@ -2999,6 +2999,284 @@ window.addEventListener('day-legacy-marks',async function(event){
  }
  if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
 }).catch(function(error){console.error('Falha na migração de marcações antigas',error);});
+
+let workflowUnsubs={classes:null,config:null,class:null,people:null,pending:null,auloes:null,registrations:null};
+let workflowProfile=null,workflowClassId='',workflowGeneration=0,workflowState=null;
+function workflowActor(){return auth.currentUser&&((auth.currentUser.displayName)||(auth.currentUser.email))||'Equipe';}
+function workflowRole(){return workflowProfile&&workflowProfile.perfil||'';}
+function workflowCanEdit(turmaId){return ['admin','secretaria'].includes(workflowRole())||(workflowRole()==='lider'&&String(workflowProfile.turmaId||'')===String(turmaId||''));}
+function workflowClassRef(id){return doc(firestore,'turmas',id);}
+function workflowPersonRef(id){return doc(firestore,'pessoas',id);}
+function workflowPendingRef(id){return doc(firestore,'pendencias',id);}
+function workflowAulaoRef(id){return doc(firestore,'auloes',id);}
+function workflowRegistrationRef(aulaoId,pessoaId){return doc(firestore,'auloes',aulaoId,'inscricoes',pessoaId);}
+function workflowRevision(data){return Number(data&&data.revision||0);}
+function workflowAudit(tx,acao,documento,turmaId,pessoaId,aulaoId,revision,alteracoes){
+ const ref=doc(collection(firestore,'auditoria')),now=new Date().toISOString();
+ tx.set(ref,{acao:'workflow_'+acao,documento:documento,turmaId:turmaId||null,pessoaId:pessoaId||null,aulaoId:aulaoId||null,revision:Number(revision||0),uid:auth.currentUser.uid,porNome:workflowActor(),quando:now,alteracoes:(alteracoes||[]).slice(0,20).map(function(x){return {campo:String(x.campo).slice(0,160),valorAntigo:safeValue(x.valorAntigo===undefined?null:x.valorAntigo),valorNovo:safeValue(x.valorNovo===undefined?null:x.valorNovo)};})});
+}
+function workflowError(message,code){const e=new Error(message);if(code)e.code=code;return e;}
+function workflowStopWatchers(){
+ ['class','people','pending','auloes','registrations'].forEach(function(k){if(workflowUnsubs[k])workflowUnsubs[k]();workflowUnsubs[k]=null;});
+ workflowClassId='';workflowState=null;
+}
+function workflowStop(){
+ Object.keys(workflowUnsubs).forEach(function(k){if(workflowUnsubs[k])workflowUnsubs[k]();workflowUnsubs[k]=null;});
+ workflowClassId='';workflowState=null;workflowProfile=null;workflowGeneration++;
+}
+function workflowPublish(){
+ if(!workflowState||!workflowState.classReady||!workflowState.peopleReady||!workflowState.pendingReady||!workflowState.auloesReady)return;
+ window.dispatchEvent(new CustomEvent('structured-work-updated',{detail:{turma:workflowState.turma,people:workflowState.people,pendencias:workflowState.pendencias,auloes:workflowState.auloes}}));
+}
+function workflowArchiveClosed(id,records){
+ const active=records.filter(function(p){return p.status==='aberta'||p.status==='em_contato';});
+ return Promise.all(active.map(function(p){return runTransaction(firestore,async function(tx){
+  const ref=workflowPendingRef(p.id),snap=await tx.get(ref);if(!snap.exists())return;
+  const current=snap.data();if(current.turmaId!==id||!['aberta','em_contato'].includes(current.status))return;
+  const now=new Date().toISOString(),rev=workflowRevision(current)+1,old=current.status;
+  tx.update(ref,{status:'arquivada',arquivadaRevisao:true,updatedAt:now,updatedBy:auth.currentUser.uid,revision:rev});
+  workflowAudit(tx,'pendencia_arquivada', 'pendencias/'+p.id,id,current.pessoaId,null,rev,[{campo:'status',valorAntigo:old,valorNovo:'arquivada'},{campo:'arquivadaRevisao',valorAntigo:current.arquivadaRevisao||false,valorNovo:true}]);
+ });}));
+}
+function workflowCauseMap(person){
+ const result={},camiseta=person.camiseta||{},aulas=person.aulas||{},choice=camiseta.opcao||(camiseta.tamanho?'quer':'');
+ const add=function(key,type,notas){result['auto_'+person.id+'_'+key]={pessoaId:person.id,tipo:type,notas:notas||'',autoKey:key};};
+ if(person.menor===true&&person.responsavelInformado!==true)add('responsavel','Documento do responsável','Menor sem responsável cadastrado.');
+ if(!String(person.telefone||'').trim()||person.telefoneValido===false)add('telefone','Sem contato/telefone inválido',!String(person.telefone||'').trim()?'Telefone ausente.':'Telefone precisa ser conferido.');
+ ['1','2','3','4'].forEach(function(n){if(aulas[n]===false)add('aula_'+n,'Aula a repor','Aula '+n+' pendente.');});
+ if(choice==='quer'&&camiseta.pago!==true)add('camiseta','Camiseta a pagar','Camiseta solicitada e sem pagamento registrado.');
+ return result;
+}
+async function workflowApplyAuto(id,pendingId,desired,classStatus){
+ const ref=workflowPendingRef(pendingId),personId=desired&&desired.pessoaId||pendingId.slice(4).split('_')[0],pRef=workflowPersonRef(personId),cRef=workflowClassRef(id);
+ await runTransaction(firestore,async function(tx){
+  const pendingSnap=await tx.get(ref),classSnap=await tx.get(cRef);
+  if(!classSnap.exists())return;
+  const classData=classSnap.data();
+  if(classData.status==='encerrada'){
+   if(!pendingSnap.exists())return;
+   const current=pendingSnap.data();if(!['aberta','em_contato'].includes(current.status))return;
+   const now=new Date().toISOString(),rev=workflowRevision(current)+1;
+   tx.update(ref,{status:'arquivada',arquivadaRevisao:true,updatedAt:now,updatedBy:auth.currentUser.uid,revision:rev});
+   workflowAudit(tx,'pendencia_arquivada','pendencias/'+pendingId,id,current.pessoaId,null,rev,[{campo:'status',valorAntigo:current.status,valorNovo:'arquivada'},{campo:'arquivadaRevisao',valorAntigo:current.arquivadaRevisao||false,valorNovo:true}]);return;
+  }
+  const targetId=desired&&desired.pessoaId||'';
+  const actualPersonId=pendingSnap.exists()?pendingSnap.data().pessoaId:targetId;
+  if(!actualPersonId)return;
+  const personSnap=await tx.get(workflowPersonRef(actualPersonId));
+  if(!personSnap.exists())return;
+  const person=personSnap.data();
+  const causes=workflowCauseMap(Object.assign({id:actualPersonId},person));
+  const cause=causes[pendingId];
+  if(!pendingSnap.exists()){
+   if(!cause||person.turmaId!==id||!workflowCanEdit(id))return;
+   const now=new Date().toISOString(),record={turmaId:id,pessoaId:actualPersonId,tipo:cause.tipo,responsavel:'',prazo:'',status:'aberta',notas:cause.notas,automatico:true,autoKey:cause.autoKey,autoClosed:false,arquivadaRevisao:false,criadoEm:now,criadoPor:auth.currentUser.uid,criadoPorNome:workflowActor(),updatedAt:now,updatedBy:auth.currentUser.uid,revision:1};
+   tx.set(ref,record);
+   workflowAudit(tx,'pendencia_automatica_criada','pendencias/'+pendingId,id,actualPersonId,null,1,[{campo:'status',valorAntigo:null,valorNovo:'aberta'},{campo:'tipo',valorAntigo:null,valorNovo:cause.tipo},{campo:'notas',valorAntigo:null,valorNovo:cause.notas}]);return;
+  }
+  const current=pendingSnap.data();
+  if(current.turmaId!==id||current.automatico!==true||current.pessoaId!==actualPersonId)return;
+  const now=new Date().toISOString(),rev=workflowRevision(current)+1;
+  if(!cause&&(current.status==='aberta'||current.status==='em_contato')){
+   tx.update(ref,{status:'resolvida',resolvidaEm:now,autoClosed:true,updatedAt:now,updatedBy:auth.currentUser.uid,revision:rev});
+   workflowAudit(tx,'pendencia_automatica_resolvida','pendencias/'+pendingId,id,actualPersonId,null,rev,[{campo:'status',valorAntigo:current.status,valorNovo:'resolvida'},{campo:'autoClosed',valorAntigo:false,valorNovo:true}]);return;
+  }
+  if(cause&&current.autoClosed===true&&current.status==='resolvida'){
+   tx.update(ref,{tipo:cause.tipo,status:'aberta',notas:cause.notas,resolvidaEm:null,autoClosed:false,arquivadaRevisao:false,updatedAt:now,updatedBy:auth.currentUser.uid,revision:rev});
+   workflowAudit(tx,'pendencia_automatica_reaberta','pendencias/'+pendingId,id,actualPersonId,null,rev,[{campo:'status',valorAntigo:'resolvida',valorNovo:'aberta'}]);
+  }
+ });
+}
+async function workflowReconcile(){
+ if(!workflowState||!workflowState.peopleReady||!workflowState.pendingReady||!workflowState.classReady)return;
+ const id=workflowClassId;if(!id||!workflowCanEdit(id))return;
+ if(workflowState.turma&&workflowState.turma.status==='encerrada'){await workflowArchiveClosed(id,workflowState.pendencias);return;}
+ const desired={};workflowState.people.forEach(function(p){if(p.turmaId===id)Object.assign(desired,workflowCauseMap(p));});
+ const existing={};workflowState.pendencias.forEach(function(p){if(p.automatico===true)existing[p.id]=p;});
+ const ids=new Set(Object.keys(desired).concat(Object.keys(existing)));
+ let queue=Array.from(ids),cursor=0;
+ async function worker(){while(cursor<queue.length){const pid=queue[cursor++];try{await workflowApplyAuto(id,pid,desired[pid]||null,workflowState.turma&&workflowState.turma.status);}catch(error){if(error.code!=='permission-denied'&&error.code!=='firestore/permission-denied')console.error('Reconciliação de pendências falhou',error);}}}
+ await Promise.all(Array.from({length:Math.min(6,queue.length)},worker));
+}
+function workflowSignalError(error){
+ window.dispatchEvent(new CustomEvent('structured-work-error',{detail:{message:error&&error.message||'Não foi possível sincronizar as ferramentas.'}}));
+}
+window.firebaseWorkApi={
+ start:function(profile){
+  workflowStop();workflowProfile=profile||null;
+  const role=workflowRole();
+  if(!['admin','secretaria','lider','pastor'].includes(role))return;
+  let classQuery=collection(firestore,'turmas');
+  if(role==='lider'&&profile.turmaId)classQuery=query(collection(firestore,'turmas'),where('__name__','==',String(profile.turmaId)));
+  workflowUnsubs.classes=onSnapshot(classQuery,function(snap){
+   let classes=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});});
+   if(role==='lider')classes=classes.filter(function(c){return c.id===String(profile.turmaId||'');});
+   classes.sort(function(a,b){return Number(a.numero||0)-Number(b.numero||0);});
+   window.dispatchEvent(new CustomEvent('structured-work-classes',{detail:{classes:classes}}));
+  },workflowSignalError);
+  workflowUnsubs.config=onSnapshot(doc(firestore,'configuracoes','ferramentas'),function(snap){
+   window.dispatchEvent(new CustomEvent('structured-work-config',{detail:{config:snap.exists()?snap.data():{}}}));
+  },workflowSignalError);
+ },
+ stop:workflowStop,
+ watchClass:function(id){
+  if(!id||!workflowCanEdit(id)&&!['pastor'].includes(workflowRole()))return;
+  if(id===workflowClassId&&workflowState)return;
+  workflowStopWatchers();workflowClassId=id;const token=workflowGeneration;
+  workflowState={turma:null,classReady:false,people:[],peopleReady:false,pendencias:[],pendingReady:false,auloes:[],auloesReady:false};
+  workflowUnsubs.class=onSnapshot(workflowClassRef(id),function(snap){
+   if(token!==workflowGeneration)return;
+   workflowState.turma=snap.exists()?Object.assign({},snap.data(),{id:snap.id}):null;workflowState.classReady=true;
+   workflowPublish();workflowReconcile().catch(workflowSignalError);
+  },workflowSignalError);
+  workflowUnsubs.people=onSnapshot(query(collection(firestore,'pessoas'),where('turmaId','==',id)),function(snap){
+   if(token!==workflowGeneration)return;
+   workflowState.people=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id,__revision:workflowRevision(d.data())});});workflowState.peopleReady=true;
+   workflowPublish();workflowReconcile().catch(workflowSignalError);
+  },workflowSignalError);
+  workflowUnsubs.pending=onSnapshot(query(collection(firestore,'pendencias'),where('turmaId','==',id)),function(snap){
+   if(token!==workflowGeneration)return;
+   workflowState.pendencias=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});});workflowState.pendingReady=true;
+   workflowPublish();workflowReconcile().catch(workflowSignalError);
+  },workflowSignalError);
+  workflowUnsubs.auloes=onSnapshot(query(collection(firestore,'auloes'),where('turmaId','==',id)),function(snap){
+   if(token!==workflowGeneration)return;
+   workflowState.auloes=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});});workflowState.auloesReady=true;
+   workflowPublish();
+  },workflowSignalError);
+ },
+ watchRegistrations:function(aulaoId){
+  if(workflowUnsubs.registrations){workflowUnsubs.registrations();workflowUnsubs.registrations=null;}
+  if(!aulaoId){window.dispatchEvent(new CustomEvent('structured-work-registrations',{detail:{registrations:[]}}));return;}
+  workflowUnsubs.registrations=onSnapshot(collection(firestore,'auloes',aulaoId,'inscricoes'),function(snap){
+   const regs=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});});
+   window.dispatchEvent(new CustomEvent('structured-work-registrations',{detail:{registrations:regs}}));
+  },workflowSignalError);
+ },
+ createPending:function(values){
+  const data=values||{},turmaId=String(data.turmaId||''),pessoaId=String(data.pessoaId||'');
+  if(!workflowCanEdit(turmaId))return Promise.reject(workflowError('Seu perfil não pode editar esta turma.'));
+  const ref=doc(collection(firestore,'pendencias')),personRef=workflowPersonRef(pessoaId),classRef=workflowClassRef(turmaId);
+  return runTransaction(firestore,async function(tx){
+   const cls=await tx.get(classRef),person=await tx.get(personRef);
+   if(!cls.exists()||cls.data().status==='encerrada')throw workflowError('Esta turma está encerrada ou não existe.');
+   if(!person.exists()||person.data().turmaId!==turmaId)throw workflowError('Escolha uma pessoa desta turma.');
+   const now=new Date().toISOString(),record={turmaId:turmaId,pessoaId:pessoaId,tipo:String(data.tipo||'Outro').trim(),responsavel:String(data.responsavel||'').trim(),prazo:String(data.prazo||''),status:'aberta',notas:String(data.notas||'').trim(),automatico:false,autoClosed:false,arquivadaRevisao:false,criadoEm:now,criadoPor:auth.currentUser.uid,criadoPorNome:workflowActor(),updatedAt:now,updatedBy:auth.currentUser.uid,revision:1};
+   tx.set(ref,record);workflowAudit(tx,'pendencia_criada','pendencias/'+ref.id,turmaId,pessoaId,null,1,[{campo:'status',valorAntigo:null,valorNovo:'aberta'},{campo:'tipo',valorAntigo:null,valorNovo:record.tipo},{campo:'notas',valorAntigo:null,valorNovo:record.notas}]);return {id:ref.id};
+  });
+ },
+ updatePending:function(id,patch,expectedRevision){
+  const change=patch||{};
+  return runTransaction(firestore,async function(tx){
+   const ref=workflowPendingRef(id),snap=await tx.get(ref);if(!snap.exists())throw workflowError('Pendência não encontrada.');
+   const old=snap.data(),turmaId=old.turmaId;if(!workflowCanEdit(turmaId))throw workflowError('Seu perfil não pode editar esta turma.');
+   if(expectedRevision!==null&&expectedRevision!==undefined&&workflowRevision(old)!==Number(expectedRevision))throw workflowError('Outra pessoa alterou esta pendência. Atualize a lista.');
+   const cls=await tx.get(workflowClassRef(turmaId));if(!cls.exists())throw workflowError('Turma não encontrada.');
+   const next={};['status','responsavel','prazo','notas'].forEach(function(k){if(Object.prototype.hasOwnProperty.call(change,k))next[k]=k==='status'?change[k]:String(change[k]||'').trim();});
+   if(next.status==='resolvida')next.resolvidaEm=new Date().toISOString();
+   if(next.status==='arquivada')next.arquivadaRevisao=true;
+   if(next.status&&next.status!=='resolvida'&&next.status!=='arquivada')next.resolvidaEm=null;
+   if(cls.data().status==='encerrada'&&(next.status!=='arquivada'||old.status==='arquivada'))throw workflowError('Turma encerrada: pendências ficam arquivadas para revisão.');
+   const rev=workflowRevision(old)+1,now=new Date().toISOString();next.revision=rev;next.updatedAt=now;next.updatedBy=auth.currentUser.uid;
+   const changes=[];Object.keys(next).forEach(function(k){if(!['revision','updatedAt','updatedBy'].includes(k))changes.push({campo:k,valorAntigo:old[k]===undefined?null:old[k],valorNovo:next[k]});});
+   tx.update(ref,next);workflowAudit(tx,'pendencia_atualizada','pendencias/'+id,turmaId,old.pessoaId,null,rev,changes);return {revision:rev};
+  });
+ },
+ bulkPending:async function(ids,patch){
+  const results=[];for(const id of Array.from(new Set(ids||[]))){results.push(await this.updatePending(id,patch,null));}return results;
+ },
+ saveAulao:function(id,data,expectedRevision){
+  const input=data||{},turmaId=String(input.turmaId||'');if(!workflowCanEdit(turmaId))return Promise.reject(workflowError('Seu perfil não pode editar esta turma.'));
+  const ref=id?workflowAulaoRef(id):doc(collection(firestore,'auloes')),clsRef=workflowClassRef(turmaId);
+  return runTransaction(firestore,async function(tx){
+   const cls=await tx.get(clsRef),oldSnap=id?await tx.get(ref):null;if(!cls.exists()||cls.data().status==='encerrada')throw workflowError('Turma encerrada ou inexistente.');
+   const old=oldSnap&&oldSnap.exists()?oldSnap.data():{};if(id&&!oldSnap.exists())throw workflowError('Aulão não encontrado.');
+   if(id&&expectedRevision!==null&&expectedRevision!==undefined&&workflowRevision(old)!==Number(expectedRevision))throw workflowError('Outra pessoa alterou este aulão.');
+   const lessons=Array.from(new Set((input.reporAulas||[]).map(Number))).filter(function(n){return [1,2,3,4].includes(n);});
+   if(!String(input.data||'')||!String(input.hora||'')||!String(input.local||'').trim()||!(Number(input.vagas)>0)||!lessons.length)throw workflowError('Informe data, hora, local, vagas e pelo menos uma aula.');
+   if(id&&Number(input.vagas)<Number(old.inscritosCount||0))throw workflowError('As vagas não podem ficar abaixo das inscrições existentes.');
+   const now=new Date().toISOString(),rev=id?workflowRevision(old)+1:1,record={turmaId:turmaId,data:String(input.data),hora:String(input.hora),local:String(input.local).trim(),vagas:Math.floor(Number(input.vagas)),reporAulas:lessons,inscritosCount:id?Number(old.inscritosCount||0):0,status:id?(old.status||'agendado'):'agendado',revision:rev,createdAt:id?old.createdAt:now,createdBy:id?old.createdBy:auth.currentUser.uid,updatedAt:now,updatedBy:auth.currentUser.uid};
+   if(id)tx.set(ref,record);else tx.create(ref,record);
+   workflowAudit(tx,id?'aulao_atualizado':'aulao_criado','auloes/'+ref.id,turmaId,null,ref.id,rev,[{campo:'data',valorAntigo:old.data||null,valorNovo:record.data},{campo:'vagas',valorAntigo:old.vagas||null,valorNovo:record.vagas},{campo:'reporAulas',valorAntigo:old.reporAulas||null,valorNovo:lessons}]);return {id:ref.id,revision:rev};
+  });
+ },
+ enroll:function(aulaoId,pessoaId){
+  const aRef=workflowAulaoRef(aulaoId),pRef=workflowPersonRef(pessoaId),rRef=workflowRegistrationRef(aulaoId,pessoaId);
+  return runTransaction(firestore,async function(tx){
+   const aSnap=await tx.get(aRef),pSnap=await tx.get(pRef),rSnap=await tx.get(rRef);
+   if(!aSnap.exists()||!pSnap.exists())throw workflowError('Aulão ou cadastro não encontrado.');
+   const aula=aSnap.data(),person=pSnap.data(),turmaId=aula.turmaId;if(!workflowCanEdit(turmaId)||person.turmaId!==turmaId)throw workflowError('A inscrição só pode ser feita na turma autorizada.');
+   const cls=await tx.get(workflowClassRef(turmaId));if(!cls.exists()||cls.data().status==='encerrada'||aula.status!=='agendado')throw workflowError('Este aulão não aceita novas inscrições.');
+   const old=rSnap.exists()?rSnap.data():null;if(old&&old.status!=='cancelada')throw workflowError(old.status==='presente'?'Presença já registrada.':'Esta pessoa já está inscrita.');
+   const count=Number(aula.inscritosCount||0);if(count>=Number(aula.vagas||0))throw workflowError('Não há vagas disponíveis.');
+   const now=new Date().toISOString(),rev=old?workflowRevision(old)+1:1;
+   const reg={turmaId:turmaId,pessoaId:pessoaId,status:'inscrito',inscritoEm:now,inscritoPorUid:auth.currentUser.uid,inscritoPorNome:workflowActor(),presenteEm:null,presentePorUid:null,presentePorNome:null,revision:rev,updatedAt:now,updatedBy:auth.currentUser.uid};
+   tx.set(rRef,reg);tx.update(aRef,{inscritosCount:count+1,revision:workflowRevision(aula)+1,updatedAt:now,updatedBy:auth.currentUser.uid});
+   workflowAudit(tx,'inscricao_aulao_criada','auloes/'+aulaoId+'/inscricoes/'+pessoaId,turmaId,pessoaId,aulaoId,rev,[{campo:'status',valorAntigo:old&&old.status||null,valorNovo:'inscrito'},{campo:'inscritosCount',valorAntigo:count,valorNovo:count+1}]);return {revision:rev};
+  });
+ },
+ markAttendance:function(aulaoId,pessoaId){
+  const aRef=workflowAulaoRef(aulaoId),pRef=workflowPersonRef(pessoaId),rRef=workflowRegistrationRef(aulaoId,pessoaId);
+  return runTransaction(firestore,async function(tx){
+   const aSnap=await tx.get(aRef),pSnap=await tx.get(pRef),rSnap=await tx.get(rRef);
+   if(!aSnap.exists()||!pSnap.exists()||!rSnap.exists())throw workflowError('Inscrição não encontrada.');
+   const aula=aSnap.data(),person=pSnap.data(),reg=rSnap.data(),turmaId=aula.turmaId;
+   if(!workflowCanEdit(turmaId)||person.turmaId!==turmaId||reg.status!=='inscrito')throw workflowError('A pessoa não está inscrita neste aulão.');
+   const cls=await tx.get(workflowClassRef(turmaId));if(!cls.exists()||cls.data().status==='encerrada')throw workflowError('Turma encerrada.');
+   const oldLessons=person.aulas||{},newLessons=Object.assign({},oldLessons);(aula.reporAulas||[]).forEach(function(n){newLessons[String(n)]=true;});
+   const now=new Date().toISOString(),personRev=workflowRevision(person)+1,regRev=workflowRevision(reg)+1;
+   tx.update(pRef,{aulas:newLessons,revision:personRev,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.update(rRef,{status:'presente',presenteEm:now,presentePorUid:auth.currentUser.uid,presentePorNome:workflowActor(),revision:regRev,updatedAt:now,updatedBy:auth.currentUser.uid});
+   workflowAudit(tx,'presenca_aulao_registrada','auloes/'+aulaoId+'/inscricoes/'+pessoaId,turmaId,pessoaId,aulaoId,regRev,[{campo:'status',valorAntigo:'inscrito',valorNovo:'presente'},{campo:'pessoas/'+pessoaId+'/aulas',valorAntigo:oldLessons,valorNovo:newLessons}]);return {revision:regRev};
+  });
+ },
+ markShirtPaid:function(pessoaId,payment){
+  const data=payment||{},pRef=workflowPersonRef(pessoaId),paymentRef=doc(collection(firestore,'pessoas',pessoaId,'camisetaPagamentos'));
+  return runTransaction(firestore,async function(tx){
+   const pSnap=await tx.get(pRef);if(!pSnap.exists())throw workflowError('Cadastro não encontrado.');
+   const person=pSnap.data(),turmaId=String(person.turmaId||''),shirt=person.camiseta||{},choice=shirt.opcao||(shirt.tamanho?'quer':'');
+   if(!workflowCanEdit(turmaId)||choice!=='quer')throw workflowError('Pagamento só pode ser registrado para quem pediu camiseta.');
+   const cls=await tx.get(workflowClassRef(turmaId));if(!cls.exists()||cls.data().status==='encerrada')throw workflowError('Turma encerrada.');
+   if(shirt.pago===true)throw workflowError('Esta camiseta já está marcada como paga.');
+   const amount=Number(data.valor),method=String(data.forma||'');if(!(amount>0)||!Number.isFinite(amount)||!['pix','dinheiro','cartao'].includes(method))throw workflowError('Confira o valor e a forma de pagamento.');
+   const date=String(data.data||'');if(!/^\d{4}-\d{2}-\d{2}$/.test(date))throw workflowError('Informe uma data de pagamento válida.');
+   const receiver=String(data.recebidoPor||'').trim();if(!receiver||receiver.length>120)throw workflowError('Informe quem recebeu.');
+   const now=new Date().toISOString(),rev=workflowRevision(person)+1,oldValue={pago:shirt.pago||false,valor:shirt.valor||null,data:shirt.data||null};
+   const nextShirt=Object.assign({},shirt,{opcao:'quer',pago:true,valor:amount,data:date});
+   tx.set(paymentRef,{turmaId:turmaId,pessoaId:pessoaId,valor:amount,data:date,forma:method,recebidoPor:receiver,recebidoPorUid:auth.currentUser.uid,criadoEm:now,criadoPor:auth.currentUser.uid,criadoPorNome:workflowActor()});
+   tx.update(pRef,{camiseta:nextShirt,revision:rev,updatedAt:now,updatedBy:auth.currentUser.uid});
+   workflowAudit(tx,'pagamento_camiseta_registrado','pessoas/'+pessoaId+'/camisetaPagamentos/'+paymentRef.id,turmaId,pessoaId,null,rev,[{campo:'camiseta.pagamento',valorAntigo:oldValue,valorNovo:{pago:true,valor:amount,data:date,forma:method,recebidoPor:receiver}}]);return {id:paymentRef.id,revision:rev};
+  });
+ },
+ setShirtDelivered:function(pessoaId,delivered){
+  const pRef=workflowPersonRef(pessoaId);
+  return runTransaction(firestore,async function(tx){
+   const pSnap=await tx.get(pRef);if(!pSnap.exists())throw workflowError('Cadastro não encontrado.');
+   const person=pSnap.data(),turmaId=String(person.turmaId||'');if(!workflowCanEdit(turmaId))throw workflowError('Seu perfil não pode editar esta turma.');
+   const cls=await tx.get(workflowClassRef(turmaId));if(!cls.exists()||cls.data().status==='encerrada')throw workflowError('Turma encerrada.');
+   const shirt=person.camiseta||{},next=Object.assign({},shirt,{entregue:!!delivered,entregueEm:delivered?new Date().toISOString():null});
+   if(!!shirt.entregue===!!delivered)return {unchanged:true};
+   const rev=workflowRevision(person)+1,now=new Date().toISOString();tx.update(pRef,{camiseta:next,revision:rev,updatedAt:now,updatedBy:auth.currentUser.uid});
+   workflowAudit(tx,'entrega_camiseta_atualizada','pessoas/'+pessoaId,turmaId,pessoaId,null,rev,[{campo:'camiseta.entregue',valorAntigo:!!shirt.entregue,valorNovo:!!delivered},{campo:'camiseta.entregueEm',valorAntigo:shirt.entregueEm||null,valorNovo:next.entregueEm}]);return {revision:rev};
+  });
+ },
+ saveConfig:function(input){
+  const data=input||{},ref=doc(firestore,'configuracoes','ferramentas');
+  if(!['admin','secretaria'].includes(workflowRole()))return Promise.reject(workflowError('Somente administração e secretaria podem alterar esta configuração.'));
+  const sizes=Array.from(new Set((data.tamanhosCamiseta||[]).map(function(x){return String(x).trim().toUpperCase();}).filter(Boolean)));
+  const types=Array.from(new Set((data.tiposPendencia||[]).map(function(x){return String(x).trim();}).filter(Boolean)));
+  const price=Number(data.valorCamiseta);
+  if(!Number.isFinite(price)||price<0||price>10000||sizes.length>30||types.length>30||sizes.some(function(x){return x.length>20;})||types.some(function(x){return x.length>80;}))return Promise.reject(workflowError('Confira o valor, os tamanhos e os tipos informados.'));
+  const messages={mensagemPendencia:String(data.mensagemPendencia||'').slice(0,500),mensagemReposicao:String(data.mensagemReposicao||'').slice(0,500),mensagemCamiseta:String(data.mensagemCamiseta||'').slice(0,500)};
+  return runTransaction(firestore,async function(tx){
+   const snap=await tx.get(ref),old=snap.exists()?snap.data():{},rev=workflowRevision(old)+1,now=new Date().toISOString();
+   const next={valorCamiseta:price,tamanhosCamiseta:sizes,tiposPendencia:types,mensagemPendencia:messages.mensagemPendencia,mensagemReposicao:messages.mensagemReposicao,mensagemCamiseta:messages.mensagemCamiseta,revision:rev,updatedAt:now,updatedBy:auth.currentUser.uid};
+   tx.set(ref,next);
+   workflowAudit(tx,'configuracao_atualizada','configuracoes/ferramentas',null,null,null,rev,[{campo:'valorCamiseta',valorAntigo:old.valorCamiseta||0,valorNovo:price},{campo:'tamanhosCamiseta',valorAntigo:old.tamanhosCamiseta||[],valorNovo:sizes},{campo:'tiposPendencia',valorAntigo:old.tiposPendencia||[],valorNovo:types}]);return {revision:rev};
+  });
+ }
+};
+
 function startDayListener(user){
  if(dayUnsub)dayUnsub();
  const q=query(collection(firestore,'marcacoesBatismo'),where('turmaId','==','36'));
