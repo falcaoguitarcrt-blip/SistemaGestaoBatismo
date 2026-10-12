@@ -12,6 +12,11 @@ includes('workbook.SheetNames.slice(0, 2)', 'A importação deve selecionar apen
 includes('var orderRows = rawSheets[secondSheetName] || null;', 'A ordem deve ser lida da segunda aba real, sem exigir o nome genérico "Ordem".');
 includes("secondSheetKey.indexOf('ordem') !== 0", 'A segunda aba deve ser identificada como uma aba de ordem.');
 includes('sourceSheetNames: selectedSheetNames.slice()', 'A prévia deve registrar quais duas abas foram selecionadas.');
+includes('Confirmar turma escolhida', 'A turma da ordem deve ser confirmada explicitamente antes de importar.');
+includes('pendingImport.ordemTurmaId = turmaId', 'A turma da ordem só deve ser aplicada após a confirmação explícita.');
+includes('firebaseHasMarksForTurma(targetTurmaId)', 'A importação deve verificar marcações já existentes na turma escolhida.');
+includes('importMarksConfirmationValid(true, targetTurmaId', 'Marcações existentes devem exigir confirmação digitada.');
+includes('Sugestão pelo nome da aba', 'A prévia deve explicar a sugestão de turma sem aplicá-la automaticamente.');
 
 // Compatibilidade com a planilha pós-batismo: "Ordem Batismo 36" e status Eklesia.
 includes("header.indexOf('batizado no eklesia') >= 0", 'O cabeçalho BATIZADO NO EKLESIA deve ser identificado.');
@@ -25,6 +30,6 @@ includes('fields.forEach(function (value, fieldIndex) { preservedRow[fieldIndex]
 includes('normalizedName.indexOf(\'ordem\') === 0', 'A edição deve localizar a segunda aba mesmo quando seu nome é "Ordem Batismo 36".');
 
 console.log('OK: importação limitada às duas primeiras abas.');
-console.log('OK: ordem "Ordem Batismo 36" e status Eklesia reconhecidos.');
+console.log('OK: sugestão de turma, confirmação explícita e status Eklesia reconhecidos.');
 console.log('OK: edição preserva colunas originais adicionais.');
 console.log('Contratos da planilha pós-batismo verificados: 3.');
