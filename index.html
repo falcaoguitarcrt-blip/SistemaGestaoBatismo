@@ -758,6 +758,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var accept = document.getElementById('accessible-confirm-accept');
     var cancel = document.getElementById('accessible-confirm-cancel');
     if (!dialog || typeof dialog.showModal !== 'function') return Promise.resolve(false);
+    var origin = document.activeElement;
     messageNode.textContent = message;
     inputWrap.hidden = !options.typedPhrase;
     input.value = '';
@@ -776,11 +777,20 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         accept.removeEventListener('click', onAccept);
         cancel.removeEventListener('click', onCancel);
         dialog.close();
+        if (origin && typeof origin.focus === 'function' && document.contains(origin)) origin.focus();
         resolve(result);
       }
       function onCancel(event) { if (event) event.preventDefault(); finish(false); }
       function onAccept() { finish(!options.typedPhrase || input.value === options.typedPhrase); }
       dialog.addEventListener('cancel', onCancel);
+      dialog.addEventListener('keydown', function trapFocus(event) {
+        if (event.key !== 'Tab') return;
+        var focusable = Array.prototype.slice.call(dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+        if (!focusable.length) { event.preventDefault(); return; }
+        var first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      });
       accept.addEventListener('click', onAccept);
       cancel.addEventListener('click', onCancel);
       dialog.showModal();
@@ -940,10 +950,11 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     return row.slice(1).every(isBlank);
   }
   var EXPECTED_BAPTISM_HEADERS = [
-    ['nome'], ['idade'], ['telefone', 'celular', 'telefone celular'], ['turma'],
-    ['data do batismo', 'data batismo', 'data'], ['jornada'], ['aula', 'aula de batismo'],
-    ['grupo'], ['camiseta', 'tamanho camiseta'], ['camiseta paga', 'pagamento camiseta', 'pago'],
-    ['status'], ['pendencia', 'pendencia(s)', 'observacao de pendencia'],
+    ['nome'], ['idade'], ['telefone', 'celular', 'telefone celular', 'tel', 'whatsapp'],
+    ['turma', 'numero da turma'], ['data do batismo', 'data batismo', 'data'],
+    ['jornada'], ['aula', 'aula de batismo'], ['grupo'],
+    ['camiseta', 'tamanho camiseta'], ['camiseta paga', 'pagamento camiseta', 'pago'],
+    ['status'], ['pendencia', 'pendencias', 'observacao de pendencia', 'observacao pendencia'],
     ['batizado', 'ja batizado'], ['perfil', 'tipo de perfil']
   ];
   var EXPECTED_ORDER_HEADERS = [
@@ -952,21 +963,129 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     ['aula de batismo', 'aula', 'licao'], ['batizado na missao', 'batizado', 'batismo'],
     ['unificacao', 'unificado', 'batizado no eklesia', 'batizado no ekklesia']
   ];
-  function validateExpectedHeaders(rows, expected, sheetLabel) {
-    var found = rows && rows[0] || [];
-    expected.forEach(function (aliases, index) {
-      var actual = normal(found[index] == null ? '' : found[index]);
-      if (!aliases.some(function (alias) { return actual === normal(alias); })) {
-        var expectedLabel = aliases[0];
-        var foundLabel = found[index] == null || String(found[index]).trim() === '' ? '(vazio)' : String(found[index]);
-        throw new Error('Aba ' + sheetLabel + ': coluna ' + (index + 1) + ' esperada "' + expectedLabel + '", encontrada "' + foundLabel + '". Nenhum dado foi alterado.');
-      }
+  function normalizeHeader(value) {
+    return normal(value == null ? '' : String(value)).replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function headerColumnMap(headerRow, expected) {
+    var normalized = (headerRow || []).map(normalizeHeader);
+    return expected.map(function (aliases) {
+      var choices = aliases.map(normalizeHeader);
+      return normalized.findIndex(function (value) { return choices.indexOf(value) >= 0; });
     });
   }
+  function validateExpectedHeaders(rows, expected, sheetLabel) {
+    var found = rows && rows[0] || [];
+    var map = headerColumnMap(found, expected);
+    var missing = [];
+    map.forEach(function (column, index) {
+      if (column < 0) missing.push('coluna ' + (index + 1) + ' esperada "' + expected[index][0] + '"');
+    });
+    if (missing.length) {
+      var foundList = found.map(function (value, index) { return (index + 1) + ': ' + (value == null || String(value).trim() === '' ? '(vazio)' : String(value)); }).join('; ');
+      throw new Error('Aba ' + sheetLabel + ': faltam colunas obrigatórias: ' + missing.join('; ') + '. Colunas encontradas: ' + (foundList || '(nenhuma)') + '. Nenhum dado foi alterado.');
+    }
+    return rows.map(function (row) {
+      row = row || [];
+      var mapped = map.map(function (column) { return row[column] == null ? null : row[column]; });
+      row.forEach(function (value, index) { if (map.indexOf(index) < 0) mapped.push(value); });
+      return mapped;
+    });
+  }
+  function isRepeatedHeaderRow(row, expected) {
+    if (!row || !expected) return false;
+    return headerColumnMap(row, expected).every(function (index) { return index >= 0; });
+  }
+  function validMatchPhone(value) {
+    var digits = String(value == null ? '' : value).replace(/\D/g, '');
+    return digits.length >= 10 && digits.length <= 13 ? digits : '';
+  }
   function importPersonKey(person) {
-    var name = normal(person && (person.name != null ? person.name : (person.fields || [])[0]));
-    var phone = String(person && (person.phone != null ? person.phone : (person.fields || [])[2]) || '').replace(/\\D/g, '');
+    var name = normalizeHeader(person && (person.name != null ? person.name : (person.fields || [])[0]));
+    var phone = validMatchPhone(person && (person.phone != null ? person.phone : (person.fields || [])[2]));
     return name && phone ? name + '|' + phone : '';
+  }
+  function nextImportSourceRow(currentPeople) {
+    return (currentPeople || []).reduce(function (max, person) {
+      var value = Number(person && person.sourceRow);
+      return Number.isFinite(value) && value > max ? value : max;
+    }, 0) + 1;
+  }
+  function inspectImportRows(incoming, current) {
+    var currentByKey = new Map(), currentByName = new Map();
+    (current || []).forEach(function (person) {
+      var name = normalizeHeader(person && person.name), key = importPersonKey(person);
+      if (name) { if (!currentByName.has(name)) currentByName.set(name, []); currentByName.get(name).push(person); }
+      if (key && !currentByKey.has(key)) currentByKey.set(key, person);
+    });
+    var seen = new Set(), duplicateKeys = new Set(), invalid = [], newRows = [], changed = [], absent = [], ambiguous = [];
+    (incoming || []).forEach(function (person) {
+      var key = importPersonKey(person), name = normalizeHeader(person.name), rowNo = person.sourceRow || '';
+      var digits = String(person.phone == null ? '' : person.phone).replace(/\D/g, '');
+      var hasAny = !!(String(person.name || '').trim() || String(person.phone || '').trim() || String(person.turma || '').trim());
+      if (!hasAny) return;
+      if (!String(person.name || '').trim()) { invalid.push({ sourceRow: rowNo, name: '', issue: 'nome vazio; somente relatório, não será importado' }); return; }
+      if (!digits || digits.length < 10 || digits.length > 13) {
+        var sameNameCurrent = currentByName.get(name) || [];
+        var sameNameIncoming = (incoming || []).filter(function (candidate) { return normalizeHeader(candidate.name) === name && !!String(candidate.name || '').trim(); });
+        var issue = sameNameCurrent.length || sameNameIncoming.length > 1
+          ? 'ambíguo: homônimo sem telefone válido; decisão manual'
+          : 'telefone vazio/curto; revisão manual, sem correspondência automática';
+        invalid.push({ sourceRow: rowNo, name: person.name, issue: issue });
+        if (issue.indexOf('ambíguo') === 0) ambiguous.push({ sourceRow: rowNo, name: person.name, phone: person.phone || '', issue: issue });
+        return;
+      }
+      if (String(person.turma == null ? '' : person.turma).trim() === '') invalid.push({ sourceRow: rowNo, name: person.name, issue: 'turma vazia' });
+      if (!importDateIsValid(person.date)) invalid.push({ sourceRow: rowNo, name: person.name, issue: 'data impossível/inválida' });
+      if (seen.has(key)) { duplicateKeys.add(key); invalid.push({ sourceRow: rowNo, name: person.name, issue: 'duplicado no arquivo' }); return; }
+      seen.add(key);
+      var old = currentByKey.get(key);
+      if (!old) newRows.push(person);
+      else {
+        var diffs = [];
+        ['name','age','phone','turma','date','journey','lesson','group','shirt','shirtPaid','status','pending','baptized','profile'].forEach(function (field) {
+          var val = person[field];
+          if (val != null && String(val).trim() !== '' && String(old[field] == null ? '' : old[field]) !== String(val)) diffs.push({ field: field, before: old[field] == null ? '' : old[field], after: val });
+        });
+        if (diffs.length) changed.push({ key: key, before: old, after: person, diffs: diffs });
+      }
+    });
+    var incomingKeys = new Set((incoming || []).map(importPersonKey).filter(Boolean));
+    (current || []).forEach(function (person) { var key = importPersonKey(person); if (key && !incomingKeys.has(key)) absent.push(person); });
+    return { newRows: newRows, changed: changed, absent: absent, duplicates: Array.from(duplicateKeys), invalid: invalid, ambiguous: ambiguous };
+  }
+  function mergeImportWorkspace(current, incoming, selectedFields) {
+    var base = current || {}, fields = Array.isArray(selectedFields) ? selectedFields : [];
+    var byKey = new Map();
+    (base.people || []).forEach(function (person) { var key = importPersonKey(person); if (key && !byKey.has(key)) byKey.set(key, person); });
+    var merged = (base.people || []).map(function (person) { return Object.assign({}, person); });
+    var imported = 0, corrected = 0, ignored = 0, seen = new Set();
+    var nextSourceRow = nextImportSourceRow(base.people || []);
+    (incoming.people || []).forEach(function (person) {
+      var key = importPersonKey(person), digits = String(person.phone == null ? '' : person.phone).replace(/\D/g, '');
+      if (!String(person.name || '').trim() || !key || digits.length < 10 || digits.length > 13 || seen.has(key)) { ignored++; return; }
+      seen.add(key);
+      var existing = byKey.get(key);
+      if (!existing) { merged.push(Object.assign({}, person, { sourceRow: nextSourceRow++ })); imported++; return; }
+      var target = merged.find(function (item) { return importPersonKey(item) === key; });
+      if (!target) { ignored++; return; }
+      var changed = false;
+      fields.forEach(function (field) {
+        if (!Object.prototype.hasOwnProperty.call(person, field)) return;
+        var val = person[field];
+        if (val == null || String(val).trim() === '') return;
+        if (String(target[field] == null ? '' : target[field]) !== String(val)) { target[field] = val; changed = true; }
+      });
+      if (changed) corrected++; else ignored++;
+    });
+    return { workspace: Object.assign({}, base, incoming, {
+      id: 'current', people: merged,
+      order: Array.isArray(incoming.order) ? incoming.order.map(function (item) { return Object.assign({}, item); }) : (base.order || []).slice(),
+      order35: (base.order35 || []).slice(), general: (base.general || []).slice(), generalAll: (base.generalAll || []).slice(),
+      generalUnmapped: (base.generalUnmapped || []).slice(), turmas: (base.turmas || []).map(function (item) { return Object.assign({}, item); }),
+      ordensTurma: (base.ordensTurma || []).map(function (item) { return Object.assign({}, item); }),
+      participantes: (base.participantes || []).map(function (item) { return Object.assign({}, item); }),
+      checkin: Object.assign({}, base.checkin || {}), importReport: { read: (incoming.people || []).length, imported: imported, ignored: ignored, corrected: corrected }
+    }), report: { read: (incoming.people || []).length, imported: imported, ignored: ignored, corrected: corrected } };
   }
   function importDateIsValid(value) {
     if (value == null || value === '') return true;
@@ -997,7 +1116,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var seen = new Set(), duplicateKeys = new Set(), invalid = [], newRows = [], changed = [], absent = [];
     (incoming || []).forEach(function (person) {
       var key = importPersonKey(person), rowNo = person.sourceRow || '';
-      var phoneDigits = String(person.phone == null ? '' : person.phone).replace(/\\D/g, '');
+      var phoneDigits = String(person.phone == null ? '' : person.phone).replace(/\D/g, '');
       var hasAny = !!(String(person.name || '').trim() || String(person.phone || '').trim() || String(person.turma || '').trim());
       if (!hasAny) return;
       if (!String(person.name || '').trim()) invalid.push({ sourceRow: rowNo, name: person.name || '', issue: 'nome vazio' });
@@ -1095,14 +1214,14 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (secondSheetKey.indexOf('ordem') !== 0 || !orderRows) missingSheets.push('Ordem (segunda aba, por exemplo "Ordem Batismo 36")');
     if (missingSheets.length) throw new Error('Use a primeira aba Batismo e a segunda aba Ordem/Ordem Batismo 36. As abas após a segunda são ignoradas. Abas encontradas: ' + selectedSheetNames.join(', ') + '. Nenhum dado foi substituído.');
 
-    validateExpectedHeaders(mainRows, EXPECTED_BAPTISM_HEADERS, 'Batismo');
-    validateExpectedHeaders(orderRows, EXPECTED_ORDER_HEADERS, secondSheetName);
+    mainRows = validateExpectedHeaders(mainRows, EXPECTED_BAPTISM_HEADERS, 'Batismo');
+    orderRows = validateExpectedHeaders(orderRows, EXPECTED_ORDER_HEADERS, secondSheetName);
     var people = [];
     var skippedDuplicateHeaders = 0;
     for (var i = 1; i < mainRows.length; i++) {
       var row = mainRows[i] || [];
       var sourceRow = i + 1;
-      if (isRepeatedMainHeader(row)) {
+      if (isRepeatedHeaderRow(row, EXPECTED_BAPTISM_HEADERS)) {
         skippedDuplicateHeaders++;
         continue;
       }
@@ -1122,9 +1241,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var eklesiaIndex = headers.findIndex(function (header) {
         return header.indexOf('batizado no eklesia') >= 0 || header.indexOf('batizado no ekklesia') >= 0;
       });
-      return rows.slice(1).map(function (row, index) {
+      return rows.slice(1).map(function (row, index) { return { row: row, sourceRow: index + 2 }; })
+        .filter(function (entry) { return !isRepeatedHeaderRow(entry.row, EXPECTED_ORDER_HEADERS); })
+        .map(function (entry) {
+        var row = entry.row;
         return {
-          sourceRow: index + 2, fields: row.slice(), removed: row[0], number: row[1], name: clean(row[2]), note: row[3],
+          sourceRow: entry.sourceRow, fields: row.slice(), removed: row[0], number: row[1], name: clean(row[2]), note: row[3],
           lesson: eklesiaIndex >= 0 ? null : row[4],
           baptized: eklesiaIndex >= 0 ? null : row[5],
           merged: eklesiaIndex >= 0 ? null : row[6],
@@ -2282,7 +2404,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var ignoredInvalid = 0;
       sourceRows.forEach(function (person) {
         var key = importPersonKey(person);
-        var digits = String(person.phone == null ? '' : person.phone).replace(/\\D/g, '');
+        var digits = String(person.phone == null ? '' : person.phone).replace(/\D/g, '');
         var valid = !!String(person.name || '').trim() && digits.length >= 10 && digits.length <= 13 &&
           String(person.turma == null ? '' : person.turma).trim() !== '' && importDateIsValid(person.date);
         if (!valid || !key || seenImportKeys.has(key)) { ignoredInvalid++; return; }
