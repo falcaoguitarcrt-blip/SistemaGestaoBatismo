@@ -1307,7 +1307,14 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
 
   function buildHistory() {
-    document.getElementById('his').innerHTML = '<h2 class="t">Histórico</h2><div class="card"><p class="section-sub">Conforme sua escolha, somente as abas Batismo e Ordem foram importadas para o Firebase. As abas GERAL e Ordem Batismo 35 não fazem parte da base central.</p><p class="section-sub">Para consultar e manter os dados atuais, use Pessoas e Ordem. O histórico de versões da base é preservado no Firebase a cada importação ou edição.</p><div class="bb"><button type="button" class="btn" data-go="pes">Abrir pessoas</button><button type="button" class="btn o" data-go="ord">Abrir ordem</button></div></div>';
+    var transfers = [];
+    (appData.participantes || []).forEach(function (p) {
+      (p.historicoTurmas || []).forEach(function (h, index) {
+        transfers.push({ id: String(p.id) + '_' + index, nome: p.nome || 'Pessoa sem nome', de: h.turma || 'Não informada', para: (p.historicoTurmas[index + 1] && p.historicoTurmas[index + 1].turma) || p.turma || 'Não informada', quando: h.ate || h.desde || p.atualizadoEm || p.criadoEm || '', participanteId: p.id });
+      });
+    });
+    transfers.sort(function (a, b) { return String(b.quando).localeCompare(String(a.quando)); });
+    document.getElementById('his').innerHTML = '<h2 class="t">Histórico</h2><div class="card"><p class="section-sub">O histórico de versões da base é preservado no Firebase. As abas GERAL e Ordem Batismo 35 não fazem parte da base central importada.</p><div class="bb"><button type="button" class="btn" data-go="pes">Abrir pessoas</button><button type="button" class="btn o" data-go="ord">Abrir ordem</button></div></div><div class="card"><h3 style="margin-top:0">Transferências entre turmas</h3><p class="section-sub">Registro das mudanças de turma feitas no cadastro direto. A ordem e as marcações antigas não são apagadas por esta listagem.</p><div id="transfer-history-count" class="data-summary">' + numberLabel(transfers.length) + ' transferências registradas</div><div class="data-list">' + transfers.map(function (h) { return '<div class="data-item"><div class="item-main"><strong>' + esc(h.nome) + '</strong><div class="item-meta">Turma ' + esc(h.de) + ' → Turma ' + esc(h.para) + (h.quando ? ' · ' + esc(new Date(h.quando).toLocaleString('pt-BR')) : '') + '</div><div class="item-meta">ID do cadastro: ' + esc(h.participanteId) + '</div></div></div>'; }).join('') + (transfers.length ? '' : '<div class="data-empty">Ainda não há transferências registradas.</div>') + '</div></div>';
   }
   function drawHistoryResults() {
     if (!appData || !document.getElementById('history-results')) return;
