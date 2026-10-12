@@ -1757,7 +1757,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   function buildAll() {
     if (!appData) return;
-    ensureTurmaRegistry(appData);
+    ensureTurmaRegistry(appData, true); // renderizar não deve escolher/alterar turmaPadrao implicitamente.
     demoNotice.remove();
     buildHome();
     buildTurmas();
