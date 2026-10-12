@@ -2270,7 +2270,10 @@ async function saveCloudWorkspace(payload, createVersion) {
       if (!(error && error.workspaceTransactionPending)) {
         console.warn('[workspace] versão possivelmente órfã preservada após falha:', versionId);
       }
-      const offlineError = workspaceOfflineError();
+      const offlineError = error && error.workspaceTransactionPending
+        ? new Error('Sem conexão com o Firebase. A confirmação do salvamento ainda pode chegar. Atualize o estado antes de repetir.')
+        : workspaceOfflineError();
+      offlineError.code = error && error.workspaceTransactionPending ? 'deadline-exceeded' : 'unavailable';
       if (error && error.workspaceTransactionPending) offlineError.workspaceTransactionPending = true;
       throw offlineError;
     }
