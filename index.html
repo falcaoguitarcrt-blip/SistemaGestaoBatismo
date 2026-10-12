@@ -774,6 +774,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         if (settled) return;
         settled = true;
         dialog.removeEventListener('cancel', onCancel);
+        dialog.removeEventListener('keydown', trapFocus);
         accept.removeEventListener('click', onAccept);
         cancel.removeEventListener('click', onCancel);
         dialog.close();
@@ -783,14 +784,15 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       function onCancel(event) { if (event) event.preventDefault(); finish(false); }
       function onAccept() { finish(!options.typedPhrase || input.value === options.typedPhrase); }
       dialog.addEventListener('cancel', onCancel);
-      dialog.addEventListener('keydown', function trapFocus(event) {
+      function trapFocus(event) {
         if (event.key !== 'Tab') return;
         var focusable = Array.prototype.slice.call(dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
         if (!focusable.length) { event.preventDefault(); return; }
         var first = focusable[0], last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
-      });
+        if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+      }
+      dialog.addEventListener('keydown', trapFocus);
       accept.addEventListener('click', onAccept);
       cancel.addEventListener('click', onCancel);
       dialog.showModal();
