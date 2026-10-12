@@ -4,21 +4,21 @@ import vm from 'node:vm';
 
 const html = fs.readFileSync('index.html', 'utf8');
 
-function extractFunction(name, nextName) {
-  const start = html.indexOf('function ' + name + '(');
-  assert.notEqual(start, -1, 'não encontrou a função ' + name);
-  const end = html.indexOf('\n  function ' + nextName + '(', start + 1);
-  assert.ok(end > start, 'não encontrou o limite da função ' + name);
+function extractSection(startText, endText) {
+  const start = html.indexOf(startText);
+  assert.notEqual(start, -1, 'não encontrou início: ' + startText);
+  const end = html.indexOf(endText, start + startText.length);
+  assert.ok(end > start, 'não encontrou fim: ' + endText);
   return html.slice(start, end);
 }
 
 const helperSource = [
-  extractFunction('workspaceOrderTurmaId', 'dayMarkIdForRow'),
-  extractFunction('dayMarkIdForRow', 'importMarksConfirmationValid'),
-  extractFunction('importMarksConfirmationValid', 'matchPersonToOrder'),
-  extractFunction('matchPersonToOrder', 'turmaDateSummary'),
-  extractFunction('turmaDateSummary', 'setImportMessage')
-].join('\n') + '\nglobalThis.testHelpers = { workspaceOrderTurmaId, dayMarkIdForRow, importMarksConfirmationValid, matchPersonToOrder, turmaDateSummary };';
+  extractSection('function workspaceOrderTurmaId(', '\\n  function dayMarkIdForRow('),
+  extractSection('function dayMarkIdForRow(', '\\n  function importMarksConfirmationValid('),
+  extractSection('function importMarksConfirmationValid(', '\\n  function matchPersonToOrder('),
+  extractSection('function matchPersonToOrder(', '\\n  function turmaDateSummary('),
+  extractSection('function turmaDateSummary(', '\\n  var importSection =')
+].join('\\n') + '\\nglobalThis.testHelpers = { workspaceOrderTurmaId, dayMarkIdForRow, importMarksConfirmationValid, matchPersonToOrder, turmaDateSummary };';
 
 const mainContext = {
   Date,
@@ -105,7 +105,7 @@ assert.ok(html.includes('A sugestão não será aplicada sem sua confirmação e
 assert.ok(html.includes("pendingImport.ordemTurmaId = turmaId"), 'ordemTurmaId só entra no payload após confirmação explícita');
 assert.ok(html.includes("if (Object.prototype.hasOwnProperty.call(payload, 'ordemTurmaId'))"), 'não persistir ordemTurmaId em workspaces antigos sem o campo');
 assert.ok(html.includes("var turmaAtual = String(appData.turmaPadrao || '36')"), 'Home deve seguir turmaPadrao');
-assert.ok(html.includes("if(String(workspace.ordemTurmaId || '36')!=='36')return;'), 'migração legada não pode rodar para outra turma');
+assert.ok(html.includes("if(String(workspace.ordemTurmaId || '36')!=='36')return;"), 'migração legada não pode rodar para outra turma');
 assert.equal(h.turmaDateSummary({}), '', 'sem dataBatismo não deve mostrar contagem regressiva');
 
 console.log('OK: workspace legado usa turma 36 e mantém IDs 36_n; IDs de outras turmas são isolados.');
