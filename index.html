@@ -1909,7 +1909,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocFromServer, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',
@@ -2129,7 +2129,7 @@ window.firebaseToggleDayMark=async function(id,fields,row,before){
   dayPending.delete(id);daySyncError=true;emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message}}));throw error;
  }
 };
-window.firebaseRefreshDayMark=async function(id){const snap=await getDoc(doc(firestore,'marcacoesBatismo',id));return {exists:snap.exists(),data:snap.exists()?snap.data():null};};
+window.firebaseRefreshDayMark=async function(id){const snap=await getDocFromServer(doc(firestore,'marcacoesBatismo',id));return {exists:snap.exists(),data:snap.exists()?snap.data():null};};
 window.firebaseUndoDayMark=async function(id,prior,row,expected){
  if(!auth.currentUser)throw new Error('Faça login para desfazer.');
  if(!navigator.onLine)throw new Error('Sem conexão com a internet. O desfazer exige conexão; nenhuma alteração foi revertida.');
