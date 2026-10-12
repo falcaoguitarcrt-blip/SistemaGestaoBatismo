@@ -184,10 +184,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <header>
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
-<button class="on" data-s="home">▦ Visão geral</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
+<button class="on" data-s="home">▦ Visão geral</button><button data-s="tur">♙ Turmas</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
 </nav>
 </header>
 <main>
+
+<section id="tur"><h2 class="t">Turmas</h2><div class="card"><p class="section-sub">Cadastre e organize os ciclos de batismo. Criar uma turma não importa nem copia participantes da turma anterior.</p><div class="data-toolbar" style="grid-template-columns:minmax(0,1fr) auto"><input id="turma-new-number" type="text" maxlength="40" placeholder="Número ou identificação (ex.: 37)" aria-label="Número ou identificação da nova turma"><button type="button" class="btn" data-create-turma>Criar turma vazia</button></div><div id="turma-status" class="import-status" role="status" aria-live="polite">As turmas registradas aparecerão abaixo.</div><div id="turma-list" class="data-list"></div></div></section>
 
 <section id="home" class="on">
 <div class="card hero"><small>PRÓXIMO BATISMO · TURMA 36</small><h2>12 de outubro</h2><small>em 2 dias · 42 de 57 prontos</small>
@@ -1288,6 +1290,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function renderEmptyWorkspace() {
     var emptySections = {
       home: { title: 'Visão geral', message: 'Nenhuma planilha foi carregada no banco central. Os números e nomes do arquivo de demonstração não serão exibidos como se fossem dados reais.' },
+      tur: { title: 'Turmas', message: 'Crie a primeira turma para organizar os próximos batismos.' },
       pes: { title: 'Pessoas', message: 'Os cadastros aparecerão aqui depois que você importar a planilha Excel e confirmar o envio ao Firebase.' },
       fic: { title: 'Ficha individual', message: 'Selecione uma pessoa depois que os registros reais estiverem carregados.' },
       ord: { title: 'Ordem do batismo', message: 'A ordem será exibida aqui depois que a aba Ordem da planilha for importada.' },
@@ -1305,10 +1308,59 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     });
   }
 
+  function ensureTurmaRegistry(workspace) {
+    if (!workspace) return;
+    if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
+    var known = new Set(workspace.turmas.map(function (t) { return String(t.id); }));
+    var numbers = (workspace.people || []).map(function (p) { return clean(p.turma); }).filter(Boolean);
+    if ((workspace.order || []).length && numbers.indexOf('36') < 0) numbers.push('36');
+    numbers.forEach(function (number) {
+      if (known.has(String(number))) return;
+      workspace.turmas.push({ id: String(number), number: String(number), name: 'Turma ' + String(number), status: String(number) === '36' ? 'histórica' : 'registrada', createdAt: null, source: 'compatibilidade' });
+      known.add(String(number));
+    });
+    workspace.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
+    if (!workspace.turmaPadrao || !workspace.turmas.some(function (t) { return String(t.id) === String(workspace.turmaPadrao); })) workspace.turmaPadrao = workspace.turmas.some(function (t) { return String(t.id) === '36'; }) ? '36' : (workspace.turmas[0] ? String(workspace.turmas[0].id) : '');
+  }
+
+  function buildTurmas() {
+    if (!appData) return;
+    ensureTurmaRegistry(appData);
+    var host = document.getElementById('turma-list');
+    if (!host) return;
+    host.innerHTML = (appData.turmas || []).map(function (t) {
+      var isDefault = String(appData.turmaPadrao) === String(t.id);
+      var peopleCount = (appData.people || []).filter(function (p) { return String(clean(p.turma)) === String(t.number); }).length;
+      return '<div class="data-item"><div class="n">' + esc(display(t.number)) + '</div><div class="item-main"><strong>' + esc(t.name || ('Turma ' + t.number)) + '</strong><div class="item-meta">Identificador: ' + esc(t.id) + ' · Cadastros associados: ' + numberLabel(peopleCount) + ' · Situação: ' + esc(t.status || 'registrada') + '</div><div class="item-badges">' + (isDefault ? chip('Padrão selecionado', 't-ok') : '') + (String(t.id) === '36' ? chip('Base histórica protegida', 't-in') : chip('Cadastro novo', 't-pe')) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-default-turma="' + esc(t.id) + '" ' + (isDefault ? 'disabled' : '') + '>Definir padrão</button></div></div>';
+    }).join('') || '<div class="data-empty">Nenhuma turma cadastrada.</div>';
+  }
+
+  async function persistTurmaRegistry(draft, message) {
+    ensureTurmaRegistry(draft);
+    var status = document.getElementById('turma-status');
+    var buttons = document.querySelectorAll('[data-create-turma],[data-default-turma]');
+    buttons.forEach(function (b) { b.disabled = true; });
+    if (status) { status.className = 'import-status'; status.textContent = 'Salvando a configuração no Firebase…'; }
+    try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
+      await window.firebaseSaveWorkspace(draft, true);
+      var localWarning = '';
+      try { await saveWorkspace(draft, false); } catch (e) { localWarning = ' A cópia local não foi atualizada.'; }
+      appData = draft;
+      buildAll();
+      goTo('tur');
+      if (status) { status.className = 'import-status success'; status.textContent = message + ' A versão anterior foi preservada.' + localWarning; }
+    } catch (error) {
+      if (status) { status.className = 'import-status error'; status.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido') + '. Nenhuma turma foi confirmada.'; }
+    } finally { buttons.forEach(function (b) { b.disabled = false; }); }
+  }
+
   function buildAll() {
     if (!appData) return;
+    ensureTurmaRegistry(appData);
     demoNotice.remove();
     buildHome();
+    buildTurmas();
     buildPeople();
     buildFiche(appData.people.find(function (p) { return p.sourceRow === selectedPersonRow; }) || null);
     buildOrder();
@@ -1362,6 +1414,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       general: workspace.general,
       generalAll: workspace.generalAll,
       generalUnmapped: workspace.generalUnmapped,
+      turmas: workspace.turmas || [],
+      turmaPadrao: workspace.turmaPadrao || '36',
       checkin: workspace.checkin || {}
     };
     downloadBlob(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' }), 'backup-gestao-batismo.json');
@@ -1468,6 +1522,32 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (editOrderButton && appData) {
       var editOrder = appData.order.find(function (item) { return Number(item.sourceRow) === Number(editOrderButton.dataset.editOrder); });
       if (editOrder) openRecordEditor('order', editOrder);
+      return;
+    }
+
+    var createTurmaButton = event.target.closest('[data-create-turma]');
+    if (createTurmaButton && appData) {
+      var input = document.getElementById('turma-new-number');
+      var number = (input && input.value || '').trim();
+      var status = document.getElementById('turma-status');
+      if (!number) { if (status) { status.className = 'import-status error'; status.textContent = 'Informe o número ou identificação da turma.'; } return; }
+      ensureTurmaRegistry(appData);
+      if ((appData.turmas || []).some(function (t) { return normal(t.number) === normal(number) || String(t.id) === number; })) { if (status) { status.className = 'import-status error'; status.textContent = 'Já existe uma turma com essa identificação. Escolha outra.'; } return; }
+      var draftTurmas = cloneWorkspaceForEdit();
+      if (!Array.isArray(draftTurmas.turmas)) draftTurmas.turmas = [];
+      var id = number.replace(/[^a-zA-Z0-9_-]/g, '_');
+      if (draftTurmas.turmas.some(function (t) { return String(t.id) === id; })) { if (status) { status.className = 'import-status error'; status.textContent = 'Essa identificação gera um código já utilizado. Informe outro número.'; } return; }
+      draftTurmas.turmas.push({ id: id, number: number, name: 'Turma ' + number, status: 'ativa', createdAt: new Date().toISOString(), source: 'cadastro_manual' });
+      draftTurmas.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
+      if (input) input.value = '';
+      await persistTurmaRegistry(draftTurmas, 'Turma ' + number + ' criada vazia.');
+      return;
+    }
+    var defaultTurmaButton = event.target.closest('[data-default-turma]');
+    if (defaultTurmaButton && appData) {
+      var draftDefault = cloneWorkspaceForEdit();
+      draftDefault.turmaPadrao = String(defaultTurmaButton.dataset.defaultTurma);
+      await persistTurmaRegistry(draftDefault, 'Turma padrão alterada.');
       return;
     }
 
@@ -1708,7 +1788,7 @@ async function saveCloudWorkspace(payload, createVersion) {
   }
   const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
   const chunks = [];
-  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped'].forEach(function (section) {
+  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas'].forEach(function (section) {
     chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
   });
   const rawNames = Object.keys(payload.rawSheets || {});
@@ -1733,6 +1813,7 @@ async function saveCloudWorkspace(payload, createVersion) {
     importedAt: payload.importedAt || new Date().toISOString(),
     sheetStats: safeValue(payload.sheetStats || []),
     sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
+    turmaPadrao: String(payload.turmaPadrao || '36'),
     skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
     checkin: safeValue(payload.checkin || {}),
     createdAt: new Date().toISOString(),
@@ -1762,7 +1843,7 @@ async function loadCloudWorkspace() {
     id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
     sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
-    general: [], generalAll: [], generalUnmapped: [], checkin: meta.checkin || {}
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
   };
   const chunkSnap = await getDocs(versionChunksRef(versionId));
   const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
@@ -1787,6 +1868,7 @@ async function loadCloudWorkspace() {
   });
   const liveSnap = await getDoc(liveRef());
   if (liveSnap.exists() && liveSnap.data().checkin) workspace.checkin = liveSnap.data().checkin;
+  if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
