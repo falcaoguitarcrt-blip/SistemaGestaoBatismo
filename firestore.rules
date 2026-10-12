@@ -99,6 +99,10 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa');
       allow create, update: if staffWrite() || leaderOwnsTurma(request.resource.data.turmaId);
       allow delete: if false;
+      match /privado/origem {
+        allow read, write: if pastor();
+        allow delete: if false;
+      }
     }
 
     match /marcacoesBatismo/{marcacaoId} {
