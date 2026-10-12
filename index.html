@@ -521,7 +521,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var pendingImport = null;
   var selectedPersonRow = null;
   var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
-  var orderState = { query: '', filter: 'all', page: 1 };
+  var orderState = { query: '', filter: 'all', page: 1, turmaId: '' };
+  var manualOrderEditingId = '';
   var dayState = { query: '' , page: 1, turmaId: '' };
   var pendingState = { query: '', page: 1 };
   var shirtState = { query: '', page: 1 };
@@ -1139,38 +1140,47 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     }
   });
 
+  function selectedOrderTurma(){var id=String(orderState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
+  function currentOrderItems(){var t=selectedOrderTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__manual:true});});if(String(t.id)==='36')return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual);return manual;}
   function buildOrder() {
-    var section = document.getElementById('ord');
-    section.innerHTML = '<h2 class="t">Ordem de batismo</h2><div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-order>+ Adicionar posição</button></div><div class="card"><p class="section-sub">Aba de origem: Ordem. Posições numeradas vazias foram preservadas e aparecem como pendentes de nome. Alterações são salvas no Firebase.</p><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
-    document.getElementById('order-search').addEventListener('input', function () { orderState.query = this.value; orderState.page = 1; drawOrderResults(); });
-    document.getElementById('order-filter').addEventListener('change', function () { orderState.filter = this.value; orderState.page = 1; drawOrderResults(); });
+    var section=document.getElementById('ord');
+    section.innerHTML='<h2 class="t">Ordem de batismo</h2><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select><p class="section-sub">A ordem histórica importada da turma 36 é preservada. As demais turmas têm posições independentes.</p></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
+    document.getElementById('order-turma-select').onchange=function(){orderState.turmaId=this.value;orderState.page=1;manualOrderEditingId='';buildOrder();};
+    document.getElementById('order-search').addEventListener('input',function(){orderState.query=this.value;orderState.page=1;drawOrderResults();});
+    document.getElementById('order-filter').addEventListener('change',function(){orderState.filter=this.value;orderState.page=1;drawOrderResults();});
+    document.getElementById('manual-order-form').addEventListener('submit',saveManualOrder);
+    document.getElementById('manual-order-cancel').onclick=function(){manualOrderEditingId='';buildOrder();};
+    var next=Math.max.apply(null,currentOrderItems().map(function(r){return Number(r.number)||0;}).concat([0]))+1;document.getElementById('manual-order-number').value=next;
     drawOrderResults();
   }
+  async function saveManualOrder(event){
+    event.preventDefault();var t=selectedOrderTurma(),number=document.getElementById('manual-order-number').value.trim(),participantId=document.getElementById('manual-order-person').value,note=document.getElementById('manual-order-note').value.trim(),status=document.getElementById('manual-order-status');
+    if(!number){status.className='import-status error';status.textContent='Informe o número da posição.';return;}
+    var draft=cloneWorkspaceForEdit();if(!Array.isArray(draft.ordensTurma))draft.ordensTurma=[];
+    var person=(draft.participantes||[]).find(function(p){return p.id===participantId;});
+    var existing=draft.ordensTurma.find(function(r){return r.id===manualOrderEditingId;});
+    var item={id:existing?existing.id:'o_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),turmaId:String(t.id),number:Number(number),participantId:participantId||'',name:person?person.nome:'',note:note,removed:false,createdAt:existing?existing.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+    if(existing)Object.assign(existing,item);else draft.ordensTurma.push(item);
+    var button=document.getElementById('manual-order-save');button.disabled=true;status.className='import-status';status.textContent='Salvando a ordem no Firebase…';
+    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(e){}appData=draft;manualOrderEditingId='';buildAll();goTo('ord');setImportMessage('Posição da ordem salva para '+(t.name||('Turma '+t.number))+'.','success');}
+    catch(error){status.className='import-status error';status.textContent='Não foi possível salvar: '+(error.message||'erro desconhecido');}
+    finally{button.disabled=false;}
+  }
+  function editManualOrder(id){var r=(appData.ordensTurma||[]).find(function(x){return x.id===id;});if(!r)return;manualOrderEditingId=id;buildOrder();document.getElementById('manual-order-number').value=r.number||'';document.getElementById('manual-order-person').value=r.participantId||'';document.getElementById('manual-order-note').value=r.note||'';document.getElementById('manual-order-save').textContent='Salvar posição';document.getElementById('manual-order-cancel').hidden=false;}
   function drawOrderResults() {
-    if (!appData || !document.getElementById('order-results')) return;
-    var query = normal(orderState.query);
-    var items = appData.order.filter(function (r) {
-      if (orderState.filter === 'named' && isBlank(r.name)) return false;
-      if (orderState.filter === 'unnamed' && !isBlank(r.name)) return false;
-      return !query || normal([r.number, r.name, r.note, r.removed, r.sourceRow].join(' ')).indexOf(query) >= 0;
-    });
-    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
-    orderState.page = Math.min(Math.max(1, orderState.page), pages);
-    var start = (orderState.page - 1) * PAGE_SIZE;
-    var view = items.slice(start, start + PAGE_SIZE);
-    var named = appData.order.filter(function (r) { return !!r.name; }).length;
-    document.getElementById('order-count').textContent = numberLabel(items.length) + ' linhas com conteúdo · ' + numberLabel(named) + ' posições com nome · ' + numberLabel(appData.order.length - named) + ' posições sem nome';
-    document.getElementById('order-results').innerHTML = view.map(function (r) {
-      return '<div class="data-item"><div class="n">' + esc(display(r.number)) + '</div><div class="item-main"><strong>' + esc(r.name || 'Posição reservada sem nome') + '</strong><div class="item-meta">Número original: ' + esc(display(r.number)) + ' · Ficha retirada: ' + esc(display(r.removed)) + (r.note ? '<br>Observação: ' + esc(r.note) : '') + '<br>Linha original ' + esc(r.sourceRow) + '</div><div class="item-badges">' + (r.name ? chip('Nome preenchido', 't-ok') : chip('Precisa conferir', 't-pe')) + (r.note ? chip('Com observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-order="' + esc(r.sourceRow) + '">Editar posição</button></div></div>';
-    }).join('') || '<div class="data-empty">Nenhuma posição encontrada.</div>';
-    document.getElementById('order-pager').innerHTML = '<button type="button" class="btn o" data-page="order:-1" ' + (orderState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + orderState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="order:1" ' + (orderState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+    if(!appData||!document.getElementById('order-results'))return;
+    var queryText=normal(orderState.query),items=currentOrderItems().filter(function(r){if(orderState.filter==='named'&&isBlank(r.name))return false;if(orderState.filter==='unnamed'&&!isBlank(r.name))return false;return !queryText||normal([r.number,r.name,r.note,r.removed,r.sourceRow].join(' ')).indexOf(queryText)>=0;});
+    var pages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));orderState.page=Math.min(Math.max(1,orderState.page),pages);var start=(orderState.page-1)*PAGE_SIZE,view=items.slice(start,start+PAGE_SIZE),named=currentOrderItems().filter(function(r){return !!r.name;}).length;
+    document.getElementById('order-count').textContent=numberLabel(items.length)+' posições encontradas · '+numberLabel(named)+' com nome · '+numberLabel(currentOrderItems().length-named)+' reservadas/sem nome';
+    document.getElementById('order-results').innerHTML=view.map(function(r){return '<div class="data-item"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.__manual?'Posição cadastrada no sistema':'Registro da planilha original')+' · '+(r.note?'Observação: '+esc(r.note):'Sem observação')+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+'</div></div><div class="item-actions">'+(r.__manual?'<button type="button" class="btn o" data-edit-manual-order="'+esc(r.id)+'">Editar posição</button>':'<button type="button" class="btn o" data-edit-order="'+esc(r.sourceRow)+'">Editar origem</button>')+'</div></div>';}).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
+    document.getElementById('order-pager').innerHTML='<button type="button" class="btn o" data-page="order:-1" '+(orderState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+orderState.page+' de '+pages+'</span><button type="button" class="btn o" data-page="order:1" '+(orderState.page>=pages?'disabled':'')+'>Próxima →</button>';
   }
 
   var dayMarks = {}, dayFilter='todos', dayStatus={online:navigator.onLine,pending:0,ready:false}, undoTimer=null;
   function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
   function personForDay(row){if(row&&row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
   function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
-  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);});if(manual.length||String(t.id)!=='36')return manual.map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});});}
+  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});if(String(t.id)==='36')return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual);return manual;}
   function dayId(row){var t=String(row.__turmaId||'36'),pos=String(clean(row.id)||clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');return t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos;}
   function dayBadges(row,p){var b='';if(normal(row.note||'').includes('prioridade'))b+=chip('Prioridade','t-er');if(p&&Number(p.age)>0&&Number(p.age)<18)b+=chip('Menor','t-pe');if(p&&hasPendingSignal(p))b+=chip('Pendência','t-pe');return b;}
   function buildDay(){
@@ -1551,6 +1561,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       if (editPerson) openRecordEditor('person', editPerson);
       return;
     }
+    var editManualOrderButton=event.target.closest('[data-edit-manual-order]');if(editManualOrderButton){editManualOrder(editManualOrderButton.dataset.editManualOrder);return;}
     var addOrderButton = event.target.closest('[data-add-order]');
     if (addOrderButton) { openRecordEditor('order', null); return; }
     var editOrderButton = event.target.closest('[data-edit-order]');
@@ -1945,7 +1956,7 @@ function startDayListener(user){
  if(dayUnsub)dayUnsub();
  const q=query(collection(firestore,'marcacoesBatismo'));
  dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
-  const marks={};dayPending.clear();const activeTurma=String(dayState.turmaId||appData&&appData.turmaPadrao||'36');snap.forEach(function(d){const data=d.data();if(String(data.turmaId||'36')===activeTurma){marks[d.id]=data;if(d.metadata.hasPendingWrites)dayPending.add(d.id);}});
+  const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites)dayPending.add(d.id);});
   dayOnline=navigator.onLine;
   window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,pending:dayPending.size,ready:true}}}));
  },function(e){console.error(e);});
