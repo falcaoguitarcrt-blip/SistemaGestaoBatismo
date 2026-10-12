@@ -874,41 +874,40 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function buildHome() {
     if (!appData) return;
     var home = document.getElementById('home');
-    var people = appData.people;
-    var peopleNamed = namedPeople();
+    // A tela principal representa somente o batismo atual: turma 36.
+    // As demais turmas continuam disponíveis nas respectivas telas de gestão.
+    var turmaAtual = '36';
+    var people = appData.people.filter(function (p) { return matchesTurmaFilter(p, turmaAtual); });
+    var peopleNamed = people.filter(function (p) { return !!p.name; });
     var withoutName = people.length - peopleNamed.length;
     var noPhone = people.filter(function (p) { return isBlank(p.phone); }).length;
     var done = people.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
     var makeups = people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
-    var shirts = shirtSummary();
-    var namedOrder = appData.order.filter(function (p) { return !!p.name; }).length;
-    var turmaCounts = countBy(peopleNamed.filter(function (p) { return !isBlank(p.turma); }), function (p) { return p.turma; });
-    var turmas = Object.keys(turmaCounts).sort(function (a, b) { return Number(a) - Number(b); });
-    var maxTurma = Math.max.apply(null, turmas.map(function (t) { return turmaCounts[t]; }).concat([1]));
+    var shirts = shirtSummary(turmaAtual);
+    var order = Array.isArray(appData.order) ? appData.order : [];
+    var namedOrder = order.filter(function (p) { return !!p.name; }).length;
     var duplicateGroups = duplicateNameGroups(peopleNamed, function (p) { return p.name; });
-    home.innerHTML = '<div class="card hero"><small>BASE ATIVA · FIREBASE</small><h2>Gestão de Batismo</h2><small>' + esc(appData.sourceFileName) + ' · importada em ' + esc(new Date(appData.importedAt).toLocaleString('pt-BR')) + '</small><div class="bar" style="margin:12px 0"><b style="width:' + Math.round((done / Math.max(people.length, 1)) * 100) + '%"></b></div><button type="button" class="btn" data-go="ord">Abrir ordem de batismo →</button></div>' +
+    var percentDone = Math.round((done / Math.max(people.length, 1)) * 100);
+    home.innerHTML = '<div class="card hero"><small>BATISMO ATUAL · TURMA 36</small><h2>Visão geral do batismo</h2><small>Indicadores restritos aos cadastros da turma 36. As outras turmas permanecem nas telas de gestão.</small><div class="bar" style="margin:12px 0"><b style="width:' + percentDone + '%"></b></div><button type="button" class="btn" data-go="ord">Abrir ordem da turma 36 →</button></div>' +
       '<div class="data-metrics">' +
-      metric('Registros na aba Batismo', people.length, 'Sem mesclar linhas repetidas') +
-      metric('Registros com nome', peopleNamed.length, 'Cadastros da aba principal') +
+      metric('Pessoas da turma 36', people.length, 'Somente registros identificados como turma 36') +
+      metric('Pessoas com nome', peopleNamed.length, 'Cadastros da turma atual') +
       metric('Registros sem nome', withoutName, 'Preservados para conferência') +
-      metric('Pessoas nomeadas na ordem', namedOrder, numberLabel(appData.order.length) + ' posições preenchidas na planilha de ordem') +
+      metric('Posições preenchidas na ordem', namedOrder, numberLabel(order.length) + ' posições da ordem da turma 36') +
       '</div>' +
-      '<div class="card"><h2 class="t">Resumo da preparação</h2>' +
+      '<div class="card"><h2 class="t">Preparação da turma 36</h2>' +
       '<div class="grid">' +
-      '<div class="data-metric"><span>Jornada concluída</span><strong>' + numberLabel(done) + '</strong><span class="item-meta">Valor conforme coluna JORNADA</span></div>' +
-      '<div class="data-metric"><span>Com indicação de reposição</span><strong>' + numberLabel(makeups) + '</strong><span class="item-meta">JORNADA ou AULA P/ REPOR</span></div>' +
-      '<div class="data-metric"><span>Sem telefone preenchido</span><strong>' + numberLabel(noPhone) + '</strong><span class="item-meta">Sem alterar os dados de origem</span></div>' +
+      '<div class="data-metric"><span>Jornada concluída</span><strong>' + numberLabel(done) + '</strong><span class="item-meta">' + percentDone + '% dos registros desta turma</span></div>' +
+      '<div class="data-metric"><span>Com indicação de reposição</span><strong>' + numberLabel(makeups) + '</strong><span class="item-meta">Jornada ou aula para repor</span></div>' +
+      '<div class="data-metric"><span>Sem telefone preenchido</span><strong>' + numberLabel(noPhone) + '</strong><span class="item-meta">Dados da turma 36</span></div>' +
       '<div class="data-metric"><span>Camisetas não pagas</span><strong>' + numberLabel(shirts.unpaid.length) + '</strong><span class="item-meta">Somente tamanhos informados</span></div>' +
       '</div></div>' +
-      '<div class="lower"><div class="card"><div class="card-head"><div><h2 class="t">Cadastros por turma</h2><p class="section-sub">Contagem calculada da base central.</p></div><button type="button" class="btn o" data-go="pes">Ver pessoas</button></div>' +
-      (turmas.length ? turmas.map(function (turma) { return '<div class="data-bar-row"><span>Turma ' + esc(turma) + '</span><div class="data-bar"><i style="width:' + Math.round((turmaCounts[turma] / maxTurma) * 100) + '%"></i></div><em>' + numberLabel(turmaCounts[turma]) + '</em></div>'; }).join('') : '<div class="data-empty">Nenhuma turma preenchida.</div>') +
-      '</div><div class="card"><h2 class="t">Conferências sem alterar a fonte</h2><div class="security-list">' +
-      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(duplicateGroups) + '</strong> grupos de nomes repetidos. Nenhum registro foi mesclado.</span></div>' +
-      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(withoutName) + '</strong> linhas de cadastro sem nome, mantidas para revisão.</span></div>' +
-       '<div class="security-row"><span class="status-dot"></span><span>Importação restrita às abas Batismo e Ordem, conforme definido. GERAL e Ordem Batismo 35 não entram no banco.</span></div>' +
-       '<div class="security-row"><span class="status-dot"></span><span>As linhas originais das duas abas selecionadas são preservadas, sem mesclar nomes repetidos.</span></div>' +
-      '</div><div class="bb"><button type="button" class="btn o" data-go="pen">Ver observações e pendências</button><button type="button" class="btn o" data-go="imp">Ver importação e backups</button></div></div></div>' +
-      '<p class="note">Os registros são armazenados no Firebase; alterações feitas aqui ficam disponíveis após novo login em outros dispositivos.</p>';
+      '<div class="card"><h2 class="t">Conferências da turma 36</h2><div class="security-list">' +
+      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(duplicateGroups) + '</strong> grupos de nomes repetidos nesta turma. Nenhum registro foi mesclado.</span></div>' +
+      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(withoutName) + '</strong> registros sem nome, mantidos para revisão.</span></div>' +
+      '<div class="security-row"><span class="status-dot"></span><span>Os indicadores desta tela não somam participantes de outras turmas.</span></div>' +
+      '</div><div class="bb"><button type="button" class="btn o" data-go="pen">Ver pendências</button><button type="button" class="btn o" data-go="dia">Abrir dia do batismo</button></div></div>' +
+      '<p class="note">Esta visão geral é exclusiva da turma 36. As telas de cadastro e gestão de outras turmas continuam disponíveis separadamente.</p>';
   }
 
   function buildPeople() {
