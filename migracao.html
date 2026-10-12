@@ -95,7 +95,7 @@ function personObject(row,index,approved,duplicateMap){
  const ddd=nat.length>=10?nat.slice(0,2):'',local=nat.length>=10?nat.slice(2):'';
  const valid=nat.length===10||nat.length===11;
  const shirtRaw=String(f[index.CAMISETA]??'').trim(),shirtN=norm(shirtRaw);
- const shirtOpt=!shirtRaw?'nao_respondeu':shirtN==='ja tem'?'ja_tem':'quer';
+ const shirtOpt=!shirtRaw?'nao_respondeu':shirtN==='ja tem'?'ja_tem':shirtN==='nao quero'||shirtN==='nao quer'?'nao_quer':'quer';
  const paid=String(f[index['PG CAMISETA']]??'').toLowerCase()==='true'||f[index['PG CAMISETA']]===true?true:blank(f[index['PG CAMISETA']])?null:false;
  const dates=[];
  const journeyText=String(f[index.JORNADA]??''),journeyNorm=norm(journeyText);
@@ -117,7 +117,7 @@ function personObject(row,index,approved,duplicateMap){
  const id='p_'+(courseNo??'sem_turma')+'_r'+row.sourceRow;
  const canonical=duplicateMap[id]||id;
  const oldDate=f[index.DATA]??null;
- return {id,turmaId:courseNo?'turma_'+courseNo:null,nomeExibicao:titleCase(name),nomeBusca:norm(name),telefone:valid?'+55'+ddd+local:null,telefoneValido:valid,telefoneRevisar:!!digits&&!valid,idade:years,faixaEtaria:years==null?'desconhecida':years<18?'menor':years<30?'jovem_adulto':years<60?'adulto':'60_mais',menor:years==null?null:years<18,jornada:{status:journeyStatus,arquivadaRevisao:!!courseNo&&courseNo!==36},aulas:lessons,aulao:dates[0]||{status:'',data:null},camiseta:{opcao:shirtOpt,tamanho:shirtOpt==='quer'?shirtRaw.toUpperCase():null,pago:paid,valor:null,entregue:null,arquivadaRevisao:!!courseNo&&courseNo!==36},pendencia:{texto:pendingOld,arquivadaRevisao:!!courseNo&&courseNo!==36},origem:{aba:'Batismo',linha:row.sourceRow,versao:source.versionId},_privateOrigin:f,_canonical:canonical,_ageRaw:ageRaw,_dateOriginal:oldDate};
+ return {id,turmaId:courseNo?'turma_'+courseNo:null,nomeExibicao:titleCase(name),nomeBusca:norm(name),telefone:valid?'+55'+ddd+local:null,telefoneValido:valid,telefoneRevisar:!!digits&&!valid,idade:years,faixaEtaria:years==null?'desconhecida':years<18?'menor':years<30?'jovem_adulto':years<60?'adulto':'60_mais',menor:years==null?null:years<18,jornada:{status:journeyStatus,arquivadaRevisao:!!courseNo&&courseNo<36},aulas:lessons,aulao:dates[0]||{status:'',data:null},camiseta:{opcao:shirtOpt,tamanho:shirtOpt==='quer'?shirtRaw.toUpperCase():null,pago:paid,valor:null,entregue:null,arquivadaRevisao:!!courseNo&&courseNo<36},pendencia:{texto:pendingOld,arquivadaRevisao:!!courseNo&&courseNo<36},origem:{aba:'Batismo',linha:row.sourceRow,versao:source.versionId},_privateOrigin:f,_canonical:canonical,_ageRaw:ageRaw,_dateOriginal:oldDate};
 }
 function titleCase(s){const words=String(s??'').trim().replace(/\s+/g,' ').toLocaleLowerCase('pt-BR').split(' ');return words.map((w,i)=>i>0&&/^(da|das|de|do|dos|e)$/.test(w)?w:w? w[0].toLocaleUpperCase('pt-BR')+w.slice(1):w).join(' ')}
 function buildPlan(){
@@ -178,7 +178,7 @@ function buildWrites(){
   writes.push({path:'pessoas/'+id,data:{...safe,menor:safe.menor,nomeExibicao:safe.nomeExibicao,nomeBusca:safe.nomeBusca,updatedAt:serverTimestamp(),migrationVersion:1}});
   writes.push({path:'pessoas/'+id+'/privado/origem',data:{origem:_privateOrigin,idadeOriginal:_ageRaw,dataOriginal:_dateOriginal,updatedAt:serverTimestamp(),migrationVersion:1}});
  }
- for(const x of plan.positions){const {opcoes,ambiguidade,vazio,...safe}=x;writes.push({path:'ordem/'+x.id,data:{...safe,updatedAt:serverTimestamp(),migrationVersion:1}})}
+ for(const x of plan.positions){const {opcoes,ambiguidade,vazio,camposOriginais,...safe}=x;writes.push({path:'ordem/'+x.id,data:{...safe,updatedAt:serverTimestamp(),migrationVersion:1}});writes.push({path:'ordem/'+x.id+'/privado/origem',data:{camposOriginais,origem:x.origem,updatedAt:serverTimestamp(),migrationVersion:1}})}
  for(const g of plan.duplicateGroups){const d=decisions.duplicates.get(g.id);if(d?.confirmed)writes.push({path:'gruposDuplicados/'+g.id,data:{nomeBusca:g.key,pessoaIds:g.people.map(x=>x.id),decisao:d.choice,pessoaCanonicaId:d.canonical||null,confirmadoEm:new Date().toISOString(),migrationVersion:1}})}
  for(const g of plan.groups){const d=decisions.texts.get(g.key);if(d)writes.push({path:'regrasInterpretacao/'+stableHash(g.key),data:{campo:g.field,texto:g.text,normalizado:norm(g.text),ocorrencias:g.count,sugestao:g.suggestion,aprovado:!!d.approved,aprovadoPor:user.uid,updatedAt:serverTimestamp(),migrationVersion:1}})}
  return writes;
