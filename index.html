@@ -1026,6 +1026,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var hasAny = !!(String(person.name || '').trim() || String(person.phone || '').trim() || String(person.turma || '').trim());
       if (!hasAny) return;
       if (!String(person.name || '').trim()) { invalid.push({ sourceRow: rowNo, name: '', issue: 'nome vazio; somente relatório, não será importado' }); return; }
+      if (String(person.turma == null ? '' : person.turma).trim() === '') invalid.push({ sourceRow: rowNo, name: person.name, issue: 'turma vazia' });
+      if (!importDateIsValid(person.date)) invalid.push({ sourceRow: rowNo, name: person.name, issue: 'data impossível/inválida' });
       if (!digits || digits.length < 10 || digits.length > 13) {
         var sameNameCurrent = currentByName.get(name) || [];
         var sameNameIncoming = (incoming || []).filter(function (candidate) { return normalizeHeader(candidate.name) === name && !!String(candidate.name || '').trim(); });
@@ -1036,8 +1038,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         if (issue.indexOf('ambíguo') === 0) ambiguous.push({ sourceRow: rowNo, name: person.name, phone: person.phone || '', issue: issue });
         return;
       }
-      if (String(person.turma == null ? '' : person.turma).trim() === '') invalid.push({ sourceRow: rowNo, name: person.name, issue: 'turma vazia' });
-      if (!importDateIsValid(person.date)) invalid.push({ sourceRow: rowNo, name: person.name, issue: 'data impossível/inválida' });
       if (seen.has(key)) { duplicateKeys.add(key); invalid.push({ sourceRow: rowNo, name: person.name, issue: 'duplicado no arquivo' }); return; }
       seen.add(key);
       var old = currentByKey.get(key);
