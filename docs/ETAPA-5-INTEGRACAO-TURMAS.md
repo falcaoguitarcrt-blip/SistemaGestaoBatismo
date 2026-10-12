@@ -9,6 +9,7 @@ Reduzir o risco de misturar registros de turmas diferentes enquanto a arquitetur
 - Filtro de turma em **Reposição de aulas**, aplicando o filtro às métricas e à lista.
 - Seletor de turma usa o registro de turmas já existente; a opção “Todas as turmas” mantém a consulta ampla.
 - Histórico visual das transferências de participantes cadastrados diretamente no sistema, incluindo turma anterior, turma seguinte e data registrada.
+- Backup JSON passa a incluir os cadastros manuais (`participantes`) e as ordens por turma (`ordensTurma`), evitando que uma exportação omita esses dados.
 - Não foram alteradas regras de segurança do Firestore nem incluídos dados pessoais no repositório.
 
 ## Limites conhecidos
