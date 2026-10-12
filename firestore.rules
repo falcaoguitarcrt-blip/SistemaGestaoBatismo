@@ -325,7 +325,7 @@ service cloud.firestore {
         && request.resource.data.arquivadaRevisao is bool
         && (!('resolvidaEm' in request.resource.data) || request.resource.data.resolvidaEm == null || request.resource.data.resolvidaEm is string || request.resource.data.resolvidaEm is timestamp)
         && request.resource.data.criadoEm is string
-        && request.resource.data.criadoPor == request.auth.uid
+        && request.resource.data.criadoPor is string
         && request.resource.data.criadoPorNome is string
         && request.resource.data.criadoPorNome.size() <= 120
         && request.resource.data.updatedAt is string
@@ -712,6 +712,7 @@ service cloud.firestore {
       allow create: if workflowCanEdit(request.resource.data.turmaId)
         && validPending()
         && request.resource.data.revision == 1
+        && request.resource.data.criadoPor == request.auth.uid
         && request.resource.data.status in ['aberta','em_contato']
         && workflowClassOpen(request.resource.data.turmaId)
         && request.resource.data.updatedBy == request.auth.uid;
@@ -720,7 +721,7 @@ service cloud.firestore {
         && request.resource.data.turmaId == resource.data.turmaId
         && request.resource.data.pessoaId == resource.data.pessoaId
         && request.resource.data.automatico == resource.data.automatico
-        && request.resource.data.autoKey == resource.data.autoKey
+        && ((!('autoKey' in request.resource.data) && !('autoKey' in resource.data)) || (('autoKey' in request.resource.data) && ('autoKey' in resource.data) && request.resource.data.autoKey == resource.data.autoKey))
         && request.resource.data.criadoEm == resource.data.criadoEm
         && request.resource.data.criadoPor == resource.data.criadoPor
         && request.resource.data.revision == (('revision' in resource.data) ? resource.data.revision + 1 : 1)
@@ -776,6 +777,7 @@ service cloud.firestore {
           && validRegistration()
           && request.resource.data.pessoaId == pessoaId
           && request.resource.data.status == 'inscrito'
+          && request.resource.data.inscritoPorUid == request.auth.uid
           && exists(aulaoPath(aulaoId))
           && get(aulaoPath(aulaoId)).data.turmaId == request.resource.data.turmaId
           && get(aulaoPath(aulaoId)).data.status == 'agendado'
@@ -805,7 +807,7 @@ service cloud.firestore {
           && get(pendingPersonPath(pessoaId)).data.turmaId == resource.data.turmaId
           && existsAfter(pendingPersonPath(pessoaId))
           && getAfter(pendingPersonPath(pessoaId)).data.updatedBy == request.auth.uid
-          && getAfter(pendingPersonPath(pessoaId)).data.revision == get(pendingPersonPath(pessoaId)).data.revision + 1
+          && getAfter(pendingPersonPath(pessoaId)).data.revision == ((('revision' in get(pendingPersonPath(pessoaId)).data) ? get(pendingPersonPath(pessoaId)).data.revision : 0) + 1)
           && aulasCompletas(getAfter(pendingPersonPath(pessoaId)).data.aulas,get(aulaoPath(aulaoId)).data.reporAulas)
           && workflowClassOpen(resource.data.turmaId);
         allow delete: if false;
