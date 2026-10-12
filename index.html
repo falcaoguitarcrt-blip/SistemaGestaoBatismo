@@ -151,7 +151,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .record-editor-actions .btn{min-width:120px}
 @media(max-width:600px){.record-editor-fields{grid-template-columns:1fr}.record-editor-card{padding:14px}.record-editor-field.wide{grid-column:auto}.record-editor-actions{flex-direction:column-reverse}.record-editor-actions .btn{width:100%}}
 /* Check-in do Dia do Batismo */
-.day-sync{position:sticky;top:0;z-index:4;padding:10px 12px;margin:-14px -14px 12px;background:#e7f5ec;color:#176b3a;font-weight:700;border-bottom:1px solid var(--ln)}
+.day-sync{position:sticky;top:var(--day-sync-top,0px);z-index:6;padding:10px 12px;margin:-14px -14px 12px;background:#e7f5ec;color:#176b3a;font-weight:700;border-bottom:1px solid var(--ln)}
+.day-write-status{font-size:12px;margin-top:5px;color:var(--mut)}.day-write-status.error{color:var(--er);font-weight:700}.day-write-status.saving{color:var(--pe);font-weight:700}
 .day-tools{display:grid;gap:8px}.day-tools input{width:100%;min-height:48px;padding:12px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
 .day-filters,.day-tools-actions{display:flex;gap:6px;flex-wrap:wrap}.day-filters button{min-height:48px;padding:8px 12px;border:1px solid var(--ln);border-radius:99px;background:var(--card);color:var(--tx);font:inherit}.day-filters button.active{background:var(--pri);color:white}
 .day-tools-actions .btn,.day-row .item-actions .btn,#dia .data-pager .btn{min-height:48px;flex:1}.day-row{align-items:center}.day-row.next-waiting{border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--card))}.day-warning{font-size:12px;color:var(--pe);margin-top:5px}
@@ -1289,9 +1290,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('order-pager').innerHTML='<button type="button" class="btn o" data-page="order:-1" '+(orderState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+orderState.page+' de '+pages+'</span><button type="button" class="btn o" data-page="order:1" '+(orderState.page>=pages?'disabled':'')+'>Próxima →</button>';
   }
 
-  var dayMarks = {}, dayFilter='todos', dayStatus={online:navigator.onLine,pending:0,ready:false}, undoTimer=null;
+  var dayMarks = {}, dayWriteState = {}, dayFilter='todos', dayStatus={online:navigator.onLine,serverConnected:null,pending:0,ready:false,error:false}, undoTimer=null;
   function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
-  function personForDay(row){if(row&&row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
+  function personForDay(row){if(!row)return null;if(row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
   function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
   function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});if(String(t.id)==='36')return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual);return manual;}
   function dayId(row){var t=String(row.__turmaId||'36'),pos=String(clean(row.id)||clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');return t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos;}
@@ -1319,10 +1320,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     rows=rows.filter(function(x){if(dayFilter==='aguardando'&&(x.s.presente||x.s.batizado))return false;if(dayFilter==='presentes'&&!x.s.presente)return false;if(dayFilter==='batizados'&&!x.s.batizado)return false;return !dayState.query||normal([x.row.name,x.row.number,x.row.note].join(' ')).includes(normal(dayState.query));});
     var next=rows.findIndex(function(x){return !x.s.presente&&!x.s.batizado;}),pages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));dayState.page=Math.min(Math.max(1,dayState.page),pages);
     var start=(dayState.page-1)*PAGE_SIZE,view=rows.slice(start,start+PAGE_SIZE);
-    document.getElementById('day-sync').textContent=!dayStatus.online?'Offline · '+dayStatus.pending+' alterações pendentes':(!dayStatus.ready||dayStatus.pending?'Sincronizando…':'Online · sincronizado');
+    document.getElementById('day-sync').textContent=dayStatus.error?'Erro ao salvar':(dayStatus.pending>0?dayStatus.pending+' alterações pendentes':(!dayStatus.ready?'Conectando ao servidor…':dayStatus.serverConnected===false?'Sem conexão com o servidor':'Sincronizado'));
     document.getElementById('day-summary').innerHTML='<div class="day-count"><b>Presentes '+pres+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?pres*100/total:0)+'%"></i></div></div><div class="day-count"><b>Batizados '+bat+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?bat*100/total:0)+'%"></i></div></div>';
     document.querySelectorAll('[data-day-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.dayFilter===dayFilter);});
-    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s;var when=function(v){return v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';};return '<div class="data-item day-row '+(next===i?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+(x.p&&hasPendingSignal(x.p)?'<div class="day-warning">Há pendência no cadastro; confirme com a equipe.</div>':'')+(s.porNome?'<div class="item-meta">Marcado por '+esc(s.porNome)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
+    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s,globalIndex=start+i,write=dayWriteState[x.id]||{},when=function(v){var d=v&&typeof v.toDate==='function'?v.toDate():new Date(v);return v&&!isNaN(d.getTime())?d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';},writeText=write.state==='saving'?'Salvando…':write.state==='error'?('Erro ao salvar: '+(write.message||'tente novamente.')):write.state==='audit-error'?'Marcação salva, mas a auditoria falhou.':write.state==='saved'?'Salvo no servidor':'';return '<div class="data-item day-row '+(next===globalIndex?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+(x.p&&hasPendingSignal(x.p)?'<div class="day-warning">Há pendência no cadastro; confirme com a equipe.</div>':'')+(s.porNome?'<div class="item-meta">Marcado por '+esc(s.porNome)+'</div>':'')+(writeText?'<div class="day-write-status '+(write.state==='error'||write.state==='audit-error'?'error':write.state==='saving'?'saving':'')+'" role="status">'+esc(writeText)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
     document.getElementById('day-pager').innerHTML='<button class="btn o" data-page="day:-1" '+(dayState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+dayState.page+' de '+pages+'</span><button class="btn o" data-page="day:1" '+(dayState.page>=pages?'disabled':'')+'>Próxima →</button>';
     document.getElementById('day-print-list').innerHTML='<h1>Lista de apoio · Dia do Batismo</h1><table><thead><tr><th>Nº</th><th>Nome</th><th>Ficha</th><th>Presente</th><th>Batizado</th><th>Observação</th></tr></thead><tbody>'+all.map(function(r){var st=dayMarks[dayId(r)]||{};return '<tr><td>'+esc(display(r.number))+'</td><td>'+esc(display(r.name))+'</td><td>'+(asBoolean(r.removed)===true?'☒':'☐')+'</td><td>'+(st.presente?'☒':'☐')+'</td><td>'+(st.batizado?'☒':'☐')+'</td><td>'+esc(display(r.note))+'</td></tr>';}).join('')+'</tbody></table>';
   }
@@ -1776,8 +1777,16 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if(checkinButton&&appData){
       if(!window.firebaseToggleDayMark){dayToast('Aguarde a conexão com o Firestore.');return;}
       var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=orderForTurma().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':'batizadoEm';
-      await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row);
-      dayToast(on?'Marcação salva'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação desfeita',async function(){await window.firebaseToggleDayMark(id,{[kind]:!!prior[kind],[timeKey]:prior[timeKey]||null},row);if(kind==='batizado'&&on&&!prior.presente)await window.firebaseToggleDayMark(id,{presente:false,presenteEm:null},row);});
+      dayWriteState[id]={state:'saving'};drawDayResults();
+      try {
+       var result=await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row,prior);
+       dayWriteState[id]=result.auditError?{state:'audit-error'}:{state:'saved'};drawDayResults();
+       if(result.auditError){dayToast('Marcação salva no servidor, mas a auditoria não foi registrada. Avise o administrador.');}
+       else dayToast(on?'Marcação salva no servidor'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação atualizada no servidor',async function(){
+        try { await window.firebaseUndoDayMark(id,prior,row,result.after);dayWriteState[id]={state:'saved'};drawDayResults();dayToast('Desfazer confirmado no servidor.'); }
+        catch(undoError){dayWriteState[id]={state:'error',message:undoError.message||'não foi possível desfazer'};drawDayResults();dayToast(undoError.message||'Não foi possível desfazer.');}
+       });
+      } catch(saveError) {dayWriteState[id]={state:'error',message:saveError.message||'verifique a conexão e tente novamente'};drawDayResults();dayToast('Não foi possível salvar no servidor: '+(saveError.message||'verifique a conexão.'));}
       return;
     }
     if(event.target.closest('[data-day-print]')){window.print();return;}
@@ -1878,7 +1887,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',
@@ -2062,16 +2071,50 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
-let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine;
+let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine, dayServerConnected=null, daySyncError=false;
 window.firebaseIsAdmin=false;
-function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,pending:dayPending.size,ready:!!ready}}));}
+function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:!!ready,error:daySyncError}}));}
 window.addEventListener('online',function(){dayOnline=true;emitDayStatus(!!dayUnsub);});
-window.addEventListener('offline',function(){dayOnline=false;emitDayStatus(!!dayUnsub);});
-window.firebaseToggleDayMark=async function(id,fields,row){
+window.addEventListener('offline',function(){dayOnline=false;dayServerConnected=false;emitDayStatus(!!dayUnsub);});
+function makeOperationId(){return (typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():String(Date.now())+'_'+Math.random().toString(36).slice(2);}
+function auditRef(){return doc(collection(firestore,'marcacoesBatismoAuditoria'));}
+function auditRecord(action,id,row,before,after,uid,nome,operationId){return {acao:action,marcacaoId:id,turmaId:String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36')),posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),quemUid:uid,quemNome:nome,quando:serverTimestamp(),antes:before||{},depois:after||{},operacaoId:operationId};}
+window.firebaseToggleDayMark=async function(id,fields,row,before){
  if(!auth.currentUser)throw new Error('Faça login para marcar.');
- const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
- const turmaId=String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36'));const data=Object.assign({turmaId:turmaId,posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields);
- dayPending.add(id);emitDayStatus(!!dayUnsub);setDoc(ref,data,{merge:true}).catch(function(error){dayPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message}}));});return true;
+ const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe',operationId=makeOperationId();
+ const turmaId=String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36'));
+ const data=Object.assign({turmaId:turmaId,posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields,{atualizadoEm:serverTimestamp(),operacaoId:operationId});
+ if(Object.prototype.hasOwnProperty.call(fields,'presenteEm')&&fields.presenteEm!==null)data.presenteEm=serverTimestamp();
+ if(Object.prototype.hasOwnProperty.call(fields,'batizadoEm')&&fields.batizadoEm!==null)data.batizadoEm=serverTimestamp();
+ dayPending.add(id);daySyncError=false;emitDayStatus(!!dayUnsub);
+ try {
+  await setDoc(ref,data,{merge:true});
+  const saved=await getDoc(ref),after=saved.exists()?saved.data():data;
+  dayPending.delete(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);
+  try { await setDoc(auditRef(),auditRecord('marcacao',id,row,before,after,uid,nome,operationId)); }
+  catch(auditError){console.error('Marcação salva, mas falhou a auditoria',auditError);return {saved:true,auditError:true,after:after};}
+  return {saved:true,auditError:false,after:after};
+ } catch(error) {
+  dayPending.delete(id);daySyncError=true;emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message}}));throw error;
+ }
+};
+window.firebaseUndoDayMark=async function(id,prior,row,expected){
+ if(!auth.currentUser)throw new Error('Faça login para desfazer.');
+ const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe',operationId=makeOperationId(),audit=auditRef();
+ dayPending.add(id);daySyncError=false;emitDayStatus(!!dayUnsub);
+ try {
+  const result=await runTransaction(firestore,async function(tx){
+   const snap=await tx.get(ref);if(!snap.exists())throw new Error('Outra pessoa alterou esta posição. O desfazer foi cancelado.');
+   const current=snap.data(),currentTime=current.atualizadoEm,expectedTime=expected&&expected.atualizadoEm;
+   const sameTime=!!currentTime&&!!expectedTime&&typeof currentTime.toMillis==='function'&&typeof expectedTime.toMillis==='function'&&currentTime.toMillis()===expectedTime.toMillis();
+   if(!expected||current.porUid!==expected.porUid||current.porUid!==uid||!sameTime||current.operacaoId!==expected.operacaoId)throw new Error('Outra pessoa alterou esta posição. O desfazer foi cancelado.');
+   const after=Object.assign({},current,prior,{porUid:uid,porNome:nome,atualizadoEm:serverTimestamp(),operacaoId:operationId});
+   tx.set(ref,after,{merge:true});tx.set(audit,auditRecord('desfazer',id,row,current,after,uid,nome,operationId));return after;
+  });
+  dayPending.delete(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);return {saved:true,after:result};
+ } catch(error) {
+  dayPending.delete(id);if((error.message||'').indexOf('Outra pessoa alterou esta posição')>=0){window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message,conflict:true}}));}else{daySyncError=true;window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message}}));}emitDayStatus(!!dayUnsub);throw error;
+ }
 };
 window.addEventListener('day-legacy-marks',async function(event){
  try {
@@ -2093,10 +2136,10 @@ function startDayListener(user){
  if(dayUnsub)dayUnsub();
  const q=query(collection(firestore,'marcacoesBatismo'));
  dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
-  const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites)dayPending.add(d.id);});
-  dayOnline=navigator.onLine;
-  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,pending:dayPending.size,ready:true}}}));
- },function(e){console.error(e);});
+  const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites){dayPending.add(d.id);dayWriteState[d.id]={state:'saving'};}});
+  dayOnline=navigator.onLine;dayServerConnected=!snap.metadata.fromCache;daySyncError=false;
+  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:true,error:false}}}));
+ },function(e){console.error(e);dayServerConnected=false;daySyncError=true;emitDayStatus(!!dayUnsub);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:'Não foi possível conectar ao servidor: '+e.message}}));});
  user.getIdTokenResult().then(function(t){window.firebaseIsAdmin=t.claims.admin===true;window.dispatchEvent(new Event('firebase-admin-status'));}).catch(function(){});
 }
 
