@@ -3075,18 +3075,18 @@ async function workflowApplyAuto(id,pendingId,desired,classStatus){
    if(!cause||person.turmaId!==id||!workflowCanEdit(id))return;
    const now=new Date().toISOString(),record={turmaId:id,pessoaId:actualPersonId,tipo:cause.tipo,responsavel:'',prazo:'',status:'aberta',notas:cause.notas,automatico:true,autoKey:cause.autoKey,autoClosed:false,arquivadaRevisao:false,criadoEm:now,criadoPor:auth.currentUser.uid,criadoPorNome:workflowActor(),updatedAt:now,updatedBy:auth.currentUser.uid,revision:1};
    tx.set(ref,record);
-   workflowAudit(tx,'pendencia_automatica_criada','pendencias/'+pendingId,id,actualPersonId,null,1,[{campo:'status',valorAntigo:null,valorNovo:'aberta'},{campo:'tipo',valorAntigo:null,valorNovo:cause.tipo},{campo:'notas',valorAntigo:null,valorNovo:cause.notas}]);return;
+   workflowAudit(tx,'pendencia_automatica_criada','pendencias/'+pendingId,id,actualPersonId,null,1,[{campo:'status',valorAntigo:null,valorNovo:'aberta'},{campo:'tipo',valorAntigo:null,valorNovo:cause.tipo},{campo:'notas',valorAntigo:null,valorNovo:cause.notas},{campo:'automatico',valorAntigo:null,valorNovo:true}]);return;
   }
   const current=pendingSnap.data();
   if(current.turmaId!==id||current.automatico!==true||current.pessoaId!==actualPersonId)return;
   const now=new Date().toISOString(),rev=workflowRevision(current)+1;
   if(!cause&&(current.status==='aberta'||current.status==='em_contato')){
    tx.update(ref,{status:'resolvida',resolvidaEm:now,autoClosed:true,updatedAt:now,updatedBy:auth.currentUser.uid,revision:rev});
-   workflowAudit(tx,'pendencia_automatica_resolvida','pendencias/'+pendingId,id,actualPersonId,null,rev,[{campo:'status',valorAntigo:current.status,valorNovo:'resolvida'},{campo:'autoClosed',valorAntigo:false,valorNovo:true}]);return;
+   workflowAudit(tx,'pendencia_automatica_resolvida','pendencias/'+pendingId,id,actualPersonId,null,rev,[{campo:'status',valorAntigo:current.status,valorNovo:'resolvida'},{campo:'autoClosed',valorAntigo:false,valorNovo:true},{campo:'resolvidaEm',valorAntigo:current.resolvidaEm||null,valorNovo:now}]);return;
   }
   if(cause&&current.autoClosed===true&&current.status==='resolvida'){
    tx.update(ref,{tipo:cause.tipo,status:'aberta',notas:cause.notas,resolvidaEm:null,autoClosed:false,arquivadaRevisao:false,updatedAt:now,updatedBy:auth.currentUser.uid,revision:rev});
-   workflowAudit(tx,'pendencia_automatica_reaberta','pendencias/'+pendingId,id,actualPersonId,null,rev,[{campo:'status',valorAntigo:'resolvida',valorNovo:'aberta'}]);
+   workflowAudit(tx,'pendencia_automatica_reaberta','pendencias/'+pendingId,id,actualPersonId,null,rev,[{campo:'status',valorAntigo:'resolvida',valorNovo:'aberta'},{campo:'tipo',valorAntigo:current.tipo,valorNovo:cause.tipo},{campo:'notas',valorAntigo:current.notas,valorNovo:cause.notas},{campo:'autoClosed',valorAntigo:true,valorNovo:false},{campo:'resolvidaEm',valorAntigo:current.resolvidaEm||null,valorNovo:null}]);
   }
  });
 }
@@ -3164,7 +3164,7 @@ window.firebaseWorkApi={
    if(!cls.exists()||cls.data().status==='encerrada')throw workflowError('Esta turma está encerrada ou não existe.');
    if(!person.exists()||person.data().turmaId!==turmaId)throw workflowError('Escolha uma pessoa desta turma.');
    const now=new Date().toISOString(),record={turmaId:turmaId,pessoaId:pessoaId,tipo:String(data.tipo||'Outro').trim(),responsavel:String(data.responsavel||'').trim(),prazo:String(data.prazo||''),status:'aberta',notas:String(data.notas||'').trim(),automatico:false,autoClosed:false,arquivadaRevisao:false,criadoEm:now,criadoPor:auth.currentUser.uid,criadoPorNome:workflowActor(),updatedAt:now,updatedBy:auth.currentUser.uid,revision:1};
-   tx.set(ref,record);workflowAudit(tx,'pendencia_criada','pendencias/'+ref.id,turmaId,pessoaId,null,1,[{campo:'status',valorAntigo:null,valorNovo:'aberta'},{campo:'tipo',valorAntigo:null,valorNovo:record.tipo},{campo:'notas',valorAntigo:null,valorNovo:record.notas}]);return {id:ref.id};
+   tx.set(ref,record);workflowAudit(tx,'pendencia_criada','pendencias/'+ref.id,turmaId,pessoaId,null,1,[{campo:'status',valorAntigo:null,valorNovo:'aberta'},{campo:'tipo',valorAntigo:null,valorNovo:record.tipo},{campo:'responsavel',valorAntigo:null,valorNovo:record.responsavel},{campo:'prazo',valorAntigo:null,valorNovo:record.prazo},{campo:'notas',valorAntigo:null,valorNovo:record.notas}]);return {id:ref.id};
   });
  },
  updatePending:function(id,patch,expectedRevision){
@@ -3199,7 +3199,7 @@ window.firebaseWorkApi={
    if(id&&Number(input.vagas)<Number(old.inscritosCount||0))throw workflowError('As vagas não podem ficar abaixo das inscrições existentes.');
    const now=new Date().toISOString(),rev=id?workflowRevision(old)+1:1,record={turmaId:turmaId,data:String(input.data),hora:String(input.hora),local:String(input.local).trim(),vagas:Math.floor(Number(input.vagas)),reporAulas:lessons,inscritosCount:id?Number(old.inscritosCount||0):0,status:id?(old.status||'agendado'):'agendado',lastRegistrationPessoaId:id?(old.lastRegistrationPessoaId||null):null,revision:rev,createdAt:id?old.createdAt:now,createdBy:id?old.createdBy:auth.currentUser.uid,updatedAt:now,updatedBy:auth.currentUser.uid};
    tx.set(ref,record);
-   workflowAudit(tx,id?'aulao_atualizado':'aulao_criado','auloes/'+ref.id,turmaId,null,ref.id,rev,[{campo:'data',valorAntigo:old.data||null,valorNovo:record.data},{campo:'vagas',valorAntigo:old.vagas||null,valorNovo:record.vagas},{campo:'reporAulas',valorAntigo:old.reporAulas||null,valorNovo:lessons}]);return {id:ref.id,revision:rev};
+   workflowAudit(tx,id?'aulao_atualizado':'aulao_criado','auloes/'+ref.id,turmaId,null,ref.id,rev,[{campo:'data',valorAntigo:old.data||null,valorNovo:record.data},{campo:'hora',valorAntigo:old.hora||null,valorNovo:record.hora},{campo:'local',valorAntigo:old.local||null,valorNovo:record.local},{campo:'vagas',valorAntigo:old.vagas||null,valorNovo:record.vagas},{campo:'reporAulas',valorAntigo:old.reporAulas||null,valorNovo:lessons},{campo:'status',valorAntigo:old.status||null,valorNovo:record.status}]);return {id:ref.id,revision:rev};
   });
  },
  enroll:function(aulaoId,pessoaId){
@@ -3274,7 +3274,7 @@ window.firebaseWorkApi={
    const snap=await tx.get(ref),old=snap.exists()?snap.data():{},rev=workflowRevision(old)+1,now=new Date().toISOString();
    const next={valorCamiseta:price,tamanhosCamiseta:sizes,tiposPendencia:types,mensagemPendencia:messages.mensagemPendencia,mensagemReposicao:messages.mensagemReposicao,mensagemCamiseta:messages.mensagemCamiseta,revision:rev,updatedAt:now,updatedBy:auth.currentUser.uid};
    tx.set(ref,next);
-   workflowAudit(tx,'configuracao_atualizada','configuracoes/ferramentas',null,null,null,rev,[{campo:'valorCamiseta',valorAntigo:old.valorCamiseta||0,valorNovo:price},{campo:'tamanhosCamiseta',valorAntigo:old.tamanhosCamiseta||[],valorNovo:sizes},{campo:'tiposPendencia',valorAntigo:old.tiposPendencia||[],valorNovo:types}]);return {revision:rev};
+   workflowAudit(tx,'configuracao_atualizada','configuracoes/ferramentas',null,null,null,rev,[{campo:'valorCamiseta',valorAntigo:old.valorCamiseta||0,valorNovo:price},{campo:'tamanhosCamiseta',valorAntigo:old.tamanhosCamiseta||[],valorNovo:sizes},{campo:'tiposPendencia',valorAntigo:old.tiposPendencia||[],valorNovo:types},{campo:'mensagemPendencia',valorAntigo:old.mensagemPendencia||'',valorNovo:messages.mensagemPendencia},{campo:'mensagemReposicao',valorAntigo:old.mensagemReposicao||'',valorNovo:messages.mensagemReposicao},{campo:'mensagemCamiseta',valorAntigo:old.mensagemCamiseta||'',valorNovo:messages.mensagemCamiseta}]);return {revision:rev};
   });
  }
 };
