@@ -6,10 +6,12 @@ Adicionar uma verificação repetível para detectar erros de sintaxe nos script
 ## Implementado
 - Script `scripts/check-inline-scripts.mjs` que extrai os scripts inline do HTML e executa `node --check` com extensão apropriada para script clássico ou módulo.
 - GitHub Actions em `.github/workflows/validate-inline-scripts.yml`, executada em pull requests e pushes para `main` ou branches `feature/etapa-*`.
+- Teste estrutural `scripts/check-multiturma-contract.mjs` para proteger os principais contratos de integração e os campos obrigatórios do backup JSON.
 
 ## O que essa verificação cobre
 - Erros de sintaxe nos scripts inline do arquivo principal.
 - Garante que os scripts inline sejam encontrados e que falhas resultem em status não zero.
+- Confere a presença de seletores, persistência, histórico e campos de backup necessários à operação multi-turma.
 
 ## O que não cobre
 - Não executa a aplicação num navegador real.
