@@ -58,6 +58,8 @@ service cloud.firestore {
         && (!('idade' in request.resource.data) || request.resource.data.idade == null || request.resource.data.idade is int)
         && (!('menor' in request.resource.data) || request.resource.data.menor == null || request.resource.data.menor is bool)
         && (!('revision' in request.resource.data) || request.resource.data.revision is int)
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy is string)
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is string || request.resource.data.updatedAt is timestamp)
         && (!('jornada' in request.resource.data) || (request.resource.data.jornada is map
           && request.resource.data.jornada.keys().hasOnly(['status','arquivadaRevisao'])
           && request.resource.data.jornada.status is string))
@@ -85,13 +87,15 @@ service cloud.firestore {
       return request.resource.data.keys().hasOnly(['telefone','responsavelNome','responsavelTelefone','updatedAt','updatedBy'])
         && (!('telefone' in request.resource.data) || request.resource.data.telefone == null || request.resource.data.telefone is string)
         && (!('responsavelNome' in request.resource.data) || request.resource.data.responsavelNome == null || request.resource.data.responsavelNome is string)
-        && (!('responsavelTelefone' in request.resource.data) || request.resource.data.responsavelTelefone == null || request.resource.data.responsavelTelefone is string);
+        && (!('responsavelTelefone' in request.resource.data) || request.resource.data.responsavelTelefone == null || request.resource.data.responsavelTelefone is string)
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid);
     }
     function validPrivateProfile() {
       return request.resource.data.keys().hasOnly(['verificacaoPerfil','observacoesRestritas','observacoes','updatedAt','updatedBy'])
         && (!('verificacaoPerfil' in request.resource.data) || request.resource.data.verificacaoPerfil == null || request.resource.data.verificacaoPerfil is string)
         && (!('observacoesRestritas' in request.resource.data) || request.resource.data.observacoesRestritas == null || request.resource.data.observacoesRestritas is string)
-        && (!('observacoes' in request.resource.data) || request.resource.data.observacoes == null || request.resource.data.observacoes is string);
+        && (!('observacoes' in request.resource.data) || request.resource.data.observacoes == null || request.resource.data.observacoes is string)
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid);
     }
     function validPrivateOrigin() {
       return request.resource.data.keys().hasOnly([
@@ -161,8 +165,13 @@ service cloud.firestore {
       // Voluntários não consultam Pessoas. Líderes recebem só sua turma no app.
       allow read: if staffRead() || leaderOwnsTurma(resource.data.turmaId);
       allow create: if validPersonRoot()
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid)
+        && (!('revision' in request.resource.data) || request.resource.data.revision == 1)
         && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId));
       allow update: if validPersonRoot()
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.revision is int
+        && request.resource.data.revision == (('revision' in resource.data) ? resource.data.revision + 1 : 1)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'turmaId','nomeExibicao','nomeBusca','telefone','telefoneValido','telefoneRevisar',
           'responsavelInformado','idade','faixaEtaria','menor','jornada','aulas','aulao',
