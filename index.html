@@ -788,6 +788,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       generalUnmapped: generalUnmapped,
       skippedDuplicateHeaders: skippedDuplicateHeaders,
       checkin: {},
+      turmas: (appData && Array.isArray(appData.turmas) ? appData.turmas : []),
+      turmaPadrao: appData && appData.turmaPadrao ? appData.turmaPadrao : '',
+      participantes: (appData && Array.isArray(appData.participantes) ? appData.participantes : []),
       sourceSheetNames: selectedSheetNames.slice()
     };
   }
