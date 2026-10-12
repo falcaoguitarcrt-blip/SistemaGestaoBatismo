@@ -1725,7 +1725,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   function buildTurmas() {
     if (!appData) return;
-    ensureTurmaRegistry(appData);
+    ensureTurmaRegistry(appData, true); // exibição da lista não muda turmaPadrao.
     var host = document.getElementById('turma-list');
     if (!host) return;
     host.innerHTML = (appData.turmas || []).map(function (t) {
