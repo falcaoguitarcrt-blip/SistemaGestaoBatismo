@@ -105,6 +105,9 @@ assert.ok(html.includes('A sugestão não será aplicada sem sua confirmação e
 assert.ok(html.includes("pendingImport.ordemTurmaId = turmaId"), 'ordemTurmaId só entra no payload após confirmação explícita');
 assert.ok(html.includes("if (Object.prototype.hasOwnProperty.call(payload, 'ordemTurmaId'))"), 'não persistir ordemTurmaId em workspaces antigos sem o campo');
 assert.ok(html.includes("var turmaAtual = String(appData.turmaPadrao || '36')"), 'Home deve seguir turmaPadrao');
+assert.ok(html.includes('ensureTurmaRegistry(pendingImport, true)'), 'a importação deve registrar a turma sem alterar turmaPadrao');
+assert.ok(html.includes('ensureTurmaRegistry(appData, true)'), 'a renderização não deve trocar turmaPadrao automaticamente');
+assert.ok(html.includes("Object.prototype.hasOwnProperty.call(payload, 'turmaPadrao') ? String(payload.turmaPadrao || '') : '36'"), 'metadados devem preservar turmaPadrao vazio/definido sem inventar valor durante importação');
 assert.ok(html.includes("if(String(workspace.ordemTurmaId || '36')!=='36')return;"), 'migração legada não pode rodar para outra turma');
 assert.equal(h.turmaDateSummary({}), '', 'sem dataBatismo não deve mostrar contagem regressiva');
 const futureDateSummary = h.turmaDateSummary({ dataBatismo: '2099-01-01' }, new Date('2098-12-31T23:30:00-03:00'));
