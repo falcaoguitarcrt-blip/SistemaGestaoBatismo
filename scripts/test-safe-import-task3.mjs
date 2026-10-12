@@ -9,13 +9,13 @@ assert.ok(start >= 0 && end > start, 'helpers de importação segura devem exist
 const helpers = html.slice(start, end) + '\nglobalThis.testHelpers = { EXPECTED_BAPTISM_HEADERS, EXPECTED_ORDER_HEADERS, normalizeHeader, validateExpectedHeaders, isRepeatedHeaderRow, importPersonKey, nextImportSourceRow, importDateIsValid, inspectImportRows, mergeImportWorkspace, restoreVersionAsNewVersion };';
 const context = {
   Date, Map, Set, Number, String, Object, Array, Math, isNaN,
-  normal: value => value == null ? '' : String(value).trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\\u0300-\\u036f]/g, ''),
+  normal: value => value == null ? '' : String(value).trim().toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, ''),
   clean: value => value == null ? '' : String(value).trim()
 };
 vm.runInNewContext(helpers, context, { filename: 'safe-import-helpers.mjs' });
 const h = context.testHelpers;
 
-// Variações de cabeçalho: caixa, acentos, pontuação, espaços repetidos e coluna extra no fim.
+// Caixa, acentos, pontuação, espaços repetidos, aliases e coluna extra no final.
 const variedHeaders = [
   '  NÔME!! ', 'IDADE', ' Telefone ', 'TURMA', 'DATA   DO BATISMO',
   'JORNADA', 'AULA', 'GRUPO', 'TAMANHO-CAMISETA', 'CAMISETA PAGA',
@@ -26,23 +26,23 @@ const mapped = h.validateExpectedHeaders([variedHeaders, row], h.EXPECTED_BAPTIS
 assert.equal(mapped[1][0], 'Maria');
 assert.equal(mapped[1][8], 'M');
 assert.equal(mapped[1][13], 'Adulto');
-assert.equal(mapped[1][14], 'extra', 'coluna extra no final é preservada sem deslocar campos esperados');
+assert.equal(mapped[1][14], 'extra', 'coluna extra no fim não desloca os campos esperados');
 assert.equal(h.normalizeHeader('  PÊNDENCIA---S  '), 'pendencia s');
-assert.ok(h.isRepeatedHeaderRow(mapped[0], h.EXPECTED_BAPTISM_HEADERS), 'linha repetida de cabeçalho deve ser ignorada');
+assert.ok(h.isRepeatedHeaderRow(mapped[0], h.EXPECTED_BAPTISM_HEADERS), 'cabeçalho repetido deve ser ignorado');
 
-// Só falta de coluna obrigatória bloqueia, e a mensagem lista todas as colunas encontradas.
+// Só bloqueia por coluna obrigatória ausente e lista TODAS as colunas encontradas.
 assert.throws(
   () => h.validateExpectedHeaders([['NOME', 'Idade', 'Telefone', 'EXTRA']], h.EXPECTED_BAPTISM_HEADERS, 'Batismo'),
   error => error.message.includes('coluna 4 esperada "turma"') &&
     error.message.includes('Colunas encontradas: 1: NOME; 2: Idade; 3: Telefone; 4: EXTRA')
 );
 
-// Chave só existe com telefone de 10 a 13 dígitos, após retirar pontuação.
+// Telefone vazio/curto não é chave; nome normalizado e telefone válido geram chave.
 assert.equal(h.importPersonKey({ name: 'João Ávila', phone: '(16) 99999-1111' }), 'joao avila|16999991111');
 assert.equal(h.importPersonKey({ name: 'João Ávila', phone: '' }), '');
 assert.equal(h.importPersonKey({ name: 'João Ávila', phone: '12345' }), '');
 
-// Add/update is idempotent, explicit-only, does not clear fields, and preserves sourceRow.
+// Adicionar/atualizar: sem seleção explícita não altera campo; célula vazia nunca limpa.
 const current = { people: [
   { sourceRow: 10, name: 'Ana Souza', phone: '(16) 99999-0000', turma: '36', age: 25, group: 'GE' },
   { sourceRow: 30, name: 'Bruno Lima', phone: '(16) 98888-1111', turma: '36', age: 31 }
@@ -54,26 +54,26 @@ const incoming = { people: [
 const preview = h.inspectImportRows(incoming.people, current.people);
 assert.equal(preview.changed.length, 1);
 assert.ok(preview.changed[0].diffs.some(d => d.field === 'age'));
-assert.ok(!preview.changed[0].diffs.some(d => d.field === 'group'), 'campo vazio não propõe apagar valor existente');
+assert.ok(!preview.changed[0].diffs.some(d => d.field === 'group'), 'valor vazio não é diferença que apaga');
 const first = h.mergeImportWorkspace(current, incoming, []);
-assert.equal(first.workspace.people.length, 3, 'cadastros ausentes no arquivo permanecem na base');
-assert.equal(first.workspace.people.find(p => p.name === 'Ana Souza').age, 25, 'sem marcação explícita nenhum campo existente muda');
-assert.equal(first.workspace.people.find(p => p.name === 'Ana Souza').group, 'GE', 'célula vazia nunca limpa campo existente');
+assert.equal(first.workspace.people.length, 3, 'cadastros ausentes permanecem na base');
+assert.equal(first.workspace.people.find(p => p.name === 'Ana Souza').age, 25, 'sem marcar campo não altera existente');
+assert.equal(first.workspace.people.find(p => p.name === 'Ana Souza').group, 'GE', 'célula vazia nunca apaga');
 assert.equal(first.workspace.people.find(p => p.name === 'Ana Souza').sourceRow, 10, 'sourceRow existente não é renumerado');
-assert.equal(first.workspace.people.find(p => p.name === 'Bruno Lima').sourceRow, 30, 'sourceRow de cadastro ausente permanece intacto');
+assert.equal(first.workspace.people.find(p => p.name === 'Bruno Lima').sourceRow, 30, 'sourceRow ausente no arquivo é preservado');
 const carla = first.workspace.people.find(p => p.name === 'Carla Dias');
-assert.equal(carla.sourceRow, 31, 'pessoa nova recebe sourceRow maior que o máximo existente, não reutiliza a linha do Excel');
+assert.equal(carla.sourceRow, 31, 'novo sourceRow é maior que o máximo atual, sem reutilizar linha do Excel');
 assert.notEqual(carla.sourceRow, 10);
 assert.notEqual(carla.sourceRow, 30);
 const second = h.mergeImportWorkspace(first.workspace, incoming, []);
-assert.equal(second.workspace.people.length, 3, 'importar o mesmo arquivo de novo não duplica pessoas');
-assert.equal(second.report.imported, 0, 'segunda importação não adiciona pessoas repetidas');
-assert.equal(second.workspace.people.find(p => p.name === 'Carla Dias').sourceRow, 31, 'sourceRow não muda na reimportação');
+assert.equal(second.workspace.people.length, 3, 'reimportar não duplica');
+assert.equal(second.report.imported, 0);
+assert.equal(second.workspace.people.find(p => p.name === 'Carla Dias').sourceRow, 31, 'sourceRow da pessoa nova não muda na reimportação');
 const explicit = h.mergeImportWorkspace(current, incoming, ['age']);
-assert.equal(explicit.workspace.people.find(p => p.name === 'Ana Souza').age, 26, 'campo marcado explicitamente pode ser atualizado');
+assert.equal(explicit.workspace.people.find(p => p.name === 'Ana Souza').age, 26, 'campo selecionado explicitamente é atualizado');
 assert.equal(explicit.workspace.people.find(p => p.name === 'Ana Souza').group, 'GE');
 
-// Homônimos sem telefone são ambíguos e não são mesclados; linhas sem nome ficam fora da base.
+// Homônimos sem telefone válido ficam ambíguos; linhas sem nome nunca entram na base.
 const ambiguousPreview = h.inspectImportRows([
   { sourceRow: 2, name: 'João Silva', phone: '', turma: '36' },
   { sourceRow: 3, name: 'Joao Silva', phone: '1234', turma: '36' },
@@ -81,14 +81,14 @@ const ambiguousPreview = h.inspectImportRows([
 ], [
   { sourceRow: 7, name: 'João Silva', phone: '(16) 99999-7777', turma: '36' }
 ]);
-assert.ok(ambiguousPreview.ambiguous.length >= 2, 'homônimos sem telefone válido devem aparecer como ambíguos');
+assert.ok(ambiguousPreview.ambiguous.length >= 2);
 assert.ok(ambiguousPreview.invalid.some(x => x.issue.includes('nome vazio')));
 const noPhoneMerge = h.mergeImportWorkspace({ people: [{ sourceRow: 7, name: 'João Silva', phone: '(16) 99999-7777' }] }, {
   people: [{ sourceRow: 2, name: 'João Silva', phone: '', turma: '36' }, { sourceRow: 3, name: '', phone: '', turma: '36' }]
 }, ['name', 'phone']);
-assert.equal(noPhoneMerge.workspace.people.length, 1, 'homônimo sem telefone e linha sem nome nunca são mesclados/adicionados automaticamente');
+assert.equal(noPhoneMerge.workspace.people.length, 1, 'homônimo sem telefone e linha sem nome não são mesclados/adicionados');
 
-// Prévia também detecta duplicidade, telefone inválido, turma vazia e data impossível.
+// Duplicatas, data impossível, telefone curto e turma vazia aparecem na prévia.
 const inspected = h.inspectImportRows([
   { sourceRow: 2, name: 'Ana Souza', phone: '(16) 99999-0000', turma: '36', date: '31/02/2026' },
   { sourceRow: 3, name: 'Ana Souza', phone: '(16) 99999-0000', turma: '36', date: '2026-10-12' },
@@ -99,7 +99,7 @@ assert.ok(inspected.invalid.some(x => x.issue === 'duplicado no arquivo'));
 assert.ok(inspected.invalid.some(x => x.issue.includes('telefone vazio/curto')));
 assert.ok(inspected.invalid.some(x => x.issue === 'turma vazia'));
 
-// Restore-as-new-version is mockable and must never call a delete operation.
+// Restauração mockada salva como nova versão, sem apagar a anterior.
 let savedPayload = null, createVersionFlag = false;
 const restored = await h.restoreVersionAsNewVersion(
   'version-old',
@@ -113,15 +113,15 @@ assert.equal(savedPayload.importedAt, '2026-10-12T18:00:00.000Z');
 assert.ok(!Object.prototype.hasOwnProperty.call(savedPayload, 'sourceWorkbook'));
 assert.equal(restored.people[0].name, 'Histórico');
 
-// Order protections, accessible focus handling, SRI and safe error reporting stay in place.
+// Fluxo da ordem, diálogo acessível, erro legível e dependência fixada.
 assert.ok(html.includes("validateExpectedHeaders(mainRows, EXPECTED_BAPTISM_HEADERS"));
 assert.ok(html.includes("validateExpectedHeaders(orderRows, EXPECTED_ORDER_HEADERS"));
 assert.ok(html.includes('import-order-turma-select') && html.includes('confirmedImportOrderTurmaId'));
 assert.ok(html.includes('firebaseHasMarksForTurma'));
 assert.ok(html.includes('download-prior-order-closure') && html.includes('prior-order-closure-already-saved'));
-assert.ok(html.includes("!closureSatisfied"));
+assert.ok(html.includes('!closureSatisfied'));
 assert.ok(html.includes("querySelectorAll('button:not([disabled]), input:not([disabled])"));
-assert.ok(html.includes('document.contains(origin) && origin.focus'));
+assert.ok(html.includes("document.contains(origin)) origin.focus()"));
 assert.ok(html.includes('Falha ao ler o Excel:'));
 assert.ok(html.includes('Nenhum dado foi alterado. O login e o check-in continuam disponíveis.'));
 assert.ok(html.includes('function assertWorkspaceVersion(tx, metaRef, expectedVersionId)'));
@@ -130,8 +130,8 @@ assert.ok(html.includes('integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN
 assert.ok(!html.includes('window.confirm('));
 assert.ok(!html.includes('window.alert('));
 
-console.log('OK: aliases, caixa, acentos, pontuação, espaços, colunas extras e cabeçalho repetido.');
+console.log('OK: caixa, acentos, pontuação, espaços, aliases, coluna extra e cabeçalho repetido.');
 console.log('OK: telefone vazio/curto não forma chave; homônimos ambíguos e linhas sem nome não são mesclados.');
-console.log('OK: nenhum campo muda por padrão; célula vazia não apaga; sourceRow é monotônico e preservado.');
-console.log('OK: confirmação da turma, bloqueio por marcações, fechamento da ordem e CAS preservados.');
-console.log('OK: foco preso/devolvido, erro legível de Excel, SRI e dependência fixada.');
+console.log('OK: nenhum campo muda por padrão; campo vazio não apaga; sourceRow monotônico e preservado.');
+console.log('OK: escolha de turma, bloqueio por marcações, fechamento obrigatório e CAS preservados.');
+console.log('OK: foco preso/devolvido, erro de Excel legível, SRI e SheetJS fixado.');
