@@ -1706,7 +1706,12 @@ async function saveCloudWorkspace(payload, createVersion) {
   const rawNames = Object.keys(payload.rawSheets || {});
   rawNames.forEach(function (sheetName, sheetIndex) {
     const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
-    chunks.push.apply(chunks, chunkItems('rawSheet', rows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
+    // Firestore rejects nested arrays. Store each worksheet row as an object with one flat cell array.
+    const firestoreRows = rows.map(function (row, rowIndex) {
+      const cells = Array.isArray(row) ? row : [];
+      return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
+    });
+    chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
   });
   const chunksRef = versionChunksRef(versionId);
   await writeInBatches(chunks.map(function (item) {
@@ -1761,7 +1766,13 @@ async function loadCloudWorkspace() {
   pieces.forEach(function (piece) {
     if (piece.section === 'rawSheet') {
       if (!workspace.rawSheets[piece.sheetName]) workspace.rawSheets[piece.sheetName] = [];
-      workspace.rawSheets[piece.sheetName].push.apply(workspace.rawSheets[piece.sheetName], piece.items || []);
+      const rows = (piece.items || []).map(function (item) {
+        // Accept both the row-object format and any older flat-row chunks.
+        if (Array.isArray(item)) return item;
+        if (item && Array.isArray(item.cells)) return item.cells.slice(0, Number.isInteger(item.length) ? item.length : item.cells.length);
+        return [];
+      });
+      workspace.rawSheets[piece.sheetName].push.apply(workspace.rawSheets[piece.sheetName], rows);
     } else if (Array.isArray(workspace[piece.section])) {
       workspace[piece.section].push.apply(workspace[piece.section], piece.items || []);
     }
