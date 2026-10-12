@@ -567,12 +567,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function safeClosureCsvCell(value) {
     var text = value == null ? '' : String(value);
     // Neutraliza fórmulas em planilhas; também protege quando há espaços iniciais.
-    if (/^\\s*[=+@-]/.test(text)) text = "'" + text;
+    if (/^\s*[=+@-]/.test(text)) text = "'" + text;
     return '"' + text.replace(/"/g, '""').replace(/\r\n|\r|\n/g, '\r\n') + '"';
   }
 
   function buildClosureCsv(headers, rows) {
-    return '\\uFEFF' + [headers].concat(rows.map(function (row) {
+    return '\uFEFF' + [headers].concat(rows.map(function (row) {
       return headers.map(function (key) {
         var value = row[key];
         return key === 'presenteEm' || key === 'batizadoEm'
@@ -581,7 +581,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       });
     })).map(function (values) {
       return values.map(safeClosureCsvCell).join(';');
-    }).join('\\r\\n');
+    }).join('\r\n');
   }
 
   function workspaceOrderTurmaId(workspace) {
