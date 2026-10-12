@@ -132,6 +132,20 @@ service cloud.firestore {
         'origem','idadeOriginal','dataOriginal','camposOriginais','updatedAt','migrationVersion'
       ]);
     }
+    function linkedPersonAudit() {
+      let personPath = /databases/$(database)/documents/pessoas/$(request.resource.data.pessoaId);
+      let current = get(personPath);
+      let afterState = getAfter(personPath);
+      return request.resource.data.pessoaId is string
+        && request.resource.data.pessoaId.size() <= 150
+        && request.resource.data.documento == 'pessoas/' + request.resource.data.pessoaId
+        && request.resource.data.revision is int
+        && existsAfter(personPath)
+        && afterState.data.revision == request.resource.data.revision
+        && ((!exists(personPath) && request.resource.data.revision == 1)
+          || (exists(personPath)
+            && request.resource.data.revision == (('revision' in current.data) ? current.data.revision + 1 : 1)));
+    }
     function validAudit() {
       return request.resource.data.uid == request.auth.uid
         && request.resource.data.acao is string
@@ -149,14 +163,18 @@ service cloud.firestore {
             && request.resource.data.camposNovos is list)
           ||
           (request.resource.data.keys().hasOnly([
-            'acao','documento','uid','porNome','quando','alteracoes',
+            'acao','documento','pessoaId','revision','uid','porNome','quando','alteracoes',
             'migrationId','email','criadoEm'
           ])
             && request.resource.data.documento is string
             && request.resource.data.documento.size() <= 512
             && request.resource.data.alteracoes is list
             && request.resource.data.alteracoes.size() <= 100
-            && (!('porNome' in request.resource.data) || (request.resource.data.porNome is string && request.resource.data.porNome.size() <= 120)))
+            && request.resource.data.pessoaId is string
+            && request.resource.data.revision is int
+            && request.resource.data.porNome is string
+            && request.resource.data.porNome.size() <= 120
+            && (admin() || linkedPersonAudit()))
         );
     }
 
