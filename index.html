@@ -1638,7 +1638,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var checkinButton = event.target.closest('[data-checkin][data-checkin-id]');
     if(checkinButton&&appData){
       if(!window.firebaseToggleDayMark){dayToast('Aguarde a conexão com o Firestore.');return;}
-      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=(appData.order||[]).find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':'batizadoEm';
+      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=orderForTurma().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':'batizadoEm';
       await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row);
       dayToast(on?'Marcação salva'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação desfeita',async function(){await window.firebaseToggleDayMark(id,{[kind]:!!prior[kind],[timeKey]:prior[timeKey]||null},row);if(kind==='batizado'&&on&&!prior.presente)await window.firebaseToggleDayMark(id,{presente:false,presenteEm:null},row);});
       return;
