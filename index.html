@@ -1927,20 +1927,23 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     setImportMessage('Rechecando marcações no servidor antes de importar…');
     try {
       var hasMarksImmediatelyBeforeSave = await window.firebaseHasMarksForTurma(targetTurmaId);
-      if (hasMarksImmediatelyBeforeSave && !(marksInput && marksInput.value.trim() === targetTurmaId)) {
-        if (marksWrap) marksWrap.hidden = false;
-        if (marksInput) marksInput.focus();
-        setImportMessage('A rechecagem encontrou marcações nesta turma. Nenhuma importação foi feita. Digite exatamente ' + targetTurmaId + ' e confirme novamente.', 'error');
-        return;
-      }
       if (hasMarksImmediatelyBeforeSave && !hasExistingMarks) {
         if (marksWrap) marksWrap.hidden = false;
         if (marksInput) marksInput.focus();
         setImportMessage('Foram encontradas marcações novas desde a primeira checagem. Revise-as e digite exatamente ' + targetTurmaId + ' para confirmar antes de importar.', 'error');
+        button.disabled = false;
+        return;
+      }
+      if (hasMarksImmediatelyBeforeSave && !(marksInput && marksInput.value.trim() === targetTurmaId)) {
+        if (marksWrap) marksWrap.hidden = false;
+        if (marksInput) marksInput.focus();
+        setImportMessage('A rechecagem encontrou marcações nesta turma. Nenhuma importação foi feita. Digite exatamente ' + targetTurmaId + ' e confirme novamente.', 'error');
+        button.disabled = false;
         return;
       }
     } catch (recheckError) {
       setImportMessage('Não foi possível revalidar as marcações imediatamente antes do salvamento. Importação bloqueada. ' + (recheckError.message || ''), 'error');
+      button.disabled = false;
       return;
     }
     setImportMessage('Enviando os registros ao Firebase e salvando a cópia local…');
