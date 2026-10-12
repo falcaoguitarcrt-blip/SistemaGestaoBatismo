@@ -1784,7 +1784,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
        var restore=Object.assign({},prior,{[kind]:!!prior[kind],[timeKey]:prior[timeKey]||null});if(kind==='batizado'&&on&&!prior.presente){restore.presente=false;restore.presenteEm=null;}
        if(result.auditError){dayToast('Marcação salva no servidor, mas a auditoria não foi registrada. Avise o administrador.');}
        else dayToast(on?'Marcação salva no servidor'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação atualizada no servidor',async function(){
-        try { await window.firebaseUndoDayMark(id,restore,row,result.after);dayWriteState[id]={state:'saved'};drawDayResults();dayToast('Desfazer confirmado no servidor.'); }
+        try { var undoResult=await window.firebaseUndoDayMark(id,restore,row,result.after);dayWriteState[id]=undoResult.auditError?{state:'audit-error'}:{state:'saved'};drawDayResults();dayToast(undoResult.auditError?'Desfazer concluído no servidor, mas a auditoria não foi registrada. Avise o administrador.':'Desfazer confirmado no servidor.'); }
         catch(undoError){dayWriteState[id]={state:'error',message:undoError.message||'não foi possível desfazer'};drawDayResults();dayToast(undoError.message||'Não foi possível desfazer.');}
        });
       } catch(saveError) {dayWriteState[id]={state:'error',message:saveError.message||'verifique a conexão e tente novamente'};drawDayResults();dayToast('Não foi possível salvar no servidor: '+(saveError.message||'verifique a conexão.'));}
@@ -2101,7 +2101,7 @@ window.firebaseToggleDayMark=async function(id,fields,row,before){
 };
 window.firebaseUndoDayMark=async function(id,prior,row,expected){
  if(!auth.currentUser)throw new Error('Faça login para desfazer.');
- const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe',operationId=makeOperationId(),audit=auditRef();
+ const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe',operationId=makeOperationId();
  dayPending.add(id);daySyncError=false;emitDayStatus(!!dayUnsub);
  try {
   const result=await runTransaction(firestore,async function(tx){
@@ -2110,9 +2110,12 @@ window.firebaseUndoDayMark=async function(id,prior,row,expected){
    const sameTime=!!currentTime&&!!expectedTime&&typeof currentTime.toMillis==='function'&&typeof expectedTime.toMillis==='function'&&currentTime.toMillis()===expectedTime.toMillis();
    if(!expected||current.porUid!==expected.porUid||current.porUid!==uid||!sameTime||current.operacaoId!==expected.operacaoId)throw new Error('Outra pessoa alterou esta posição. O desfazer foi cancelado.');
    const after=Object.assign({},current,prior,{porUid:uid,porNome:nome,atualizadoEm:serverTimestamp(),operacaoId:operationId});
-   tx.set(ref,after,{merge:true});tx.set(audit,auditRecord('desfazer',id,row,current,after,uid,nome,operationId));return after;
+   tx.set(ref,after,{merge:true});return {before:current,after:after};
   });
-  dayPending.delete(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);return {saved:true,after:result};
+  dayPending.delete(id);dayServerConnected=true;dayAuditPending.add(id);emitDayStatus(!!dayUnsub);
+  try { await setDoc(auditRef(),auditRecord('desfazer',id,row,result.before,result.after,uid,nome,operationId)); }
+  catch(auditError){dayAuditPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Desfazer concluído, mas falhou a auditoria',auditError);return {saved:true,auditError:true,after:result.after};}
+  dayAuditPending.delete(id);emitDayStatus(!!dayUnsub);return {saved:true,auditError:false,after:result.after};
  } catch(error) {
   dayPending.delete(id);if((error.message||'').indexOf('Outra pessoa alterou esta posição')>=0){window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message,conflict:true}}));}else{daySyncError=true;window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message}}));}emitDayStatus(!!dayUnsub);throw error;
  }
