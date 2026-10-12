@@ -1304,7 +1304,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     Object.keys(emptySections).forEach(function (id) {
       var section = document.getElementById(id);
       var item = emptySections[id];
-      if (!section) return;
+      if (!section || id === 'tur') return;
       section.innerHTML = '<h2 class="t">' + item.title + '</h2><div class="card"><b>Nenhum dado carregado</b><p class="section-sub">' + item.message + '</p><button type="button" class="btn" data-go="imp">Selecionar planilha Excel →</button></div>';
     });
   }
