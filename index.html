@@ -1487,7 +1487,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       turmaPadrao: workspace.turmaPadrao || '36',
       participantes: workspace.participantes || [],
       ordensTurma: workspace.ordensTurma || [],
-      checkin: workspace.checkin || {}
+      checkin: workspace.checkin || {},
+      marcacoesBatismo: workspace.marcacoesBatismo || {}
     };
     downloadBlob(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' }), 'backup-gestao-batismo.json');
   }
