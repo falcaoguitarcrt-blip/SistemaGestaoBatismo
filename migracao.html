@@ -202,6 +202,8 @@ function buildWrites(){
 }
 async function applyMigration(){
  if(!backupReady){alert('Baixe o backup antes de migrar.');return}
+ if(!confirm('Vou atualizar as contagens antes de aplicar. Se a origem mudou, será necessário baixar um backup novo. Continuar?'))return;
+ try{source=await loadSource();report();backupReady=false;$('#apply').disabled=true;msg('Dados e contagens atualizados. Baixe novamente o backup para confirmar esta versão.');return}catch(e){msg('Não foi possível atualizar a simulação: '+e.message,true);return}
  if(!confirm('Antes de continuar, confirme que revisou a simulação e baixou o backup. Digite MIGRAR na próxima janela.'))return;
  if(prompt('Digite MIGRAR para confirmar a criação dos documentos:')!=='MIGRAR')return;
  const writes=buildWrites(),runId='migracao_'+Date.now()+'_'+user.uid.slice(0,8);
@@ -238,7 +240,7 @@ function report(){
  $('#metrics').innerHTML=[['Pessoas · antes → depois',source.existing.pessoas.size+' → '+(source.existing.pessoas.size+proposed.pessoas)],['Turmas · antes → depois',source.existing.turmas.size+' → '+(source.existing.turmas.size+proposed.turmas)],['Ordem · antes → depois',source.existing.ordem.size+' → '+(source.existing.ordem.size+proposed.ordem)],['Posições fonte',plan.sourceCounts.order],['Grupos repetidos',plan.sourceCounts.duplicates],['Ordem vinculada',mapped],['Dados a revisar',plan.suspicious.length]].map(([a,b])=>'<div class="metric"><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>').join('');
  render();
 }
-$('#simulate').onclick=()=>{try{report();msg('Simulação atualizada. Nenhuma escrita foi feita.')}catch(e){msg(e.message,true)}};
+$('#simulate').onclick=async()=>{try{backupReady=false;$('#apply').disabled=true;msg('Atualizando simulação e contagens do Firestore…');source=await loadSource();report();msg('Simulação atualizada. Nenhuma escrita foi feita. Baixe novo backup antes de aplicar.')}catch(e){msg(e.message,true)}};
 $('#backup').onclick=downloadBackup;$('#apply').onclick=applyMigration;
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));render()});
 $('#emailLogin').onclick=async()=>{try{await signInWithEmailAndPassword(auth,$('#email').value.trim(),$('#password').value)}catch(e){$('#loginStatus').textContent='Falha de acesso ao Firebase: '+e.message}};
