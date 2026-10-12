@@ -15,6 +15,7 @@ const requiredContracts = [
   ['histórico de transferências visível', 'Transferências entre turmas'],
   ['backup com cadastros manuais', 'participantes: workspace.participantes || []'],
   ['backup com ordens multi-turma', 'ordensTurma: workspace.ordensTurma || []'],
+  ['backup com marcações de presença e batismo', 'marcacoesBatismo: workspace.marcacoesBatismo || {}'],
   ['persistência de cadastros manuais no Firebase', "'participantes'"],
   ['persistência de ordens multi-turma no Firebase', "'ordensTurma'"]
 ];
