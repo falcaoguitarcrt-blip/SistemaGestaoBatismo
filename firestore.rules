@@ -108,7 +108,16 @@ service cloud.firestore {
         && (!('posicao' in request.resource.data) || request.resource.data.posicao is int || request.resource.data.posicao is string)
         && (!('nome' in request.resource.data) || (request.resource.data.nome is string && request.resource.data.nome.size() <= 120))
         && (!('nomeBusca' in request.resource.data) || (request.resource.data.nomeBusca is string && request.resource.data.nomeBusca.size() <= 160))
+        && (!('origem' in request.resource.data) || (
+          request.resource.data.origem is map
+          && request.resource.data.origem.keys().hasOnly(['aba','linha','versao'])
+          && (!('aba' in request.resource.data.origem) || (request.resource.data.origem.aba is string && request.resource.data.origem.aba.size() <= 60))
+          && (!('linha' in request.resource.data.origem) || request.resource.data.origem.linha is int)
+          && (!('versao' in request.resource.data.origem) || (request.resource.data.origem.versao is string && request.resource.data.origem.versao.size() <= 120))))
         && (!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null || (request.resource.data.pessoaId is string && request.resource.data.pessoaId.size() <= 150))
+        && (!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null || !('tipoVinculo' in request.resource.data) || request.resource.data.tipoVinculo == 'pessoa')
+        && (!('tipoVinculo' in request.resource.data) || request.resource.data.tipoVinculo != 'externo' || ((!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null) && ('nome' in request.resource.data) && request.resource.data.nome is string && request.resource.data.nome.size() > 0))
+        && (!('tipoVinculo' in request.resource.data) || request.resource.data.tipoVinculo != 'pessoa' || (('pessoaId' in request.resource.data) && request.resource.data.pessoaId is string))
         && (!('tipoVinculo' in request.resource.data) || request.resource.data.tipoVinculo in ['vazio','pessoa','externo','nao_vinculado'])
         && (!('pastor' in request.resource.data) || request.resource.data.pastor == null || (request.resource.data.pastor is string && request.resource.data.pastor.size() <= 120))
         && (!('subgrupo' in request.resource.data) || request.resource.data.subgrupo in ['', 'kids', 'grupo_especial'])
