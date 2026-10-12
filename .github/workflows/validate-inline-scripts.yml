@@ -32,3 +32,5 @@ jobs:
         run: node scripts/test-workspace-concurrency.mjs
       - name: Testar importação e isolamento de ordens multi-turma com mocks
         run: node scripts/test-multiturma-order-import.mjs
+      - name: Testar importação segura e restauração de versões com mocks
+        run: node scripts/test-safe-import-task3.mjs

@@ -159,7 +159,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .day-count{display:grid;grid-template-columns:minmax(110px,auto) 1fr;align-items:center;gap:10px;margin:8px 0}.day-toast{display:none;position:fixed;left:50%;bottom:18px;z-index:30;transform:translateX(-50%);width:min(92vw,480px);padding:12px;background:var(--tx);color:var(--card);border-radius:12px;text-align:center}.day-toast.show{display:block}.day-undo{min-height:48px;border:0;border-radius:8px;padding:0 14px;background:var(--gold);font-weight:700}#day-print-list{display:none}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
 @media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
-</style>
+#accessible-confirm-dialog{max-width:min(560px,calc(100vw - 28px));width:100%;border:1px solid var(--ln);border-radius:16px;padding:22px;background:var(--card);color:var(--tx)}#accessible-confirm-dialog::backdrop{background:rgba(0,0,0,.55)}#accessible-confirm-dialog form{display:grid;gap:12px}#accessible-confirm-dialog input{width:100%;min-height:42px;margin-top:6px;padding:8px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx)}
+.import-field-diff{border:1px solid #b7791f;border-radius:8px;background:rgba(183,121,31,.12);padding:6px 8px;font-weight:700}</style>
 </head>
 <body class="auth-pending">
 
@@ -188,8 +189,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
 <button class="on" data-s="home">▦ Painel</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button>
-<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
-<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="cam" tabindex="-1" aria-hidden="true">Camisetas</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
+<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="ver">Versões</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
+<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="cam" tabindex="-1" aria-hidden="true">Camisetas</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="ver" tabindex="-1" aria-hidden="true">Versões</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
 </nav>
 </header>
 <main>
@@ -323,10 +324,11 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   <input id="workbook-file" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:block;width:100%;margin:10px 0">
   <div id="import-status" class="import-status" role="status" aria-live="polite">Selecione “Batismo (1).xlsx” para conferir as abas e os registros antes de importar.</div>
   <div id="import-preview"></div>
+  <div class="card" id="import-mode-card"><b>Modo de importação</b><label for="import-mode">Como tratar a base ativa</label><select id="import-mode" class="day-turma-select"><option value="add-update" selected>Adicionar e atualizar (padrão, nunca apaga)</option><option value="replace">Substituir tudo</option></select><p class="section-sub">No modo padrão, pessoas ausentes no arquivo permanecem na base. Escolha quais campos podem ser atualizados em cadastros existentes.</p><div id="update-field-options" class="mapping-row"></div><div id="replace-confirm-wrap" hidden><label for="replace-confirm-text">Para substituir tudo, digite CONFIRMAR<input id="replace-confirm-text" type="text" autocomplete="off" spellcheck="false"></label><button type="button" class="btn o" id="download-replace-backup">Baixar backup JSON da base ativa</button><p id="replace-backup-status" class="section-sub" role="status">O modo Substituir tudo só habilita após baixar o backup e digitar CONFIRMAR.</p></div></div>
   <div class="bb import-actions">
     <button id="confirm-import" type="button" class="btn" disabled>Importar e salvar no Firebase</button>
     <button id="download-source" type="button" class="btn o" disabled>Baixar Excel original</button>
-    <button id="download-json" type="button" class="btn o" disabled>Exportar backup JSON</button>
+    <button id="download-json" type="button" class="btn o" disabled>Exportar backup JSON</button><button id="download-import-report" type="button" class="btn o" disabled>Baixar relatório final CSV</button>
   </div>
 </div>
 <div class="card">
@@ -341,14 +343,15 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   <div id="backup-items" class="backup-list"><span class="note">Carregando backups locais…</span></div>
 </div>
 </section>
+<section id="ver"><h2 class="t">Versões</h2><div class="card"><p class="section-sub">As versões são imutáveis. Restaurar cria uma nova versão ativa usando compare-and-swap, sem excluir a atual nem versões anteriores.</p><div id="version-list" class="data-list"><span class="note">Abra esta tela para carregar o histórico.</span></div><div id="version-status" class="import-status" role="status" aria-live="polite"></div></div></section>
 <section id="cfg"><h2 class="t">Configurações</h2>
 <div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
 <div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
 <div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
 <div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Ekklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
 </main>
-<div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<dialog id="accessible-confirm-dialog" aria-labelledby="accessible-confirm-title" aria-describedby="accessible-confirm-message"><form method="dialog" id="accessible-confirm-form"><h2 id="accessible-confirm-title">Confirmar ação</h2><p id="accessible-confirm-message"></p><label id="accessible-confirm-input-wrap" for="accessible-confirm-input" hidden>Digite a confirmação<input id="accessible-confirm-input" type="text" autocomplete="off"></label><div class="bb"><button type="button" class="btn o" id="accessible-confirm-cancel">Cancelar</button><button type="button" class="btn" id="accessible-confirm-accept">Confirmar</button></div></form></dialog> <div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
 <script>
 (function () {
   'use strict';
@@ -365,6 +368,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       toast.classList.remove('show');
     }, 3000);
   }
+  window.showToast = showToast;
 
   function go(sectionId) {
     var button = document.querySelector('[data-s="' + sectionId + '"]');
@@ -531,6 +535,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var db = null;
   var appData = null;
   var pendingImport = null;
+  var replaceBackupDownloaded = false;
+  var lastImportReport = null;
   var importPreflightRunning = false;
   var selectedPersonRow = null;
   var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
@@ -743,6 +749,56 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     node.textContent = message;
     node.className = 'import-status' + (type ? ' ' + type : '');
   }
+  function accessibleConfirm(message, options) {
+    options = options || {};
+    var dialog = document.getElementById('accessible-confirm-dialog');
+    var messageNode = document.getElementById('accessible-confirm-message');
+    var inputWrap = document.getElementById('accessible-confirm-input-wrap');
+    var input = document.getElementById('accessible-confirm-input');
+    var accept = document.getElementById('accessible-confirm-accept');
+    var cancel = document.getElementById('accessible-confirm-cancel');
+    if (!dialog || typeof dialog.showModal !== 'function') return Promise.resolve(false);
+    var origin = document.activeElement;
+    messageNode.textContent = message;
+    inputWrap.hidden = !options.typedPhrase;
+    input.value = '';
+    accept.textContent = options.acceptLabel || 'Confirmar';
+    accept.disabled = !!options.typedPhrase;
+    if (options.typedPhrase) {
+      inputWrap.childNodes[0].textContent = 'Digite exatamente ' + options.typedPhrase + ' ';
+      input.oninput = function () { accept.disabled = input.value !== options.typedPhrase; };
+    } else input.oninput = null;
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(result) {
+        if (settled) return;
+        settled = true;
+        dialog.removeEventListener('cancel', onCancel);
+        dialog.removeEventListener('keydown', trapFocus);
+        accept.removeEventListener('click', onAccept);
+        cancel.removeEventListener('click', onCancel);
+        dialog.close();
+        if (origin && typeof origin.focus === 'function' && document.contains(origin)) origin.focus();
+        resolve(result);
+      }
+      function onCancel(event) { if (event) event.preventDefault(); finish(false); }
+      function onAccept() { finish(!options.typedPhrase || input.value === options.typedPhrase); }
+      dialog.addEventListener('cancel', onCancel);
+      function trapFocus(event) {
+        if (event.key !== 'Tab') return;
+        var focusable = Array.prototype.slice.call(dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+        if (!focusable.length) { event.preventDefault(); return; }
+        var first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+      }
+      dialog.addEventListener('keydown', trapFocus);
+      accept.addEventListener('click', onAccept);
+      cancel.addEventListener('click', onCancel);
+      dialog.showModal();
+      (options.typedPhrase ? input : cancel).focus();
+    });
+  }
   var cloudVersionBanner = null;
   var cloudVersionBannerMessage = null;
   function showCloudVersionBanner(event) {
@@ -895,6 +951,177 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (!row || normal(row[0]) !== 'nome') return false;
     return row.slice(1).every(isBlank);
   }
+  var EXPECTED_BAPTISM_HEADERS = [
+    ['nome'], ['idade'], ['telefone', 'celular', 'telefone celular', 'tel', 'whatsapp'],
+    ['turma', 'numero da turma'], ['data do batismo', 'data batismo', 'data'],
+    ['jornada'], ['aula', 'aula de batismo'], ['grupo'],
+    ['camiseta', 'tamanho camiseta'], ['camiseta paga', 'pagamento camiseta', 'pago'],
+    ['status'], ['pendencia', 'pendencias', 'pendencia s', 'observacao de pendencia', 'observacao pendencia'],
+    ['batizado', 'ja batizado'], ['perfil', 'tipo de perfil']
+  ];
+  var EXPECTED_ORDER_HEADERS = [
+    ['ficha retirada', 'retirada da ficha', 'retirou ficha', 'retirada'],
+    ['numero', 'n', 'posicao', 'ordem'], ['nome'], ['observacao', 'observacoes', 'nota'],
+    ['aula de batismo', 'aula', 'licao'], ['batizado na missao', 'batizado', 'batismo'],
+    ['unificacao', 'unificado', 'batizado no eklesia', 'batizado no ekklesia']
+  ];
+  function normalizeHeader(value) {
+    return normal(value == null ? '' : String(value)).replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+  function headerColumnMap(headerRow, expected) {
+    var normalized = (headerRow || []).map(normalizeHeader);
+    return expected.map(function (aliases) {
+      var choices = aliases.map(normalizeHeader);
+      return normalized.findIndex(function (value) { return choices.indexOf(value) >= 0; });
+    });
+  }
+  function validateExpectedHeaders(rows, expected, sheetLabel) {
+    var found = rows && rows[0] || [];
+    var map = headerColumnMap(found, expected);
+    var missing = [];
+    map.forEach(function (column, index) {
+      if (column < 0) missing.push('coluna ' + (index + 1) + ' esperada "' + expected[index][0] + '"');
+    });
+    if (missing.length) {
+      var foundList = found.map(function (value, index) { return (index + 1) + ': ' + (value == null || String(value).trim() === '' ? '(vazio)' : String(value)); }).join('; ');
+      throw new Error('Aba ' + sheetLabel + ': faltam colunas obrigatórias: ' + missing.join('; ') + '. Colunas encontradas: ' + (foundList || '(nenhuma)') + '. Nenhum dado foi alterado.');
+    }
+    return rows.map(function (row) {
+      row = row || [];
+      var mapped = map.map(function (column) { return row[column] == null ? null : row[column]; });
+      row.forEach(function (value, index) { if (map.indexOf(index) < 0) mapped.push(value); });
+      return mapped;
+    });
+  }
+  function isRepeatedHeaderRow(row, expected) {
+    if (!row || !expected) return false;
+    return headerColumnMap(row, expected).every(function (index) { return index >= 0; });
+  }
+  function validMatchPhone(value) {
+    var digits = String(value == null ? '' : value).replace(/\D/g, '');
+    return digits.length >= 10 && digits.length <= 13 ? digits : '';
+  }
+  function importPersonKey(person) {
+    var name = normalizeHeader(person && (person.name != null ? person.name : (person.fields || [])[0]));
+    var phone = validMatchPhone(person && (person.phone != null ? person.phone : (person.fields || [])[2]));
+    return name && phone ? name + '|' + phone : '';
+  }
+  function nextImportSourceRow(currentPeople) {
+    return (currentPeople || []).reduce(function (max, person) {
+      var value = Number(person && person.sourceRow);
+      return Number.isFinite(value) && value > max ? value : max;
+    }, 0) + 1;
+  }
+  function inspectImportRows(incoming, current) {
+    var currentByKey = new Map(), currentByName = new Map();
+    (current || []).forEach(function (person) {
+      var name = normalizeHeader(person && person.name), key = importPersonKey(person);
+      if (name) { if (!currentByName.has(name)) currentByName.set(name, []); currentByName.get(name).push(person); }
+      if (key && !currentByKey.has(key)) currentByKey.set(key, person);
+    });
+    var seen = new Set(), duplicateKeys = new Set(), invalid = [], newRows = [], changed = [], absent = [], ambiguous = [];
+    (incoming || []).forEach(function (person) {
+      var key = importPersonKey(person), name = normalizeHeader(person.name), rowNo = person.sourceRow || '';
+      var digits = String(person.phone == null ? '' : person.phone).replace(/\D/g, '');
+      var hasAny = !!(String(person.name || '').trim() || String(person.phone || '').trim() || String(person.turma || '').trim());
+      if (!hasAny) return;
+      if (!String(person.name || '').trim()) { invalid.push({ sourceRow: rowNo, name: '', issue: 'nome vazio; somente relatório, não será importado' }); return; }
+      if (String(person.turma == null ? '' : person.turma).trim() === '') invalid.push({ sourceRow: rowNo, name: person.name, issue: 'turma vazia' });
+      if (!importDateIsValid(person.date)) invalid.push({ sourceRow: rowNo, name: person.name, issue: 'data impossível/inválida' });
+      if (!digits || digits.length < 10 || digits.length > 13) {
+        var sameNameCurrent = currentByName.get(name) || [];
+        var sameNameIncoming = (incoming || []).filter(function (candidate) { return normalizeHeader(candidate.name) === name && !!String(candidate.name || '').trim(); });
+        var issue = sameNameCurrent.length || sameNameIncoming.length > 1
+          ? 'ambíguo: homônimo sem telefone válido; decisão manual'
+          : 'telefone vazio/curto; revisão manual, sem correspondência automática';
+        invalid.push({ sourceRow: rowNo, name: person.name, issue: issue });
+        if (issue.indexOf('ambíguo') === 0) ambiguous.push({ sourceRow: rowNo, name: person.name, phone: person.phone || '', issue: issue });
+        return;
+      }
+      if (seen.has(key)) { duplicateKeys.add(key); invalid.push({ sourceRow: rowNo, name: person.name, issue: 'duplicado no arquivo' }); return; }
+      seen.add(key);
+      var old = currentByKey.get(key);
+      if (!old) newRows.push(person);
+      else {
+        var diffs = [];
+        ['name','age','phone','turma','date','journey','lesson','group','shirt','shirtPaid','status','pending','baptized','profile'].forEach(function (field) {
+          var val = person[field];
+          if (val == null || String(val).trim() === '') return;
+          if (String(old[field] == null ? '' : old[field]) !== String(val)) {
+            diffs.push({ field: field, before: old[field] == null ? '' : old[field], after: val });
+          }
+        });
+        if (diffs.length) changed.push({ key: key, before: old, after: person, diffs: diffs });
+      }
+    });
+    var incomingKeys = new Set((incoming || []).map(importPersonKey).filter(Boolean));
+    (current || []).forEach(function (person) { var key = importPersonKey(person); if (key && !incomingKeys.has(key)) absent.push(person); });
+    return { newRows: newRows, changed: changed, absent: absent, duplicates: Array.from(duplicateKeys), invalid: invalid, ambiguous: ambiguous };
+  }
+  function mergeImportWorkspace(current, incoming, selectedFields) {
+    var base = current || {}, fields = Array.isArray(selectedFields) ? selectedFields : [];
+    var byKey = new Map();
+    (base.people || []).forEach(function (person) { var key = importPersonKey(person); if (key && !byKey.has(key)) byKey.set(key, person); });
+    var merged = (base.people || []).map(function (person) { return Object.assign({}, person); });
+    var imported = 0, corrected = 0, ignored = 0, seen = new Set();
+    var nextSourceRow = nextImportSourceRow(base.people || []);
+    (incoming.people || []).forEach(function (person) {
+      var key = importPersonKey(person), digits = String(person.phone == null ? '' : person.phone).replace(/\D/g, '');
+      if (!String(person.name || '').trim() || !key || digits.length < 10 || digits.length > 13 || seen.has(key)) { ignored++; return; }
+      seen.add(key);
+      var existing = byKey.get(key);
+      if (!existing) { merged.push(Object.assign({}, person, { sourceRow: nextSourceRow++ })); imported++; return; }
+      var target = merged.find(function (item) { return importPersonKey(item) === key; });
+      if (!target) { ignored++; return; }
+      var changed = false;
+      fields.forEach(function (field) {
+        if (!Object.prototype.hasOwnProperty.call(person, field)) return;
+        var val = person[field];
+        if (val == null || String(val).trim() === '') return;
+        if (String(target[field] == null ? '' : target[field]) !== String(val)) { target[field] = val; changed = true; }
+      });
+      if (changed) corrected++; else ignored++;
+    });
+    return { workspace: Object.assign({}, base, incoming, {
+      id: 'current', people: merged,
+      order: Array.isArray(incoming.order) ? incoming.order.map(function (item) { return Object.assign({}, item); }) : (base.order || []).slice(),
+      order35: (base.order35 || []).slice(), general: (base.general || []).slice(), generalAll: (base.generalAll || []).slice(),
+      generalUnmapped: (base.generalUnmapped || []).slice(), turmas: (base.turmas || []).map(function (item) { return Object.assign({}, item); }),
+      ordensTurma: (base.ordensTurma || []).map(function (item) { return Object.assign({}, item); }),
+      participantes: (base.participantes || []).map(function (item) { return Object.assign({}, item); }),
+      checkin: Object.assign({}, base.checkin || {}), importReport: { read: (incoming.people || []).length, imported: imported, ignored: ignored, corrected: corrected }
+    }), report: { read: (incoming.people || []).length, imported: imported, ignored: ignored, corrected: corrected } };
+  }
+  function importDateIsValid(value) {
+    if (value == null || value === '') return true;
+    if (typeof value === 'number') return Number.isFinite(value) && value > 0 && value < 100000;
+    if (value instanceof Date) return !isNaN(value.getTime());
+    var raw = String(value).trim();
+    var match = raw.match(/^(\\d{1,2})[\\/-](\\d{1,2})[\\/-](\\d{4})$/);
+    if (match) {
+      var d = Number(match[1]), m = Number(match[2]), y = Number(match[3]);
+      var parsed = new Date(y, m - 1, d);
+      return parsed.getFullYear() === y && parsed.getMonth() === m - 1 && parsed.getDate() === d;
+    }
+    var iso = raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})(?:$|T)/);
+    if (iso) {
+      var iy = Number(iso[1]), im = Number(iso[2]), id = Number(iso[3]);
+      var ip = new Date(iy, im - 1, id);
+      return ip.getFullYear() === iy && ip.getMonth() === im - 1 && ip.getDate() === id;
+    }
+    var date = new Date(raw);
+    return !isNaN(date.getTime());
+  }
+  async function restoreVersionAsNewVersion(versionId, loadVersion, saveVersion, now) {
+    if (typeof loadVersion !== 'function' || typeof saveVersion !== 'function') throw new Error('Serviço de versões indisponível.');
+    var payload = await loadVersion(versionId);
+    if (!payload || typeof payload !== 'object') throw new Error('A versão escolhida não foi encontrada.');
+    var restored = Object.assign({}, payload);
+    delete restored.sourceWorkbook;
+    restored.importedAt = (now || new Date()).toISOString();
+    await saveVersion(restored, true);
+    return restored;
+  }
   function normalizeWorkbook(file, buffer) {
     if (!window.XLSX) throw new Error('A biblioteca para ler Excel ainda não carregou. Confira a conexão e recarregue a página.');
     var workbook = XLSX.read(buffer, { type: 'array', cellDates: false, raw: true });
@@ -928,12 +1155,14 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (secondSheetKey.indexOf('ordem') !== 0 || !orderRows) missingSheets.push('Ordem (segunda aba, por exemplo "Ordem Batismo 36")');
     if (missingSheets.length) throw new Error('Use a primeira aba Batismo e a segunda aba Ordem/Ordem Batismo 36. As abas após a segunda são ignoradas. Abas encontradas: ' + selectedSheetNames.join(', ') + '. Nenhum dado foi substituído.');
 
+    mainRows = validateExpectedHeaders(mainRows, EXPECTED_BAPTISM_HEADERS, 'Batismo');
+    orderRows = validateExpectedHeaders(orderRows, EXPECTED_ORDER_HEADERS, secondSheetName);
     var people = [];
     var skippedDuplicateHeaders = 0;
     for (var i = 1; i < mainRows.length; i++) {
       var row = mainRows[i] || [];
       var sourceRow = i + 1;
-      if (isRepeatedMainHeader(row)) {
+      if (isRepeatedHeaderRow(row, EXPECTED_BAPTISM_HEADERS)) {
         skippedDuplicateHeaders++;
         continue;
       }
@@ -953,9 +1182,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var eklesiaIndex = headers.findIndex(function (header) {
         return header.indexOf('batizado no eklesia') >= 0 || header.indexOf('batizado no ekklesia') >= 0;
       });
-      return rows.slice(1).map(function (row, index) {
+      return rows.slice(1).map(function (row, index) { return { row: row, sourceRow: index + 2 }; })
+        .filter(function (entry) { return !isRepeatedHeaderRow(entry.row, EXPECTED_ORDER_HEADERS); })
+        .map(function (entry) {
+        var row = entry.row;
         return {
-          sourceRow: index + 2, fields: row.slice(), removed: row[0], number: row[1], name: clean(row[2]), note: row[3],
+          sourceRow: entry.sourceRow, fields: row.slice(), removed: row[0], number: row[1], name: clean(row[2]), note: row[3],
           lesson: eklesiaIndex >= 0 ? null : row[4],
           baptized: eklesiaIndex >= 0 ? null : row[5],
           merged: eklesiaIndex >= 0 ? null : row[6],
@@ -1593,6 +1825,32 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('return-pager').innerHTML = '<button type="button" class="btn o" data-page="return:-1" ' + (returnState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + returnState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="return:1" ' + (returnState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
+  async function renderVersions() {
+    var host = document.getElementById('version-list');
+    var status = document.getElementById('version-status');
+    if (!host) return;
+    if (status) status.textContent = 'Carregando versões imutáveis do Firestore…';
+    host.innerHTML = '<span class="note">Carregando versões…</span>';
+    try {
+      if (typeof window.firebaseListVersions !== 'function') throw new Error('A conexão com o histórico de versões ainda não está pronta.');
+      var versions = await window.firebaseListVersions();
+      host.innerHTML = versions.map(function (version) {
+        var counts = version.counts || {};
+        return '<div class="data-item"><div class="item-main"><strong>' + esc(version.sourceFileName || 'Arquivo não informado') + (version.isCurrent ? ' · VERSÃO ATIVA' : '') + '</strong>' +
+          '<div class="item-meta">Data: ' + esc(version.createdAt ? new Date(version.createdAt).toLocaleString('pt-BR') : 'não informada') + '</div>' +
+          '<div class="item-meta">Quem: ' + esc(version.createdBy || 'UID não informado') + '</div>' +
+          '<div class="item-meta">Pessoas: ' + esc(counts.people || 0) + ' · Ordem: ' + esc(counts.order || 0) + ' · Participantes: ' + esc(counts.participantes || 0) + ' · Abas: ' + esc(counts.rawSheets || 0) + '</div>' +
+          '<div class="bb"><button type="button" class="btn o" data-version-download="' + esc(version.id) + '">Baixar JSON</button><button type="button" class="btn" data-version-restore="' + esc(version.id) + '">Restaurar como nova versão</button></div></div></div>';
+      }).join('') || '<div class="data-empty">Nenhuma versão encontrada.</div>';
+      if (status) status.textContent = versions.length + ' versão(ões) listada(s). Nenhuma versão foi apagada ou alterada.';
+    } catch (error) {
+      host.innerHTML = '<div class="data-empty">Não foi possível carregar as versões.</div>';
+      if (status) status.textContent = error.message || 'Falha ao carregar versões.';
+    }
+  }
+  document.getElementById('nav-more').addEventListener('change', function (event) {
+    if (event.target.value === 'ver') renderVersions();
+  });
   function buildHistory() {
     var transfers = [];
     (appData.participantes || []).forEach(function (p) {
@@ -1673,6 +1931,73 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped +
       '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
 
+    var comparison = inspectImportRows(payload.people || [], appData && appData.people || []);
+    var fieldLabels = [['name','Nome'],['age','Idade'],['phone','Telefone'],['turma','Turma'],['date','Data do batismo'],['journey','Jornada'],['lesson','Aula'],['group','Grupo'],['shirt','Camiseta'],['shirtPaid','Camiseta paga'],['status','Status'],['pending','Pendência'],['baptized','Batizado'],['profile','Perfil']];
+    var differingFields = new Set(comparison.changed.reduce(function (all, item) { item.diffs.forEach(function (diff) { all.add(diff.field); }); return all; }, new Set()));
+    document.getElementById('update-field-options').innerHTML = fieldLabels.map(function (field) {
+      var differs = differingFields.has(field[0]);
+      return '<label class="check-row' + (differs ? ' import-field-diff' : '') + '"><input type="checkbox" data-update-field="' + field[0] + '"> ' + field[1] + (differs ? ' · DIFERE DA BASE' : '') + '</label>';
+    }).join('');
+    var sampleRows = (payload.people || []).slice(0, 10);
+    var sampleHtml = sampleRows.map(function (person) {
+      return '<tr><td>' + esc(person.sourceRow || '') + '</td><td>' + esc(person.name || '(sem nome)') + '</td><td>' + esc(person.phone || '') + '</td><td>' + esc(person.turma || '') + '</td></tr>';
+    }).join('');
+    var changedHtml = comparison.changed.slice(0, 10).map(function (item) {
+      var diffs = item.diffs.slice(0, 4).map(function (diff) {
+        return '<div><b>' + esc(diff.field) + ':</b> <span>' + esc(display(diff.before)) + '</span> → <span>' + esc(display(diff.after)) + '</span></div>';
+      }).join('');
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(item.after.name || item.before.name) + '</strong>' + diffs + '</div></div>';
+    }).join('');
+    var problemHtml = comparison.invalid.slice(0, 20).map(function (item) {
+      return '<div class="item-meta">Linha ' + esc(item.sourceRow) + ' · ' + esc(item.name || '(sem nome)') + ': ' + esc(item.issue) + '</div>';
+    }).join('');
+    var absentHtml = comparison.absent.slice(0, 10).map(function (person) {
+      return '<span class="tag">' + esc(person.name || '(sem nome)') + '</span> ';
+    }).join('');
+    document.getElementById('import-preview').innerHTML +=
+      '<div class="card"><b>Prévia comparativa com a base ativa</b><div class="grid">' +
+      '<div class="data-summary">Novos: ' + numberLabel(comparison.newRows.length) + '</div>' +
+      '<div class="data-summary">Alterados: ' + numberLabel(comparison.changed.length) + '</div>' +
+      '<div class="data-summary">Ausentes no arquivo: ' + numberLabel(comparison.absent.length) + '</div>' +
+      '<div class="data-summary">Duplicados no arquivo: ' + numberLabel(comparison.duplicates.length) + '</div>' +
+      '<div class="data-summary">Linhas com problema: ' + numberLabel(comparison.invalid.length) + '</div>' +
+      '<div class="data-summary">Ambíguos para decisão manual: ' + numberLabel(comparison.ambiguous.length) + '</div></div>' +
+      '<h4>Amostra de 10 linhas mapeadas</h4><div style="overflow:auto"><table><thead><tr><th>Linha</th><th>Nome</th><th>Telefone</th><th>Turma</th></tr></thead><tbody>' + sampleHtml + '</tbody></table></div>' +
+      '<h4>Alterações propostas (antes → depois)</h4>' + (changedHtml || '<p class="section-sub">Nenhuma alteração comparável encontrada.</p>') +
+      '<h4>Ausentes no arquivo, não serão apagados no modo padrão</h4>' + (absentHtml || '<p class="section-sub">Nenhum cadastro ausente.</p>') +
+      '<h4>Ambíguos, não serão mesclados automaticamente</h4>' + (comparison.ambiguous.map(function (item) { return '<div class="item-meta">Linha ' + esc(item.sourceRow) + ' · ' + esc(item.name) + ' · ' + esc(item.issue) + '</div>'; }).join('') || '<p class="section-sub">Nenhum ambíguo.</p>') +
+      '<h4>Problemas para revisão</h4>' + (problemHtml || '<p class="section-sub">Nenhum problema encontrado.</p>') +
+      '<p class="note">A chave exige nome e telefone válido (10 a 13 dígitos). Telefone ausente/curto e linhas sem nome não são correspondidos automaticamente. Nenhum campo existente é atualizado por padrão; marque explicitamente os campos que diferem. No modo padrão, cadastros ausentes permanecem na base. O modo Substituir tudo fica bloqueado enquanto houver problemas de dados.</p></div>';
+    var modeSelect = document.getElementById('import-mode');
+    var replaceWrap = document.getElementById('replace-confirm-wrap');
+    var replaceText = document.getElementById('replace-confirm-text');
+    var backupButton = document.getElementById('download-replace-backup');
+    var reportButton = document.getElementById('download-import-report');
+    replaceBackupDownloaded = false;
+    function refreshModeGate() {
+      var replacing = !!(modeSelect && modeSelect.value === 'replace');
+      if (replaceWrap) replaceWrap.hidden = !replacing;
+      var typed = !!(replaceText && replaceText.value === 'CONFIRMAR');
+      var safeReplace = !replacing || (replaceBackupDownloaded && typed && comparison.invalid.length === 0);
+      if (importButton) importButton.disabled = !confirmedImportOrderTurmaId || (hasPriorOrder && !(closureDownloaded || (closureAlreadySaved && closureAlreadySaved.checked))) || !safeReplace;
+      if (replacing && comparison.invalid.length && document.getElementById('replace-backup-status')) {
+        document.getElementById('replace-backup-status').textContent = 'Substituir tudo bloqueado: corrija ' + comparison.invalid.length + ' ocorrência(s) antes de continuar.';
+      }
+    }
+    if (modeSelect) modeSelect.addEventListener('change', function () { replaceBackupDownloaded = false; if (replaceText) replaceText.value = ''; refreshModeGate(); });
+    if (replaceText) replaceText.addEventListener('input', refreshModeGate);
+    if (backupButton) backupButton.addEventListener('click', function () {
+      if (!appData) { setImportMessage('Não há base ativa para gerar backup. Substituir tudo permanece bloqueado.', 'error'); return; }
+      var backup = Object.assign({}, appData);
+      delete backup.sourceWorkbook;
+      var json = JSON.stringify({ backupFormat: 'gestao-batismo-workspace-v1', createdAt: new Date().toISOString(), workspace: backup }, null, 2);
+      downloadBlob(new Blob([json], { type: 'application/json;charset=utf-8' }), 'backup-base-ativa-' + new Date().toISOString().slice(0,10) + '.json');
+      replaceBackupDownloaded = true;
+      var status = document.getElementById('replace-backup-status');
+      if (status) status.textContent = 'Backup JSON solicitado para download. Confira se o arquivo foi salvo antes de continuar.';
+      refreshModeGate();
+    });
+    if (reportButton) reportButton.disabled = true;
     var closureButton = document.getElementById('download-prior-order-closure');
     var closureAlreadySaved = document.getElementById('prior-order-closure-already-saved');
     var closureDownloaded = false;
@@ -1681,7 +2006,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (hasPriorOrder && importButton) importButton.disabled = true;
     function refreshImportGate() {
       var closureSatisfied = !hasPriorOrder || closureDownloaded || !!(closureAlreadySaved && closureAlreadySaved.checked);
-      if (importButton) importButton.disabled = !confirmedImportOrderTurmaId || !closureSatisfied;
+      var modeSelect = document.getElementById('import-mode');
+      var replaceText = document.getElementById('replace-confirm-text');
+      var replacing = !!(modeSelect && modeSelect.value === 'replace');
+      var comparisonNow = inspectImportRows(payload.people || [], appData && appData.people || []);
+      var replaceSatisfied = !replacing || (replaceBackupDownloaded && !!(replaceText && replaceText.value === 'CONFIRMAR') && comparisonNow.invalid.length === 0);
+      if (importButton) importButton.disabled = !confirmedImportOrderTurmaId || !closureSatisfied || !replaceSatisfied;
       if (hasPriorOrder && !closureSatisfied) {
         var status = document.getElementById('prior-order-closure-status');
         if (status) status.textContent = 'Obrigatório: baixe o CSV ou marque que já guardou o fechamento antes de importar.';
@@ -1932,7 +2262,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       document.getElementById('confirm-import').disabled = true;
       setImportMessage('Arquivo conferido. Escolha e confirme a turma da ordem antes de habilitar a importação.', 'success');
     } catch (error) {
-      setImportMessage(error.message || 'Não foi possível ler a planilha. Nenhum dado foi substituído.', 'error');
+      pendingImport = null;
+      document.getElementById('confirm-import').disabled = true;
+      document.getElementById('import-preview').innerHTML = '';
+      setImportMessage('Falha ao ler o Excel: ' + (error && error.message ? error.message : 'arquivo inválido ou biblioteca indisponível') + '. Nenhum dado foi alterado. O login e o check-in continuam disponíveis.', 'error');
     }
   });
 
@@ -1974,7 +2307,17 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
     message += '\n\nA checagem de marcações é repetida imediatamente antes de salvar. Ainda existe uma janela residual entre essa leitura e a conclusão do salvamento da versão, incluindo gravação dos blocos e atualização do ponteiro; marcações simultâneas nesse intervalo podem não ser detectadas pela pré-checagem.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
-    if (!window.confirm(message)) return;
+    var modeNode = document.getElementById('import-mode');
+    var importMode = modeNode ? modeNode.value : 'add-update';
+    var replaceTextNode = document.getElementById('replace-confirm-text');
+    var previewComparison = inspectImportRows(pendingImport.people || [], appData && appData.people || []);
+    if (importMode === 'replace' && (!replaceBackupDownloaded || !replaceTextNode || replaceTextNode.value !== 'CONFIRMAR' || previewComparison.invalid.length)) {
+      setImportMessage('Substituir tudo bloqueado: baixe o backup JSON, digite CONFIRMAR e corrija todas as linhas com problema.', 'error');
+      return;
+    }
+    if (importMode === 'replace') message += '\\n\\nMODO SUBSTITUIR TUDO: a ação exige backup JSON baixado e confirmação digitada CONFIRMAR.';
+    else message += '\\n\\nMODO ADICIONAR E ATUALIZAR: cadastros ausentes no arquivo serão mantidos; somente os campos marcados serão atualizados.';
+    if (!(await accessibleConfirm(message, importMode === 'replace' ? { typedPhrase: 'CONFIRMAR', acceptLabel: 'Substituir tudo' } : {}))) return;
     // Segunda checagem após a janela do diálogo de confirmação. Resta uma janela residual até o salvamento.
     button.disabled = true;
     setImportMessage('Rechecando marcações no servidor antes de importar…');
@@ -2002,11 +2345,47 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     setImportMessage('Enviando os registros ao Firebase e salvando a cópia local…');
     try {
       if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase ainda não está pronta. Recarregue a página e entre novamente.');
-      await window.firebaseSaveWorkspace(pendingImport, true);
+      var incomingForSave = Object.assign({}, pendingImport);
+      var sourceRows = pendingImport.people || [];
+      var validRows = [];
+      var seenImportKeys = new Set();
+      var ignoredInvalid = 0;
+      sourceRows.forEach(function (person) {
+        var key = importPersonKey(person);
+        var digits = String(person.phone == null ? '' : person.phone).replace(/\D/g, '');
+        var valid = !!String(person.name || '').trim() && digits.length >= 10 && digits.length <= 13 &&
+          String(person.turma == null ? '' : person.turma).trim() !== '' && importDateIsValid(person.date);
+        if (!valid || !key || seenImportKeys.has(key)) { ignoredInvalid++; return; }
+        seenImportKeys.add(key);
+        validRows.push(person);
+      });
+      incomingForSave.people = validRows;
+      var importReport;
+      var finalPayload;
+      if (importMode === 'replace') {
+        finalPayload = incomingForSave;
+        importReport = { read: sourceRows.length, imported: validRows.length, ignored: ignoredInvalid, corrected: 0 };
+      } else {
+        var selectedFields = Array.prototype.slice.call(document.querySelectorAll('[data-update-field]:checked')).map(function (node) { return node.getAttribute('data-update-field'); });
+        var mergedResult = mergeImportWorkspace(appData || {}, incomingForSave, selectedFields);
+        finalPayload = mergedResult.workspace;
+        importReport = { read: sourceRows.length, imported: mergedResult.report.imported, ignored: mergedResult.report.ignored + ignoredInvalid, corrected: mergedResult.report.corrected };
+      }
+      finalPayload.importReport = importReport;
+      finalPayload.sourceFileName = pendingImport.sourceFileName;
+      finalPayload.sourceFileSize = pendingImport.sourceFileSize;
+      finalPayload.sourceWorkbook = pendingImport.sourceWorkbook;
+      finalPayload.rawSheets = pendingImport.rawSheets;
+      finalPayload.sheetStats = pendingImport.sheetStats;
+      finalPayload.sourceSheetNames = pendingImport.sourceSheetNames;
+      await window.firebaseSaveWorkspace(finalPayload, true);
       var localCopyWarning = '';
-      try { await saveWorkspace(pendingImport, true); }
+      try { await saveWorkspace(finalPayload, true); }
       catch (localError) { localCopyWarning = ' A sincronização na nuvem foi concluída, mas a cópia local não pôde ser atualizada neste navegador.'; }
-      appData = Object.assign({}, pendingImport, { id: 'current' });
+      appData = Object.assign({}, finalPayload, { id: 'current' });
+      lastImportReport = importReport;
+      var reportButtonAfterSave = document.getElementById('download-import-report');
+      if (reportButtonAfterSave) reportButtonAfterSave.disabled = false;
       pendingImport = null;
       confirmedImportOrderTurmaId = '';
       selectedPersonRow = null;
@@ -2028,8 +2407,60 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   document.getElementById('download-source').addEventListener('click', function () { downloadWorkbook(appData); });
   document.getElementById('download-json').addEventListener('click', function () { downloadJson(appData); });
+  document.getElementById('download-import-report').addEventListener('click', function () {
+    if (!lastImportReport) return;
+    var rows = [
+      { tipo: 'lidos', quantidade: lastImportReport.read, detalhe: 'Linhas de pessoas lidas do arquivo' },
+      { tipo: 'importados', quantidade: lastImportReport.imported, detalhe: 'Cadastros novos' },
+      { tipo: 'ignorados', quantidade: lastImportReport.ignored, detalhe: 'Duplicados ou linhas com dados inválidos' },
+      { tipo: 'corrigidos', quantidade: lastImportReport.corrected, detalhe: 'Cadastros existentes atualizados nos campos escolhidos' }
+    ];
+    var csv = buildClosureCsv(['tipo','quantidade','detalhe'], rows);
+    downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'relatorio-importacao-' + new Date().toISOString().slice(0,10) + '.csv');
+  });
 
   document.addEventListener('click', async function (event) {
+    var versionDownloadButton = event.target.closest('[data-version-download]');
+    if (versionDownloadButton) {
+      try {
+        var versionForDownload = await window.firebaseLoadVersion(versionDownloadButton.dataset.versionDownload);
+        delete versionForDownload.sourceWorkbook;
+        var versionJson = JSON.stringify({ backupFormat: 'gestao-batismo-version-v1', exportedAt: new Date().toISOString(), workspace: versionForDownload }, null, 2);
+        downloadBlob(new Blob([versionJson], { type: 'application/json;charset=utf-8' }), 'versao-' + versionDownloadButton.dataset.versionDownload + '.json');
+        var versionStatus = document.getElementById('version-status');
+        if (versionStatus) versionStatus.textContent = 'JSON da versão baixado. Nenhum dado foi alterado.';
+      } catch (error) {
+        var versionStatusError = document.getElementById('version-status');
+        if (versionStatusError) versionStatusError.textContent = error.message || 'Falha ao baixar versão.';
+      }
+      return;
+    }
+    var versionRestoreButton = event.target.closest('[data-version-restore]');
+    if (versionRestoreButton) {
+      if (!(await accessibleConfirm('Restaurar esta versão como uma NOVA versão ativa? A versão atual e todas as versões anteriores serão preservadas. Digite CONFIRMAR para continuar.', { typedPhrase: 'CONFIRMAR', acceptLabel: 'Restaurar como nova versão' }))) return;
+      versionRestoreButton.disabled = true;
+      try {
+        var restoredPayload = await restoreVersionAsNewVersion(
+          versionRestoreButton.dataset.versionRestore,
+          window.firebaseLoadVersion,
+          window.firebaseSaveWorkspace
+        );
+        appData = Object.assign({}, restoredPayload, { id: 'current' });
+        try { await saveWorkspace(appData, true); } catch (localBackupError) { console.warn('Versão restaurada no Firebase; cópia local não atualizada.', localBackupError); }
+        buildAll();
+        await renderVersions();
+        var versionStatusSuccess = document.getElementById('version-status');
+        if (versionStatusSuccess) versionStatusSuccess.textContent = 'Restauração concluída como nova versão. A versão anterior foi preservada.';
+      } catch (error) {
+        var versionStatusFailure = document.getElementById('version-status');
+        if (versionStatusFailure) versionStatusFailure.textContent = 'Restauração cancelada ou não confirmada pelo Firebase: ' + (error.message || 'erro desconhecido') + '. Nenhuma versão antiga foi apagada.';
+      } finally {
+        versionRestoreButton.disabled = false;
+      }
+      return;
+    }
+    var versionNavButton = event.target.closest('[data-s="ver"]');
+    if (versionNavButton) renderVersions();
     var addPersonButton = event.target.closest('[data-add-person]');
     if (addPersonButton) { openRecordEditor('person', null); return; }
     var editPersonButton = event.target.closest('[data-edit-person]');
@@ -2170,7 +2601,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var backupId = restoreButton.dataset.restoreBackup;
       var snapshot = await getSnapshotById(backupId);
       if (!snapshot) { setImportMessage('O backup selecionado não foi encontrado.', 'error'); return; }
-      if (!window.confirm('Restaurar esta versão local? A versão ativa atual será arquivada antes da restauração.')) return;
+      if (!(await accessibleConfirm('Restaurar esta versão local? A versão ativa atual será preservada como versão anterior. Digite CONFIRMAR para continuar.', { typedPhrase: 'CONFIRMAR', acceptLabel: 'Restaurar versão' }))) return;
       try {
         if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
         await window.firebaseSaveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
@@ -2470,6 +2901,7 @@ async function saveCloudWorkspace(payload, createVersion) {
       checkin: safeValue(payload.checkin || {}),
       createdAt: new Date().toISOString(),
       createdBy: auth.currentUser.uid,
+      createdByName: auth.currentUser.displayName || auth.currentUser.email || auth.currentUser.uid,
       counts: {
         participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
         people: Array.isArray(payload.people) ? payload.people.length : 0,
@@ -2558,12 +2990,14 @@ async function saveCloudWorkspace(payload, createVersion) {
     throw error;
   }
 }
-async function loadCloudWorkspace() {
+async function loadCloudWorkspace(requestedVersionId) {
   const rootSnap = await getDoc(rootRef());
-  const versionId = versionPointerValue(rootSnap);
-  baseWorkspaceVersionId = versionId;
-  workspaceVersionConflict = false;
-  savingWorkspaceVersionId = null;
+  const versionId = requestedVersionId || versionPointerValue(rootSnap);
+  if (!requestedVersionId) {
+    baseWorkspaceVersionId = versionId;
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+  }
   if (!versionId) return null;
   const versionSnap = await getDoc(versionRef(versionId));
   if (!versionSnap.exists()) throw new Error('A versão atual da planilha não foi encontrada no Firestore.');
@@ -2604,6 +3038,25 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
+window.firebaseListVersions = async function () {
+  if (!auth.currentUser) throw new Error('Faça login para consultar versões.');
+  const snapshot = await getDocs(collection(firestore, 'appData', 'primary', 'versions'));
+  return snapshot.docs.map(function (item) {
+    const data = item.data() || {};
+    return {
+      id: item.id, versionId: data.versionId || item.id, createdAt: data.createdAt || data.importedAt || '',
+      createdBy: data.createdByName || data.createdBy || '', sourceFileName: data.sourceFileName || 'Arquivo não informado',
+      counts: data.counts || {}, isCurrent: item.id === baseWorkspaceVersionId
+    };
+  }).sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
+};
+window.firebaseLoadVersion = async function (versionId) {
+  if (!auth.currentUser) throw new Error('Faça login para abrir uma versão.');
+  if (!versionId || typeof versionId !== 'string') throw new Error('Identificador de versão inválido.');
+  const versionSnap = await getDoc(versionRef(versionId));
+  if (!versionSnap.exists()) throw new Error('A versão selecionada não existe mais.');
+  return loadCloudWorkspace(versionId);
+};
 window.firebaseHasMarksForTurma = async function (turmaId) {
   if (!auth.currentUser) throw new Error('Faça login antes de verificar as marcações da turma.');
   const target = String(turmaId);
@@ -2709,7 +3162,7 @@ window.addEventListener('day-legacy-marks',async function(event){
    const data={turmaId:'36',posicaoOuPessoaId:String(row.number||row.sourceRow),presente:!!old.present,presenteEm:old.present?(old.presenteEm||old.presentAt||null):null,batizado:!!old.baptized,batizadoEm:old.baptized?(old.batizadoEm||old.baptizedAt||null):null,porUid:auth.currentUser.uid,porNome:auth.currentUser.displayName||auth.currentUser.email||'Equipe'};
    await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
   }
-  if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
+  if(imported && typeof window.showToast === 'function')window.showToast(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
  } catch(error) {
   console.error('Falha na migração de marcações antigas',error);
   window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message||'Falha na migração das marcações antigas.'}}));
