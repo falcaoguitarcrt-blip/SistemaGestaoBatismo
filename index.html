@@ -2954,7 +2954,8 @@ window.firebaseOrderApi={
   const baptismRefs=baptized.map(function(item){return doc(firestore,'batismos',item.id);});
   return runTransaction(firestore,async function(tx){
    const base=await Promise.all([tx.get(classRef),tx.get(metaRef)]);
-   const classSnap=base[0],metaSnap=base[1];   const baptismSnaps=await Promise.all(baptismRefs.map(function(ref){return tx.get(ref);}));
+   const classSnap=base[0],metaSnap=base[1];
+   const baptismSnaps=await Promise.all(baptismRefs.map(function(ref){return tx.get(ref);}));
    const newCount=baptismSnaps.filter(function(s){return !s.exists();}).length;
    if(baptized.length+3>500)throw new Error('Muitas posições para concluir em uma operação. Peça suporte para encerrar esta turma.');
    const stamp=new Date().toISOString(),auditRef=doc(collection(firestore,'auditoria'));
