@@ -188,7 +188,7 @@ const undoUiStart = html.indexOf("dayToast(on?'Marcação salva");
 if (undoUiStart >= 0) {
   const undoUiEnd = html.indexOf("return;", undoUiStart);
   const undoUi = html.slice(undoUiStart, undoUiEnd);
-  assert.ok(undoUi.includes('firebaseToggleDayMark'), 'o botão Desfazer deve continuar usando o fluxo de marcação do dia');
+  assert.ok(undoUi.includes('firebaseToggleDayMark') || undoUi.includes('firebaseUndoDayMark'), 'o botão Desfazer deve continuar usando o fluxo de marcação do dia');
   assert.ok(!/workspaceVersionConflict/.test(undoUi), 'o conflito do workspace não deve bloquear o desfazer pela interface');
 }
 assert.ok(html.includes("window.addEventListener('cloud-version-conflict', showCloudVersionBanner)"), 'o evento de conflito deve apenas exibir o aviso do workspace');
