@@ -1178,7 +1178,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       fields.push(value === '' ? null : value);
     }
     var draft = cloneWorkspaceForEdit();
-    var sheetName = Object.keys(draft.rawSheets).find(function (name) { return normal(name) === state.key; });
+    var sheetName = Object.keys(draft.rawSheets).find(function (name) {
+      var normalizedName = normal(name);
+      return normalizedName === state.key || (state.key === 'ordem' && normalizedName.indexOf('ordem') === 0);
+    });
     if (!sheetName) throw new Error('A aba de origem "' + state.key + '" não foi encontrada na planilha importada.');
     var rows = draft.rawSheets[sheetName];
     var sourceRow = state.sourceRow;
