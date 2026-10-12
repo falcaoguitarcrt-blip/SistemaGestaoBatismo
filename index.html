@@ -2139,7 +2139,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         renderEmptyWorkspace();
         buildAll();
         setImportMessage('Firebase conectado. Ainda não há uma planilha principal. Você pode criar uma turma vazia e cadastrar os participantes diretamente no sistema.', 'success');
-        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Cadastro iniciado do zero</b><p class="section-sub">Nenhuma planilha foi importada. Crie as turmas e cadastre os participantes no sistema. A turma 36 só será incluída se houver dados históricos carregados.</p></div>';
+        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Cadastro iniciado do zero</b><p class="section-sub">Nenhuma planilha foi importada. Crie as turmas e cadastre os participantes no sistema. A turma histórica só será incluída se houver dados históricos carregados.</p></div>';
         await refreshBackups();
         goTo('tur');
       }
