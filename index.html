@@ -331,10 +331,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <div class="card">
   <b>Como as abas serão distribuídas</b>
   <div class="mapping-row"><strong>Batismo</strong><span>Cadastro, ficha individual, jornada, grupo, camiseta, pagamentos, status, pendências e observações de perfil.</span></div>
-  <div class="mapping-row"><strong>Ordem</strong><span>Sequência numerada, retirada de fichas e observações. Posições sem nome serão mantidas como posições incompletas.</span></div>
-  <div class="mapping-row"><strong>Ordem Batismo 35</strong><span>Histórico da turma 35, com aula de batismo, batizado na missão e indicação de unificação.</span></div>
-  <div class="mapping-row"><strong>GERAL</strong><span>Histórico de pessoas, idade, telefone, turma e ano.</span></div>
-  <p class="note">Nenhum registro repetido será mesclado automaticamente. Linhas, lacunas e células originais ficam preservadas na cópia integral do Excel e no arquivo de origem guardado localmente.</p>
+  <div class="mapping-row"><strong>2ª aba · Ordem Batismo 36</strong><span>Sequência numerada, retirada de fichas, observações e status “Batizado no Eklesia”. Posições sem nome e colunas originais serão preservadas.</span></div>
+  <p class="note">A importação usa exclusivamente as duas primeiras abas. A 3ª aba, a 4ª aba e quaisquer outras posteriores não entram na base operacional. Nenhum registro repetido será mesclado automaticamente. O Excel original completo fica preservado como cópia de origem.</p>
 </div>
 <div class="card">
   <b>Cópias de segurança anteriores</b>
@@ -737,13 +735,17 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     });
 
     var mainRows = getSheetRows(rawSheets, 'Batismo');
-    var orderRows = getSheetRows(rawSheets, 'Ordem');
+    // A segunda aba é a ordem operacional. Aceita "Ordem" e nomes específicos
+    // como "Ordem Batismo 36", sem ler nenhuma aba posterior.
+    var secondSheetName = selectedSheetNames[1] || '';
+    var secondSheetKey = normal(secondSheetName);
+    var orderRows = rawSheets[secondSheetName] || null;
     var order35Rows = [];
     var generalRows = [];
     var missingSheets = [];
-    if (!mainRows) missingSheets.push('Batismo (primeira aba)');
-    if (!orderRows) missingSheets.push('Ordem (segunda aba)');
-    if (missingSheets.length) throw new Error('As duas primeiras abas precisam ser Batismo e Ordem. Abas identificadas: ' + selectedSheetNames.join(', ') + '. Nenhum dado foi substituído.');
+    if (normal(selectedSheetNames[0] || '') !== 'batismo' || !mainRows) missingSheets.push('Batismo (primeira aba)');
+    if (secondSheetKey.indexOf('ordem') !== 0 || !orderRows) missingSheets.push('Ordem (segunda aba, por exemplo "Ordem Batismo 36")');
+    if (missingSheets.length) throw new Error('Use a primeira aba Batismo e a segunda aba Ordem/Ordem Batismo 36. As abas após a segunda são ignoradas. Abas encontradas: ' + selectedSheetNames.join(', ') + '. Nenhum dado foi substituído.');
 
     var people = [];
     var skippedDuplicateHeaders = 0;
@@ -766,8 +768,18 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     }
 
     function createOrderEntries(rows, kind) {
+      var headers = (rows[0] || []).map(normal);
+      var eklesiaIndex = headers.findIndex(function (header) {
+        return header.indexOf('batizado no eklesia') >= 0 || header.indexOf('batizado no ekklesia') >= 0;
+      });
       return rows.slice(1).map(function (row, index) {
-        return { sourceRow: index + 2, fields: row.slice(), removed: row[0], number: row[1], name: clean(row[2]), note: row[3], lesson: row[4], baptized: row[5], merged: row[6] };
+        return {
+          sourceRow: index + 2, fields: row.slice(), removed: row[0], number: row[1], name: clean(row[2]), note: row[3],
+          lesson: eklesiaIndex >= 0 ? null : row[4],
+          baptized: eklesiaIndex >= 0 ? null : row[5],
+          merged: eklesiaIndex >= 0 ? null : row[6],
+          eklesiaStatus: eklesiaIndex >= 0 ? row[eklesiaIndex] : null
+        };
       }).filter(function (record) { return hasData(record.fields); });
     }
     var order = createOrderEntries(orderRows, 'current');
@@ -1139,10 +1151,21 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       profile: values[13], fields: values
     };
   }
-  function orderFromFields(fields, sourceRow) {
+  function orderFromFields(fields, sourceRow, sheetName, rawSheets) {
     var values = fields.slice();
     while (values.length < 4) values.push(null);
-    return { sourceRow: sourceRow, fields: values, removed: values[0], number: values[1], name: clean(values[2]), note: values[3], lesson: values[4], baptized: values[5], merged: values[6] };
+    var sourceRows = rawSheets && rawSheets[sheetName] || [];
+    var headers = (sourceRows[0] || []).map(normal);
+    var eklesiaIndex = headers.findIndex(function (header) {
+      return header.indexOf('batizado no eklesia') >= 0 || header.indexOf('batizado no ekklesia') >= 0;
+    });
+    return {
+      sourceRow: sourceRow, fields: values, removed: values[0], number: values[1], name: clean(values[2]), note: values[3],
+      lesson: eklesiaIndex >= 0 ? null : values[4],
+      baptized: eklesiaIndex >= 0 ? null : values[5],
+      merged: eklesiaIndex >= 0 ? null : values[6],
+      eklesiaStatus: eklesiaIndex >= 0 ? values[eklesiaIndex] : null
+    };
   }
   async function saveEditedRecord() {
     if (!recordEditorState || !appData) return;
@@ -1161,12 +1184,21 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var sourceRow = state.sourceRow;
     if (state.isNew) {
       sourceRow = rows.length + 1;
-      rows.push(fields.slice());
+      var newRow = fields.slice();
+      if (state.kind === 'order') while (newRow.length < Math.max(4, (rows[0] || []).length)) newRow.push(null);
+      rows.push(newRow);
     } else {
       var rowIndex = Number(sourceRow) - 1;
       if (rowIndex < 1 || rowIndex >= rows.length) throw new Error('A linha original deste registro não foi encontrada.');
       while (rows.length <= rowIndex) rows.push([]);
-      rows[rowIndex] = fields.slice();
+      if (state.kind === 'order') {
+        var preservedRow = (rows[rowIndex] || []).slice();
+        while (preservedRow.length < fields.length) preservedRow.push(null);
+        fields.forEach(function (value, fieldIndex) { preservedRow[fieldIndex] = value; });
+        rows[rowIndex] = preservedRow;
+      } else {
+        rows[rowIndex] = fields.slice();
+      }
     }
     updateSheetStats(draft, sheetName, rows);
     if (state.kind === 'person') {
@@ -1179,7 +1211,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       }
       selectedPersonRow = sourceRow;
     } else {
-      var orderRecord = orderFromFields(fields, sourceRow);
+      var savedOrderFields = rows[Number(sourceRow) - 1] || fields;
+      var orderRecord = orderFromFields(savedOrderFields, sourceRow, sheetName, draft.rawSheets);
       if (state.isNew) draft.order.push(orderRecord);
       else {
         var orderIndex = draft.order.findIndex(function (item) { return Number(item.sourceRow) === Number(sourceRow); });
@@ -1249,7 +1282,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var queryText=normal(orderState.query),items=currentOrderItems().filter(function(r){if(orderState.filter==='named'&&isBlank(r.name))return false;if(orderState.filter==='unnamed'&&!isBlank(r.name))return false;return !queryText||normal([r.number,r.name,r.note,r.removed,r.sourceRow].join(' ')).indexOf(queryText)>=0;});
     var pages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));orderState.page=Math.min(Math.max(1,orderState.page),pages);var start=(orderState.page-1)*PAGE_SIZE,view=items.slice(start,start+PAGE_SIZE),named=currentOrderItems().filter(function(r){return !!r.name;}).length;
     document.getElementById('order-count').textContent=numberLabel(items.length)+' posições encontradas · '+numberLabel(named)+' com nome · '+numberLabel(currentOrderItems().length-named)+' reservadas/sem nome';
-    document.getElementById('order-results').innerHTML=view.map(function(r){return '<div class="data-item"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.__manual?'Posição cadastrada no sistema':'Registro da planilha original')+' · '+(r.note?'Observação: '+esc(r.note):'Sem observação')+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+'</div></div><div class="item-actions">'+(r.__manual?'<button type="button" class="btn o" data-edit-manual-order="'+esc(r.id)+'">Editar posição</button>':'<button type="button" class="btn o" data-edit-order="'+esc(r.sourceRow)+'">Editar origem</button>')+'</div></div>';}).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
+    document.getElementById('order-results').innerHTML=view.map(function(r){return '<div class="data-item"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.__manual?'Posição cadastrada no sistema':'Registro da planilha original')+' · '+(r.note?'Observação: '+esc(r.note):'Sem observação')+(isBlank(r.eklesiaStatus)?'':' · Batizado no Eklesia: '+esc(display(r.eklesiaStatus)))+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+'</div></div><div class="item-actions">'+(r.__manual?'<button type="button" class="btn o" data-edit-manual-order="'+esc(r.id)+'">Editar posição</button>':'<button type="button" class="btn o" data-edit-order="'+esc(r.sourceRow)+'">Editar origem</button>')+'</div></div>';}).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
     document.getElementById('order-pager').innerHTML='<button type="button" class="btn o" data-page="order:-1" '+(orderState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+orderState.page+' de '+pages+'</span><button type="button" class="btn o" data-page="order:1" '+(orderState.page>=pages?'disabled':'')+'>Próxima →</button>';
   }
 
@@ -1411,13 +1444,11 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var extra = '';
       var key = normal(sheet.name);
       if (key === 'batismo') extra = numberLabel(payload.people.length) + ' linhas mapeadas, ' + numberLabel(payload.people.filter(function (p) { return !p.name; }).length) + ' sem nome';
-      if (key === 'ordem') extra = numberLabel(payload.order.length) + ' posições com conteúdo, ' + numberLabel(payload.order.filter(function (p) { return !!p.name; }).length) + ' com nome';
-      if (key === 'ordem batismo 35') extra = numberLabel(payload.order35.length) + ' registros operacionais mantidos';
-      if (key === 'geral') extra = numberLabel(payload.general.length) + ' pessoas com nome, ' + numberLabel(payload.generalUnmapped.length) + ' linhas sem nome textual mantidas na origem';
+      if (key.indexOf('ordem') === 0) extra = numberLabel(payload.order.length) + ' posições com conteúdo, ' + numberLabel(payload.order.filter(function (p) { return !!p.name; }).length) + ' com nome' + (payload.order.some(function (p) { return !isBlank(p.eklesiaStatus); }) ? ', status Eklesia mapeado separadamente' : '');
       return '<div class="mapping-row"><strong>' + esc(sheet.name) + '</strong><span>' + numberLabel(sheet.rowCount) + ' linhas lidas · ' + numberLabel(sheet.nonemptyRows) + ' não vazias · ' + esc(sheet.columns) + ' colunas<br>' + esc(extra) + '</span></div>';
     }).join('');
     var skipped = payload.skippedDuplicateHeaders ? '<p class="section-sub">' + numberLabel(payload.skippedDuplicateHeaders) + ' linha(s) repetindo o cabeçalho da aba Batismo será(ão) excluída(s) apenas da lista de pessoas. Ela(s) continua(m) preservada(s) no Excel original e em rawSheets.</p>' : '';
-    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Somente as duas primeiras abas (Batismo e Ordem) e suas linhas de origem serão enviadas ao Firebase. As demais abas serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
   }
 
   function renderEmptyWorkspace() {
