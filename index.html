@@ -1582,6 +1582,24 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
 
   function buildImportPreview(payload) {
+    var orderSheetName = String((payload.sourceSheetNames || [])[1] || '');
+    var suggestionMatch = orderSheetName.match(/(?:ordem(?:\\s+batismo)?|turma)\\s*[-_ ]*(\\d+)/i);
+    suggestedImportOrderTurmaId = suggestionMatch ? String(Number(suggestionMatch[1])) : '';
+    confirmedImportOrderTurmaId = '';
+    var turmaOptions = {};
+    (appData && appData.turmas || []).forEach(function (turma) {
+      var id = String(turma.number || turma.id || '').trim();
+      if (/^\\d+$/.test(id)) turmaOptions[id] = turma.name || ('Turma ' + id);
+    });
+    (appData && appData.people || []).forEach(function (person) {
+      var id = String(person.turma || '').trim();
+      if (/^\\d+$/.test(id) && !turmaOptions[id]) turmaOptions[id] = 'Turma ' + id;
+    });
+    if (suggestedImportOrderTurmaId && !turmaOptions[suggestedImportOrderTurmaId]) turmaOptions[suggestedImportOrderTurmaId] = 'Turma ' + suggestedImportOrderTurmaId + ' (sugerida pelo nome da aba)';
+    var optionIds = Object.keys(turmaOptions).sort(function (a, b) { return Number(a) - Number(b); });
+    var options = '<option value="">Selecione a turma da ordem</option>' + optionIds.map(function (id) {
+      return '<option value="' + esc(id) + '">' + esc(turmaOptions[id]) + '</option>';
+    }).join('') + '<option value="__other__">Outra turma…</option>';
     var stats = payload.sheetStats.map(function (sheet) {
       var extra = '';
       var key = normal(sheet.name);
@@ -1590,7 +1608,52 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       return '<div class="mapping-row"><strong>' + esc(sheet.name) + '</strong><span>' + numberLabel(sheet.rowCount) + ' linhas lidas · ' + numberLabel(sheet.nonemptyRows) + ' não vazias · ' + esc(sheet.columns) + ' colunas<br>' + esc(extra) + '</span></div>';
     }).join('');
     var skipped = payload.skippedDuplicateHeaders ? '<p class="section-sub">' + numberLabel(payload.skippedDuplicateHeaders) + ' linha(s) repetindo o cabeçalho da aba Batismo será(ão) excluída(s) apenas da lista de pessoas. Ela(s) continua(m) preservada(s) no Excel original e em rawSheets.</p>' : '';
-    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
+    var suggestionText = suggestedImportOrderTurmaId
+      ? 'Sugestão pelo nome da aba: Turma ' + suggestedImportOrderTurmaId + '. A sugestão não será aplicada sem sua confirmação explícita.'
+      : 'Não foi possível inferir a turma pelo nome da aba. Escolha a turma manualmente.';
+    document.getElementById('import-preview').innerHTML =
+      '<div class="card"><b>Escolha obrigatória da turma da ordem</b>' +
+      '<p class="section-sub">' + esc(suggestionText) + '</p>' +
+      '<label for="import-order-turma-select"><b>Turma que receberá esta ordem</b></label>' +
+      '<select id="import-order-turma-select" class="day-turma-select">' + options + '</select>' +
+      '<label id="import-order-turma-custom-label" for="import-order-turma-custom" hidden>Número da nova turma<input id="import-order-turma-custom" type="number" min="1" step="1" inputmode="numeric"></label>' +
+      '<div class="bb"><button type="button" class="btn" id="confirm-import-order-turma" disabled>Confirmar turma escolhida</button></div>' +
+      '<p id="import-order-turma-confirmed" class="section-sub" role="status" aria-live="polite">A turma só será aplicada à importação após confirmação explícita.</p>' +
+      '<div id="import-marks-confirm-wrap" hidden><p class="note">Já existem marcações de presença/batismo nesta turma. Importar uma nova ordem pode associar essas marcações às novas pessoas. Para prosseguir, digite exatamente o número da turma.</p><label for="import-marks-confirmation">Digite o número da turma para confirmar<input id="import-marks-confirmation" type="text" inputmode="numeric" autocomplete="off"></label></div>' +
+      '</div><div class="card"><b>Conferência antes de importar</b>' + stats + skipped +
+      '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
+
+    var selector = document.getElementById('import-order-turma-select');
+    var customLabel = document.getElementById('import-order-turma-custom-label');
+    var customInput = document.getElementById('import-order-turma-custom');
+    var confirmButton = document.getElementById('confirm-import-order-turma');
+    var importButton = document.getElementById('confirm-import');
+    function selectedChoice() {
+      if (selector.value === '__other__') return String(customInput.value || '').trim();
+      return String(selector.value || '').trim();
+    }
+    function refreshChoice() {
+      if (confirmedImportOrderTurmaId) return;
+      customLabel.hidden = selector.value !== '__other__';
+      confirmButton.disabled = !/^\\d+$/.test(selectedChoice()) || Number(selectedChoice()) < 1;
+    }
+    selector.addEventListener('change', refreshChoice);
+    customInput.addEventListener('input', refreshChoice);
+    confirmButton.addEventListener('click', function () {
+      var turmaId = selectedChoice();
+      if (!/^\\d+$/.test(turmaId) || Number(turmaId) < 1 || !pendingImport) return;
+      turmaId = String(Number(turmaId));
+      pendingImport.ordemTurmaId = turmaId;
+      confirmedImportOrderTurmaId = turmaId;
+      ensureTurmaRegistry(pendingImport);
+      selector.disabled = true;
+      customInput.disabled = true;
+      confirmButton.disabled = true;
+      confirmButton.textContent = 'Turma confirmada: ' + turmaId;
+      document.getElementById('import-order-turma-confirmed').textContent = 'Turma escolhida e confirmada: ' + turmaId + '. Confira a prévia antes de importar.';
+      importButton.disabled = false;
+      setImportMessage('Turma ' + turmaId + ' confirmada para esta ordem. A importação ainda não foi executada.', 'success');
+    });
   }
 
   function renderEmptyWorkspace() {
@@ -1764,6 +1827,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var fileInput = document.getElementById('workbook-file');
   fileInput.addEventListener('change', async function () {
     pendingImport = null;
+    confirmedImportOrderTurmaId = '';
+    suggestedImportOrderTurmaId = '';
     document.getElementById('confirm-import').disabled = true;
     document.getElementById('import-preview').innerHTML = '';
     var file = fileInput.files && fileInput.files[0];
@@ -1781,8 +1846,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var payload = normalizeWorkbook(file, buffer);
       pendingImport = payload;
       buildImportPreview(payload);
-      document.getElementById('confirm-import').disabled = false;
-      setImportMessage('Arquivo conferido. Revise os quantitativos e confirme para enviar os registros ao Firebase.', 'success');
+      document.getElementById('confirm-import').disabled = true;
+      setImportMessage('Arquivo conferido. Escolha e confirme a turma da ordem antes de habilitar a importação.', 'success');
     } catch (error) {
       setImportMessage(error.message || 'Não foi possível ler a planilha. Nenhum dado foi substituído.', 'error');
     }
@@ -1790,7 +1855,36 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   document.getElementById('confirm-import').addEventListener('click', async function () {
     if (!pendingImport) return;
-    var message = 'Enviar os dados conferidos das duas primeiras abas (Batismo e Ordem) para o Firebase e guardar uma cópia local?';
+    var targetTurmaId = String(pendingImport.ordemTurmaId || '');
+    if (!targetTurmaId || confirmedImportOrderTurmaId !== targetTurmaId) {
+      setImportMessage('Escolha e confirme a turma da ordem antes de importar.', 'error');
+      return;
+    }
+    if (typeof window.firebaseHasMarksForTurma !== 'function') {
+      setImportMessage('Não foi possível verificar as marcações desta turma. A importação foi bloqueada por segurança.', 'error');
+      return;
+    }
+    var hasExistingMarks;
+    try {
+      hasExistingMarks = await window.firebaseHasMarksForTurma(targetTurmaId);
+    } catch (checkError) {
+      setImportMessage('Não foi possível conferir as marcações da turma ' + targetTurmaId + '. Nenhum dado foi importado. ' + (checkError.message || ''), 'error');
+      return;
+    }
+    var marksWrap = document.getElementById('import-marks-confirm-wrap');
+    var marksInput = document.getElementById('import-marks-confirmation');
+    if (hasExistingMarks && !importMarksConfirmationValid(true, targetTurmaId, marksInput && marksInput.value)) {
+      marksWrap.hidden = false;
+      if (marksInput) marksInput.focus();
+      setImportMessage('Já existem marcações na turma ' + targetTurmaId + '. Para continuar, digite exatamente ' + targetTurmaId + '. As marcações existentes poderão ficar associadas às pessoas da nova ordem.', 'error');
+      return;
+    }
+    if (marksWrap) marksWrap.hidden = !hasExistingMarks;
+    var message = 'Importar a ordem para a Turma ' + targetTurmaId + ' e enviar os dados conferidos das duas primeiras abas (Batismo e Ordem) para o Firebase?';
+    if (hasExistingMarks) message += '\n\nVocê confirmou digitando o número da turma. As marcações existentes permanecerão intactas, mas podem ficar associadas às novas pessoas/posições.';
+    if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
+    message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
+    if (!window.confirm(message)) return;
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
     if (!window.confirm(message)) return;
@@ -1804,6 +1898,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       try { await saveWorkspace(pendingImport, true); }
       catch (localError) { localCopyWarning = ' A sincronização na nuvem foi concluída, mas a cópia local não pôde ser atualizada neste navegador.'; }
       appData = Object.assign({}, pendingImport, { id: 'current' });
+      pendingImport = null;
+      confirmedImportOrderTurmaId = '';
       selectedPersonRow = null;
       peopleState = { query: '', turma: '', filter: 'all', page: 1 };
       orderState = { query: '', page: 1 };
