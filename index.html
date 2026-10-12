@@ -159,6 +159,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .day-count{display:grid;grid-template-columns:minmax(110px,auto) 1fr;align-items:center;gap:10px;margin:8px 0}.day-toast{display:none;position:fixed;left:50%;bottom:18px;z-index:30;transform:translateX(-50%);width:min(92vw,480px);padding:12px;background:var(--tx);color:var(--card);border-radius:12px;text-align:center}.day-toast.show{display:block}.day-undo{min-height:48px;border:0;border-radius:8px;padding:0 14px;background:var(--gold);font-weight:700}#day-print-list{display:none}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
 @media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
+#accessible-confirm-dialog{max-width:min(560px,calc(100vw - 28px));width:100%;border:1px solid var(--ln);border-radius:16px;padding:22px;background:var(--card);color:var(--tx)}#accessible-confirm-dialog::backdrop{background:rgba(0,0,0,.55)}#accessible-confirm-dialog form{display:grid;gap:12px}#accessible-confirm-dialog input{width:100%;min-height:42px;margin-top:6px;padding:8px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx)}
 </style>
 </head>
 <body class="auth-pending">
@@ -188,8 +189,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
 <button class="on" data-s="home">▦ Painel</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button>
-<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
-<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="cam" tabindex="-1" aria-hidden="true">Camisetas</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
+<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="ver">Versões</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
+<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="cam" tabindex="-1" aria-hidden="true">Camisetas</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="ver" tabindex="-1" aria-hidden="true">Versões</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
 </nav>
 </header>
 <main>
@@ -323,10 +324,11 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   <input id="workbook-file" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" style="display:block;width:100%;margin:10px 0">
   <div id="import-status" class="import-status" role="status" aria-live="polite">Selecione “Batismo (1).xlsx” para conferir as abas e os registros antes de importar.</div>
   <div id="import-preview"></div>
+  <div class="card" id="import-mode-card"><b>Modo de importação</b><label for="import-mode">Como tratar a base ativa</label><select id="import-mode" class="day-turma-select"><option value="add-update" selected>Adicionar e atualizar (padrão, nunca apaga)</option><option value="replace">Substituir tudo</option></select><p class="section-sub">No modo padrão, pessoas ausentes no arquivo permanecem na base. Escolha quais campos podem ser atualizados em cadastros existentes.</p><div id="update-field-options" class="mapping-row"></div><div id="replace-confirm-wrap" hidden><label for="replace-confirm-text">Para substituir tudo, digite CONFIRMAR<input id="replace-confirm-text" type="text" autocomplete="off" spellcheck="false"></label><button type="button" class="btn o" id="download-replace-backup">Baixar backup JSON da base ativa</button><p id="replace-backup-status" class="section-sub" role="status">O modo Substituir tudo só habilita após baixar o backup e digitar CONFIRMAR.</p></div></div>
   <div class="bb import-actions">
     <button id="confirm-import" type="button" class="btn" disabled>Importar e salvar no Firebase</button>
     <button id="download-source" type="button" class="btn o" disabled>Baixar Excel original</button>
-    <button id="download-json" type="button" class="btn o" disabled>Exportar backup JSON</button>
+    <button id="download-json" type="button" class="btn o" disabled>Exportar backup JSON</button><button id="download-import-report" type="button" class="btn o" disabled>Baixar relatório final CSV</button>
   </div>
 </div>
 <div class="card">
@@ -341,14 +343,15 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   <div id="backup-items" class="backup-list"><span class="note">Carregando backups locais…</span></div>
 </div>
 </section>
+<section id="ver"><h2 class="t">Versões</h2><div class="card"><p class="section-sub">As versões são imutáveis. Restaurar cria uma nova versão ativa usando compare-and-swap, sem excluir a atual nem versões anteriores.</p><div id="version-list" class="data-list"><span class="note">Abra esta tela para carregar o histórico.</span></div><div id="version-status" class="import-status" role="status" aria-live="polite"></div></div></section>
 <section id="cfg"><h2 class="t">Configurações</h2>
 <div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
 <div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
 <div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
 <div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Ekklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
 </main>
-<div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<dialog id="accessible-confirm-dialog" aria-labelledby="accessible-confirm-title" aria-describedby="accessible-confirm-message"><form method="dialog" id="accessible-confirm-form"><h2 id="accessible-confirm-title">Confirmar ação</h2><p id="accessible-confirm-message"></p><label id="accessible-confirm-input-wrap" for="accessible-confirm-input" hidden>Digite a confirmação<input id="accessible-confirm-input" type="text" autocomplete="off"></label><div class="bb"><button type="button" class="btn o" id="accessible-confirm-cancel">Cancelar</button><button type="button" class="btn" id="accessible-confirm-accept">Confirmar</button></div></form></dialog> <div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" crossorigin="anonymous"></script>
 <script>
 (function () {
   'use strict';
@@ -742,6 +745,44 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (!node) return;
     node.textContent = message;
     node.className = 'import-status' + (type ? ' ' + type : '');
+  }
+  function accessibleConfirm(message, options) {
+    options = options || {};
+    var dialog = document.getElementById('accessible-confirm-dialog');
+    var messageNode = document.getElementById('accessible-confirm-message');
+    var inputWrap = document.getElementById('accessible-confirm-input-wrap');
+    var input = document.getElementById('accessible-confirm-input');
+    var accept = document.getElementById('accessible-confirm-accept');
+    var cancel = document.getElementById('accessible-confirm-cancel');
+    if (!dialog || typeof dialog.showModal !== 'function') return Promise.resolve(false);
+    messageNode.textContent = message;
+    inputWrap.hidden = !options.typedPhrase;
+    input.value = '';
+    accept.textContent = options.acceptLabel || 'Confirmar';
+    accept.disabled = !!options.typedPhrase;
+    if (options.typedPhrase) {
+      inputWrap.childNodes[0].textContent = 'Digite exatamente ' + options.typedPhrase + ' ';
+      input.oninput = function () { accept.disabled = input.value !== options.typedPhrase; };
+    } else input.oninput = null;
+    return new Promise(function (resolve) {
+      var settled = false;
+      function finish(result) {
+        if (settled) return;
+        settled = true;
+        dialog.removeEventListener('cancel', onCancel);
+        accept.removeEventListener('click', onAccept);
+        cancel.removeEventListener('click', onCancel);
+        dialog.close();
+        resolve(result);
+      }
+      function onCancel(event) { if (event) event.preventDefault(); finish(false); }
+      function onAccept() { finish(!options.typedPhrase || input.value === options.typedPhrase); }
+      dialog.addEventListener('cancel', onCancel);
+      accept.addEventListener('click', onAccept);
+      cancel.addEventListener('click', onCancel);
+      dialog.showModal();
+      (options.typedPhrase ? input : cancel).focus();
+    });
   }
   var cloudVersionBanner = null;
   var cloudVersionBannerMessage = null;
@@ -2089,7 +2130,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
     message += '\n\nA checagem de marcações é repetida imediatamente antes de salvar. Ainda existe uma janela residual entre essa leitura e a conclusão do salvamento da versão, incluindo gravação dos blocos e atualização do ponteiro; marcações simultâneas nesse intervalo podem não ser detectadas pela pré-checagem.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
-    if (!window.confirm(message)) return;
+    if (!(await accessibleConfirm(message))) return;
     // Segunda checagem após a janela do diálogo de confirmação. Resta uma janela residual até o salvamento.
     button.disabled = true;
     setImportMessage('Rechecando marcações no servidor antes de importar…');
@@ -2285,7 +2326,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var backupId = restoreButton.dataset.restoreBackup;
       var snapshot = await getSnapshotById(backupId);
       if (!snapshot) { setImportMessage('O backup selecionado não foi encontrado.', 'error'); return; }
-      if (!window.confirm('Restaurar esta versão local? A versão ativa atual será arquivada antes da restauração.')) return;
+      if (!(await accessibleConfirm('Restaurar esta versão local? A versão ativa atual será preservada como versão anterior.'))) return;
       try {
         if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
         await window.firebaseSaveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
@@ -2824,7 +2865,7 @@ window.addEventListener('day-legacy-marks',async function(event){
    const data={turmaId:'36',posicaoOuPessoaId:String(row.number||row.sourceRow),presente:!!old.present,presenteEm:old.present?(old.presenteEm||old.presentAt||null):null,batizado:!!old.baptized,batizadoEm:old.baptized?(old.batizadoEm||old.baptizedAt||null):null,porUid:auth.currentUser.uid,porNome:auth.currentUser.displayName||auth.currentUser.email||'Equipe'};
    await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
   }
-  if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
+  if(imported)showToast(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
  } catch(error) {
   console.error('Falha na migração de marcações antigas',error);
   window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message||'Falha na migração das marcações antigas.'}}));
