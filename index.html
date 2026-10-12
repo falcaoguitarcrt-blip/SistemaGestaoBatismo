@@ -368,6 +368,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       toast.classList.remove('show');
     }, 3000);
   }
+  window.showToast = showToast;
 
   function go(sectionId) {
     var button = document.querySelector('[data-s="' + sectionId + '"]');
@@ -2530,7 +2531,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var backupId = restoreButton.dataset.restoreBackup;
       var snapshot = await getSnapshotById(backupId);
       if (!snapshot) { setImportMessage('O backup selecionado não foi encontrado.', 'error'); return; }
-      if (!(await accessibleConfirm('Restaurar esta versão local? A versão ativa atual será preservada como versão anterior.'))) return;
+      if (!(await accessibleConfirm('Restaurar esta versão local? A versão ativa atual será preservada como versão anterior. Digite CONFIRMAR para continuar.', { typedPhrase: 'CONFIRMAR', acceptLabel: 'Restaurar versão' }))) return;
       try {
         if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
         await window.firebaseSaveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
@@ -3090,7 +3091,7 @@ window.addEventListener('day-legacy-marks',async function(event){
    const data={turmaId:'36',posicaoOuPessoaId:String(row.number||row.sourceRow),presente:!!old.present,presenteEm:old.present?(old.presenteEm||old.presentAt||null):null,batizado:!!old.baptized,batizadoEm:old.baptized?(old.batizadoEm||old.baptizedAt||null):null,porUid:auth.currentUser.uid,porNome:auth.currentUser.displayName||auth.currentUser.email||'Equipe'};
    await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
   }
-  if(imported)showToast(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
+  if(imported && typeof window.showToast === 'function')window.showToast(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
  } catch(error) {
   console.error('Falha na migração de marcações antigas',error);
   window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message||'Falha na migração das marcações antigas.'}}));
