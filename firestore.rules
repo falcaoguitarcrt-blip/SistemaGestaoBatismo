@@ -78,12 +78,13 @@ service cloud.firestore {
           && (!('3' in request.resource.data.aulas) || request.resource.data.aulas['3'] == null || request.resource.data.aulas['3'] is bool)
           && (!('4' in request.resource.data.aulas) || request.resource.data.aulas['4'] == null || request.resource.data.aulas['4'] is bool)))
         && (!('camiseta' in request.resource.data) || (request.resource.data.camiseta is map
-          && request.resource.data.camiseta.keys().hasOnly(['opcao','tamanho','pago','valor','data','entregue','arquivadaRevisao'])
+          && request.resource.data.camiseta.keys().hasOnly(['opcao','tamanho','pago','valor','data','entregue','entregueEm','arquivadaRevisao'])
           && request.resource.data.camiseta.opcao in ['', 'quer', 'nao_quer', 'ja_tem']
           && (!('tamanho' in request.resource.data.camiseta) || request.resource.data.camiseta.tamanho == null || (request.resource.data.camiseta.tamanho is string && request.resource.data.camiseta.tamanho.size() <= 20))
           && (!('data' in request.resource.data.camiseta) || request.resource.data.camiseta.data == null || request.resource.data.camiseta.data is string)
           && (!('pago' in request.resource.data.camiseta) || request.resource.data.camiseta.pago == null || request.resource.data.camiseta.pago is bool)
           && (!('entregue' in request.resource.data.camiseta) || request.resource.data.camiseta.entregue == null || request.resource.data.camiseta.entregue is bool)
+          && (!('entregueEm' in request.resource.data.camiseta) || request.resource.data.camiseta.entregueEm == null || request.resource.data.camiseta.entregueEm is string || request.resource.data.camiseta.entregueEm is timestamp)
           && (!('valor' in request.resource.data.camiseta) || request.resource.data.camiseta.valor == null || request.resource.data.camiseta.valor is number)))
         && (!('pendencia' in request.resource.data) || (request.resource.data.pendencia is map
           && request.resource.data.pendencia.keys().hasOnly(['texto','arquivadaRevisao','tipo'])
@@ -279,6 +280,194 @@ service cloud.firestore {
           || (exists(personPath)
             && request.resource.data.revision == (('revision' in current.data) ? current.data.revision + 1 : 1)));
     }
+    function workflowCanRead(turmaId) {
+      return staffRead() || leaderOwnsTurma(turmaId);
+    }
+    function workflowCanEdit(turmaId) {
+      return staffWrite() || leaderOwnsTurma(turmaId);
+    }
+    function workflowClassOpen(turmaId) {
+      return turmaId is string
+        && exists(classPath(turmaId))
+        && get(classPath(turmaId)).data.status != 'encerrada'
+        && (!exists(orderStatePath(turmaId)) || get(orderStatePath(turmaId)).data.closing != true);
+    }
+    function pendingPersonPath(pessoaId) {
+      return /databases/$(database)/documents/pessoas/$(pessoaId);
+    }
+    function validPending() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId','pessoaId','tipo','responsavel','prazo','status','notas',
+          'automatico','autoKey','autoClosed','arquivadaRevisao','resolvidaEm',
+          'criadoEm','criadoPor','criadoPorNome','updatedAt','updatedBy','revision'
+        ])
+        && request.resource.data.keys().hasAll([
+          'turmaId','pessoaId','tipo','responsavel','prazo','status','notas',
+          'automatico','autoClosed','arquivadaRevisao','criadoEm','criadoPor',
+          'criadoPorNome','updatedAt','updatedBy','revision'
+        ])
+        && request.resource.data.turmaId is string
+        && request.resource.data.pessoaId is string
+        && request.resource.data.tipo is string
+        && request.resource.data.tipo.size() > 0
+        && request.resource.data.tipo.size() <= 80
+        && request.resource.data.responsavel is string
+        && request.resource.data.responsavel.size() <= 120
+        && request.resource.data.prazo is string
+        && request.resource.data.prazo.size() <= 10
+        && request.resource.data.status in ['aberta','em_contato','resolvida','arquivada']
+        && request.resource.data.notas is string
+        && request.resource.data.notas.size() <= 1500
+        && request.resource.data.automatico is bool
+        && (!('autoKey' in request.resource.data) || (request.resource.data.autoKey is string && request.resource.data.autoKey.size() <= 60))
+        && (!request.resource.data.automatico || ('autoKey' in request.resource.data && request.resource.data.autoKey is string))
+        && request.resource.data.autoClosed is bool
+        && request.resource.data.arquivadaRevisao is bool
+        && (!('resolvidaEm' in request.resource.data) || request.resource.data.resolvidaEm == null || request.resource.data.resolvidaEm is string || request.resource.data.resolvidaEm is timestamp)
+        && request.resource.data.criadoEm is string
+        && request.resource.data.criadoPor == request.auth.uid
+        && request.resource.data.criadoPorNome is string
+        && request.resource.data.criadoPorNome.size() <= 120
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.revision is int
+        && request.resource.data.revision >= 1
+        && exists(pendingPersonPath(request.resource.data.pessoaId))
+        && get(pendingPersonPath(request.resource.data.pessoaId)).data.turmaId == request.resource.data.turmaId;
+    }
+    function validAulao() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId','data','hora','local','vagas','reporAulas','inscritosCount',
+          'lastRegistrationPessoaId','status','revision','createdAt','createdBy','updatedAt','updatedBy'
+        ])
+        && request.resource.data.turmaId is string
+        && request.resource.data.data is string
+        && request.resource.data.data.size() == 10
+        && request.resource.data.hora is string
+        && request.resource.data.hora.size() <= 5
+        && request.resource.data.local is string
+        && request.resource.data.local.size() > 0
+        && request.resource.data.local.size() <= 160
+        && request.resource.data.vagas is int
+        && request.resource.data.vagas > 0
+        && request.resource.data.vagas <= 1000
+        && request.resource.data.reporAulas is list
+        && request.resource.data.reporAulas.size() >= 1
+        && request.resource.data.reporAulas.size() <= 4
+        && request.resource.data.reporAulas.toSet().hasOnly([1,2,3,4])
+        && request.resource.data.reporAulas.toSet().size() == request.resource.data.reporAulas.size()
+        && request.resource.data.inscritosCount is int
+        && request.resource.data.inscritosCount >= 0
+        && request.resource.data.inscritosCount <= request.resource.data.vagas
+        && (!('lastRegistrationPessoaId' in request.resource.data) || request.resource.data.lastRegistrationPessoaId == null || (request.resource.data.lastRegistrationPessoaId is string && request.resource.data.lastRegistrationPessoaId.size() <= 150))
+        && request.resource.data.status in ['agendado','realizado','cancelado']
+        && request.resource.data.revision is int
+        && request.resource.data.revision >= 1
+        && request.resource.data.createdAt is string
+        && request.resource.data.createdBy is string
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+    function aulaoPath(aulaoId) {
+      return /databases/$(database)/documents/auloes/$(aulaoId);
+    }
+    function registrationPath(aulaoId,pessoaId) {
+      return /databases/$(database)/documents/auloes/$(aulaoId)/inscricoes/$(pessoaId);
+    }
+    function validRegistration() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId','pessoaId','status','inscritoEm','inscritoPorUid','inscritoPorNome',
+          'presenteEm','presentePorUid','presentePorNome','revision','updatedAt','updatedBy'
+        ])
+        && request.resource.data.turmaId is string
+        && request.resource.data.pessoaId is string
+        && request.resource.data.status in ['inscrito','presente','cancelada']
+        && request.resource.data.inscritoEm is string
+        && request.resource.data.inscritoPorUid is string
+        && request.resource.data.inscritoPorNome is string
+        && request.resource.data.inscritoPorNome.size() <= 120
+        && (request.resource.data.presenteEm == null || request.resource.data.presenteEm is string || request.resource.data.presenteEm is timestamp)
+        && (request.resource.data.presentePorUid == null || request.resource.data.presentePorUid is string)
+        && (request.resource.data.presentePorNome == null || (request.resource.data.presentePorNome is string && request.resource.data.presentePorNome.size() <= 120))
+        && request.resource.data.revision is int
+        && request.resource.data.revision >= 1
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+    function aulasCompletas(aulas,lista) {
+      return aulas is map
+        && (!lista.toSet().hasAny([1]) || aulas['1'] == true)
+        && (!lista.toSet().hasAny([2]) || aulas['2'] == true)
+        && (!lista.toSet().hasAny([3]) || aulas['3'] == true)
+        && (!lista.toSet().hasAny([4]) || aulas['4'] == true);
+    }
+    function validPayment() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId','pessoaId','valor','data','forma','recebidoPor','recebidoPorUid',
+          'criadoEm','criadoPor','criadoPorNome'
+        ])
+        && request.resource.data.turmaId is string
+        && request.resource.data.pessoaId is string
+        && request.resource.data.valor is number
+        && request.resource.data.valor > 0
+        && request.resource.data.valor <= 100000
+        && request.resource.data.data is string
+        && request.resource.data.data.size() == 10
+        && request.resource.data.forma in ['pix','dinheiro','cartao']
+        && request.resource.data.recebidoPor is string
+        && request.resource.data.recebidoPor.size() > 0
+        && request.resource.data.recebidoPor.size() <= 120
+        && request.resource.data.recebidoPorUid == request.auth.uid
+        && request.resource.data.criadoEm is string
+        && request.resource.data.criadoPor == request.auth.uid
+        && request.resource.data.criadoPorNome is string
+        && request.resource.data.criadoPorNome.size() <= 120;
+    }
+    function validWorkConfig() {
+      return request.resource.data.keys().hasOnly([
+          'valorCamiseta','tamanhosCamiseta','tiposPendencia','mensagemPendencia',
+          'mensagemReposicao','mensagemCamiseta','revision','updatedAt','updatedBy'
+        ])
+        && request.resource.data.valorCamiseta is number
+        && request.resource.data.valorCamiseta >= 0
+        && request.resource.data.valorCamiseta <= 10000
+        && request.resource.data.tamanhosCamiseta is list
+        && request.resource.data.tamanhosCamiseta.size() <= 30
+        && request.resource.data.tiposPendencia is list
+        && request.resource.data.tiposPendencia.size() <= 30
+        && request.resource.data.mensagemPendencia is string
+        && request.resource.data.mensagemPendencia.size() <= 500
+        && request.resource.data.mensagemReposicao is string
+        && request.resource.data.mensagemReposicao.size() <= 500
+        && request.resource.data.mensagemCamiseta is string
+        && request.resource.data.mensagemCamiseta.size() <= 500
+        && request.resource.data.revision is int
+        && request.resource.data.revision >= 1
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+    function validWorkflowAudit() {
+      return request.resource.data.acao is string
+        && request.resource.data.acao.matches('workflow_[a-z_]+')
+        && request.resource.data.keys().hasOnly([
+          'acao','documento','turmaId','pessoaId','aulaoId','revision',
+          'uid','porNome','quando','alteracoes'
+        ])
+        && request.resource.data.documento is string
+        && request.resource.data.documento.size() <= 512
+        && (request.resource.data.turmaId == null || (request.resource.data.turmaId is string && request.resource.data.turmaId.size() <= 64))
+        && (request.resource.data.pessoaId == null || (request.resource.data.pessoaId is string && request.resource.data.pessoaId.size() <= 150))
+        && (request.resource.data.aulaoId == null || (request.resource.data.aulaoId is string && request.resource.data.aulaoId.size() <= 150))
+        && request.resource.data.revision is int
+        && request.resource.data.revision >= 0
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.porNome is string
+        && request.resource.data.porNome.size() <= 120
+        && request.resource.data.quando is string
+        && request.resource.data.alteracoes is list
+        && request.resource.data.alteracoes.size() <= 20
+        && (staffWrite() || pastor() || leaderOwnsTurma(request.resource.data.turmaId));
+    }
     function validAudit() {
       return request.resource.data.uid == request.auth.uid
         && request.resource.data.acao is string
@@ -296,6 +485,8 @@ service cloud.firestore {
             && request.resource.data.camposNovos is list)
           ||
           validOrderAudit()
+          ||
+          validWorkflowAudit()
           ||
           (request.resource.data.keys().hasOnly([
             'acao','documento','pessoaId','revision','uid','porNome','quando','alteracoes',
@@ -513,6 +704,144 @@ service cloud.firestore {
     }
     match /gruposDuplicados/{id} {
       allow read, create, update: if admin();
+      allow delete: if false;
+    }
+
+    match /pendencias/{pendenciaId} {
+      allow read: if workflowCanRead(resource.data.turmaId);
+      allow create: if workflowCanEdit(request.resource.data.turmaId)
+        && validPending()
+        && request.resource.data.revision == 1
+        && request.resource.data.status in ['aberta','em_contato']
+        && workflowClassOpen(request.resource.data.turmaId)
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow update: if workflowCanEdit(resource.data.turmaId)
+        && validPending()
+        && request.resource.data.turmaId == resource.data.turmaId
+        && request.resource.data.pessoaId == resource.data.pessoaId
+        && request.resource.data.automatico == resource.data.automatico
+        && request.resource.data.autoKey == resource.data.autoKey
+        && request.resource.data.criadoEm == resource.data.criadoEm
+        && request.resource.data.criadoPor == resource.data.criadoPor
+        && request.resource.data.revision == (('revision' in resource.data) ? resource.data.revision + 1 : 1)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'tipo','responsavel','prazo','status','notas','autoClosed','arquivadaRevisao',
+          'resolvidaEm','updatedAt','updatedBy','revision'
+        ])
+        && ((get(classPath(resource.data.turmaId)).data.status != 'encerrada'
+              && (!exists(orderStatePath(resource.data.turmaId)) || get(orderStatePath(resource.data.turmaId)).data.closing != true))
+          || (get(classPath(resource.data.turmaId)).data.status == 'encerrada'
+              && request.resource.data.status == 'arquivada'
+              && request.resource.data.arquivadaRevisao == true
+              && resource.data.status in ['aberta','em_contato']
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'status','arquivadaRevisao','updatedAt','updatedBy','revision'
+              ])));
+      allow delete: if false;
+    }
+
+    match /auloes/{aulaoId} {
+      allow read: if workflowCanRead(resource.data.turmaId);
+      allow create: if workflowCanEdit(request.resource.data.turmaId)
+        && validAulao()
+        && request.resource.data.revision == 1
+        && request.resource.data.inscritosCount == 0
+        && request.resource.data.lastRegistrationPessoaId == null
+        && request.resource.data.createdBy == request.auth.uid
+        && workflowClassOpen(request.resource.data.turmaId);
+      allow update: if workflowCanEdit(resource.data.turmaId)
+        && validAulao()
+        && request.resource.data.turmaId == resource.data.turmaId
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.revision == resource.data.revision + 1
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'data','hora','local','vagas','reporAulas','inscritosCount',
+          'lastRegistrationPessoaId','status','revision','updatedAt','updatedBy'
+        ])
+        && workflowClassOpen(resource.data.turmaId)
+        && (request.resource.data.inscritosCount == resource.data.inscritosCount
+          ? request.resource.data.lastRegistrationPessoaId == resource.data.lastRegistrationPessoaId
+          : request.resource.data.inscritosCount == resource.data.inscritosCount + 1
+            && request.resource.data.inscritosCount <= request.resource.data.vagas
+            && request.resource.data.lastRegistrationPessoaId is string
+            && existsAfter(registrationPath(aulaoId,request.resource.data.lastRegistrationPessoaId))
+            && getAfter(registrationPath(aulaoId,request.resource.data.lastRegistrationPessoaId)).data.status == 'inscrito'
+            && getAfter(registrationPath(aulaoId,request.resource.data.lastRegistrationPessoaId)).data.inscritoPorUid == request.auth.uid);
+      allow delete: if false;
+
+      match /inscricoes/{pessoaId} {
+        allow read: if workflowCanRead(get(aulaoPath(aulaoId)).data.turmaId);
+        allow create: if workflowCanEdit(request.resource.data.turmaId)
+          && validRegistration()
+          && request.resource.data.pessoaId == pessoaId
+          && request.resource.data.status == 'inscrito'
+          && exists(aulaoPath(aulaoId))
+          && get(aulaoPath(aulaoId)).data.turmaId == request.resource.data.turmaId
+          && get(aulaoPath(aulaoId)).data.status == 'agendado'
+          && exists(pendingPersonPath(pessoaId))
+          && get(pendingPersonPath(pessoaId)).data.turmaId == request.resource.data.turmaId
+          && workflowClassOpen(request.resource.data.turmaId)
+          && get(aulaoPath(aulaoId)).data.inscritosCount < get(aulaoPath(aulaoId)).data.vagas
+          && getAfter(aulaoPath(aulaoId)).data.inscritosCount == get(aulaoPath(aulaoId)).data.inscritosCount + 1
+          && getAfter(aulaoPath(aulaoId)).data.lastRegistrationPessoaId == pessoaId;
+        allow update: if workflowCanEdit(resource.data.turmaId)
+          && validRegistration()
+          && request.resource.data.turmaId == resource.data.turmaId
+          && request.resource.data.pessoaId == pessoaId
+          && request.resource.data.inscritoEm == resource.data.inscritoEm
+          && request.resource.data.inscritoPorUid == resource.data.inscritoPorUid
+          && request.resource.data.inscritoPorNome == resource.data.inscritoPorNome
+          && request.resource.data.status == 'presente'
+          && resource.data.status == 'inscrito'
+          && request.resource.data.presentePorUid == request.auth.uid
+          && request.resource.data.revision == resource.data.revision + 1
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status','presenteEm','presentePorUid','presentePorNome','revision','updatedAt','updatedBy'
+          ])
+          && exists(aulaoPath(aulaoId))
+          && get(aulaoPath(aulaoId)).data.turmaId == resource.data.turmaId
+          && exists(pendingPersonPath(pessoaId))
+          && get(pendingPersonPath(pessoaId)).data.turmaId == resource.data.turmaId
+          && existsAfter(pendingPersonPath(pessoaId))
+          && getAfter(pendingPersonPath(pessoaId)).data.updatedBy == request.auth.uid
+          && getAfter(pendingPersonPath(pessoaId)).data.revision == get(pendingPersonPath(pessoaId)).data.revision + 1
+          && aulasCompletas(getAfter(pendingPersonPath(pessoaId)).data.aulas,get(aulaoPath(aulaoId)).data.reporAulas)
+          && workflowClassOpen(resource.data.turmaId);
+        allow delete: if false;
+      }
+    }
+
+    match /pessoas/{pessoaId}/camisetaPagamentos/{paymentId} {
+      allow read: if staffRead() || leaderOwnsTurma(get(pendingPersonPath(pessoaId)).data.turmaId);
+      allow create: if workflowCanEdit(request.resource.data.turmaId)
+        && validPayment()
+        && request.resource.data.pessoaId == pessoaId
+        && exists(pendingPersonPath(pessoaId))
+        && get(pendingPersonPath(pessoaId)).data.turmaId == request.resource.data.turmaId
+        && exists(classPath(request.resource.data.turmaId))
+        && get(classPath(request.resource.data.turmaId)).data.status != 'encerrada'
+        && (!('camiseta' in get(pendingPersonPath(pessoaId)).data) || get(pendingPersonPath(pessoaId)).data.camiseta.pago != true)
+        && existsAfter(pendingPersonPath(pessoaId))
+        && getAfter(pendingPersonPath(pessoaId)).data.updatedBy == request.auth.uid
+        && getAfter(pendingPersonPath(pessoaId)).data.revision == get(pendingPersonPath(pessoaId)).data.revision + 1
+        && getAfter(pendingPersonPath(pessoaId)).data.camiseta.opcao == 'quer'
+        && getAfter(pendingPersonPath(pessoaId)).data.camiseta.pago == true
+        && getAfter(pendingPersonPath(pessoaId)).data.camiseta.valor == request.resource.data.valor
+        && getAfter(pendingPersonPath(pessoaId)).data.camiseta.data == request.resource.data.data;
+      allow update, delete: if false;
+    }
+
+    match /configuracoes/ferramentas {
+      allow read: if staffRead();
+      allow create: if (admin() || secretaria()) && validWorkConfig() && request.resource.data.revision == 1;
+      allow update: if (admin() || secretaria())
+        && validWorkConfig()
+        && request.resource.data.revision == resource.data.revision + 1
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'valorCamiseta','tamanhosCamiseta','tiposPendencia','mensagemPendencia',
+          'mensagemReposicao','mensagemCamiseta','revision','updatedAt','updatedBy'
+        ]);
       allow delete: if false;
     }
 
