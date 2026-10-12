@@ -100,18 +100,142 @@ service cloud.firestore {
     function validOrderRoot() {
       return request.resource.data.keys().hasOnly([
           'turmaId','posicao','nome','nomeBusca','pessoaId','origem','updatedAt','migrationVersion',
-          'pastor','observacao','fichasRetiradas','presente','batizado','presenteEm','batizadoEm'
+          'pastor','fichasRetiradas','fichaRetirada','presente','batizado','presenteEm','batizadoEm',
+          'tipoVinculo','subgrupo','prioridades','resumoPessoa','revision','updatedBy'
         ])
         && request.resource.data.turmaId is string
         && request.resource.data.turmaId.size() <= 64
         && (!('posicao' in request.resource.data) || request.resource.data.posicao is int || request.resource.data.posicao is string)
         && (!('nome' in request.resource.data) || (request.resource.data.nome is string && request.resource.data.nome.size() <= 120))
         && (!('nomeBusca' in request.resource.data) || (request.resource.data.nomeBusca is string && request.resource.data.nomeBusca.size() <= 160))
-        && (!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null || request.resource.data.pessoaId is string)
-        && (!('observacao' in request.resource.data) || request.resource.data.observacao == null || (request.resource.data.observacao is string && request.resource.data.observacao.size() <= 1000))
+        && (!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null || (request.resource.data.pessoaId is string && request.resource.data.pessoaId.size() <= 150))
+        && (!('tipoVinculo' in request.resource.data) || request.resource.data.tipoVinculo in ['vazio','pessoa','externo','nao_vinculado'])
+        && (!('pastor' in request.resource.data) || request.resource.data.pastor == null || (request.resource.data.pastor is string && request.resource.data.pastor.size() <= 120))
+        && (!('subgrupo' in request.resource.data) || request.resource.data.subgrupo in ['', 'kids', 'grupo_especial'])
+        && (!('fichaRetirada' in request.resource.data) || request.resource.data.fichaRetirada is bool)
         && (!('fichasRetiradas' in request.resource.data) || request.resource.data.fichasRetiradas is bool)
         && (!('presente' in request.resource.data) || request.resource.data.presente is bool)
-        && (!('batizado' in request.resource.data) || request.resource.data.batizado is bool);
+        && (!('batizado' in request.resource.data) || request.resource.data.batizado is bool)
+        && (!('presenteEm' in request.resource.data) || request.resource.data.presenteEm == null || request.resource.data.presenteEm is string || request.resource.data.presenteEm is timestamp)
+        && (!('batizadoEm' in request.resource.data) || request.resource.data.batizadoEm == null || request.resource.data.batizadoEm is string || request.resource.data.batizadoEm is timestamp)
+        && (!('prioridades' in request.resource.data) || (request.resource.data.prioridades is list
+          && request.resource.data.prioridades.size() <= 3
+          && request.resource.data.prioridades.toSet().hasOnly(['gestante','idoso','necessidade_especial'])))
+        && (!('resumoPessoa' in request.resource.data) || request.resource.data.resumoPessoa == null || (
+          request.resource.data.resumoPessoa is map
+          && request.resource.data.resumoPessoa.keys().hasOnly(['menor','responsavelInformado','camiseta','pendencia'])
+          && (!('menor' in request.resource.data.resumoPessoa) || request.resource.data.resumoPessoa.menor is bool)
+          && (!('responsavelInformado' in request.resource.data.resumoPessoa) || request.resource.data.resumoPessoa.responsavelInformado is bool)
+          && (!('camiseta' in request.resource.data.resumoPessoa) || (request.resource.data.resumoPessoa.camiseta is map
+            && request.resource.data.resumoPessoa.camiseta.keys().hasOnly(['opcao','tamanho'])
+            && request.resource.data.resumoPessoa.camiseta.opcao in ['', 'quer', 'nao_quer', 'ja_tem']
+            && (!('tamanho' in request.resource.data.resumoPessoa.camiseta) || request.resource.data.resumoPessoa.camiseta.tamanho == null || (request.resource.data.resumoPessoa.camiseta.tamanho is string && request.resource.data.resumoPessoa.camiseta.tamanho.size() <= 20))))
+          && (!('pendencia' in request.resource.data.resumoPessoa) || (request.resource.data.resumoPessoa.pendencia is map
+            && request.resource.data.resumoPessoa.pendencia.keys().hasOnly(['aberta','impeditiva'])
+            && request.resource.data.resumoPessoa.pendencia.aberta is bool
+            && request.resource.data.resumoPessoa.pendencia.impeditiva is bool))))
+        && (!('revision' in request.resource.data) || (request.resource.data.revision is int && request.resource.data.revision >= 0))
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid)
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is string || request.resource.data.updatedAt is timestamp);
+    }
+    function classPath(turmaId) {
+      return /databases/$(database)/documents/turmas/$(turmaId);
+    }
+    function orderStatePath(turmaId) {
+      return /databases/$(database)/documents/ordemTurma/$(turmaId);
+    }
+    function orderCanRead(turmaId) {
+      return staffRead()
+        || (exists(classPath(turmaId))
+          && voluntario()
+          && get(classPath(turmaId)).data.status == 'ativa');
+    }
+    function orderCanEdit(turmaId) {
+      return (staffWrite() || leaderOwnsTurma(turmaId))
+        && exists(classPath(turmaId))
+        && get(classPath(turmaId)).data.status != 'encerrada'
+        && (!exists(orderStatePath(turmaId)) || get(orderStatePath(turmaId)).data.frozen != true);
+    }
+    function personClassOpen(turmaId) {
+      return !(turmaId is string)
+        || (exists(classPath(turmaId))
+          && get(classPath(turmaId)).data.status != 'encerrada'
+          && (!exists(orderStatePath(turmaId)) || get(orderStatePath(turmaId)).data.closing != true));
+    }
+    // Durante o encerramento, a secretaria só pode arquivar pendências já abertas.
+    function archivePersonDuringClose(turmaId) {
+      return staffWrite()
+        && turmaId is string
+        && exists(classPath(turmaId))
+        && get(classPath(turmaId)).data.status != 'encerrada'
+        && exists(orderStatePath(turmaId))
+        && get(orderStatePath(turmaId)).data.closing == true
+        && ('pendencia' in request.resource.data)
+        && request.resource.data.pendencia is map
+        && request.resource.data.pendencia.arquivadaRevisao == true
+        && (!('pendencia' in resource.data) || resource.data.pendencia.arquivadaRevisao != true)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'pendencia','revision','updatedAt','updatedBy'
+        ]);
+    }
+    function validOrderMeta(turmaId) {
+      return request.resource.data.keys().hasOnly(['turmaId','revision','frozen','closing','updatedAt','updatedBy'])
+        && request.resource.data.turmaId == turmaId
+        && request.resource.data.revision is int
+        && request.resource.data.revision >= 0
+        && request.resource.data.frozen is bool
+        && (!('closing' in request.resource.data) || request.resource.data.closing is bool)
+        && request.resource.data.updatedBy == request.auth.uid
+        && (request.resource.data.updatedAt is string || request.resource.data.updatedAt is timestamp);
+    }
+    function validTurma() {
+      return request.resource.data.keys().hasOnly([
+          'numero','dataBatismo','local','status','capacidade','quantidadeNaPlanilha',
+          'camposAConfirmar','migrationVersion','updatedAt','revision','updatedBy'
+        ])
+        && request.resource.data.numero is int
+        && request.resource.data.status in ['planejada','ativa','encerrada']
+        && (!('dataBatismo' in request.resource.data) || request.resource.data.dataBatismo == null || request.resource.data.dataBatismo is string || request.resource.data.dataBatismo is timestamp)
+        && (!('local' in request.resource.data) || request.resource.data.local == null || (request.resource.data.local is string && request.resource.data.local.size() <= 160))
+        && (!('capacidade' in request.resource.data) || request.resource.data.capacidade == null || (request.resource.data.capacidade is int && request.resource.data.capacidade >= 0))
+        && (!('revision' in request.resource.data) || request.resource.data.revision is int)
+        && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid)
+        && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is string || request.resource.data.updatedAt is timestamp);
+    }
+    function validOrderAudit() {
+      return request.resource.data.acao in [
+          'ordem_criada','ordem_atualizada','ordem_reordenada','ordem_resumos_atualizados',
+          'turma_criada','turma_atualizada','turma_encerramento_iniciado','turma_encerrada'
+        ]
+        && request.resource.data.keys().hasOnly([
+          'acao','documento','turmaId','posicaoId','uid','porNome','quando','alteracoes'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.documento is string
+        && request.resource.data.documento.size() <= 512
+        && request.resource.data.turmaId is string
+        && request.resource.data.porNome is string
+        && request.resource.data.porNome.size() <= 120
+        && request.resource.data.quando is string
+        && request.resource.data.alteracoes is list
+        && request.resource.data.alteracoes.size() <= 450
+        && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId));
+    }
+    function validBaptismRecord() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId','ordemId','posicao','pessoaId','nome','pastor','dataBatismo',
+          'confirmado','confirmadoEm','confirmadoPorUid','confirmadoPorNome','criadoEm'
+        ])
+        && request.resource.data.turmaId is string
+        && request.resource.data.ordemId is string
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() <= 120
+        && request.resource.data.pastor is string
+        && request.resource.data.confirmado == true
+        && request.resource.data.confirmadoPorUid is string
+        && request.resource.data.confirmadoPorNome is string
+        && request.resource.data.confirmadoPorNome.size() <= 120
+        && request.resource.data.dataBatismo is string;
     }
     function validContact() {
       return request.resource.data.keys().hasOnly(['telefone','responsavelNome','responsavelTelefone','updatedAt','updatedBy'])
@@ -162,6 +286,8 @@ service cloud.firestore {
             && request.resource.data.documentosIgnorados is int
             && request.resource.data.camposNovos is list)
           ||
+          validOrderAudit()
+          ||
           (request.resource.data.keys().hasOnly([
             'acao','documento','pessoaId','revision','uid','porNome','quando','alteracoes',
             'migrationId','email','criadoEm'
@@ -205,15 +331,95 @@ service cloud.firestore {
 
     match /turmas/{turmaId} {
       allow read: if staffRead() || (voluntario() && resource.data.status == 'ativa');
-      allow create, update: if staffWrite()
-        && request.resource.data.keys().hasOnly([
-          'numero','dataBatismo','local','status','capacidade','quantidadeNaPlanilha',
-          'camposAConfirmar','migrationVersion','updatedAt'
+      allow create: if staffWrite()
+        && validTurma()
+        && request.resource.data.status in ['planejada','ativa']
+        && request.resource.data.revision == 1
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow update: if staffWrite()
+        && resource.data.status != 'encerrada'
+        && validTurma()
+        && request.resource.data.numero == resource.data.numero
+        && request.resource.data.revision == (('revision' in resource.data) ? resource.data.revision + 1 : 1)
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'dataBatismo','local','status','capacidade','updatedAt','revision','updatedBy'
         ])
-        && request.resource.data.numero is int
-        && request.resource.data.status in ['planejada','ativa','encerrada']
-        && (request.resource.data.capacidade == null || request.resource.data.capacidade is int);
+        && ((request.resource.data.status != 'encerrada'
+            && (!exists(orderStatePath(turmaId)) || get(orderStatePath(turmaId)).data.closing != true))
+          || (request.resource.data.status == 'encerrada'
+            && existsAfter(orderStatePath(turmaId))
+            && getAfter(orderStatePath(turmaId)).data.frozen == true
+            && getAfter(orderStatePath(turmaId)).data.closing == false));
       allow delete: if false;
+    }
+
+    match /ordemTurma/{turmaId} {
+      allow read: if orderCanRead(turmaId);
+      allow create: if validOrderMeta(turmaId)
+        && request.resource.data.revision == 1
+        && ((orderCanEdit(turmaId)
+            && request.resource.data.frozen == false
+            && (!('closing' in request.resource.data) || request.resource.data.closing == false))
+          || ((staffWrite() || leaderOwnsTurma(turmaId))
+            && exists(classPath(turmaId))
+            && get(classPath(turmaId)).data.status != 'encerrada'
+            && request.resource.data.frozen == true
+            && request.resource.data.closing == true)
+          || ((staffWrite() || leaderOwnsTurma(turmaId))
+            && request.resource.data.frozen == true
+            && request.resource.data.closing == false
+            && existsAfter(classPath(turmaId))
+            && getAfter(classPath(turmaId)).data.status == 'encerrada'));
+      allow update: if (staffWrite() || leaderOwnsTurma(turmaId))
+        && validOrderMeta(turmaId)
+        && request.resource.data.revision == (('revision' in resource.data) ? resource.data.revision + 1 : 1)
+        && (
+          (exists(classPath(turmaId))
+            && get(classPath(turmaId)).data.status != 'encerrada'
+            && resource.data.frozen != true
+            && request.resource.data.frozen == false
+            && (!('closing' in request.resource.data) || request.resource.data.closing == false))
+          || (exists(classPath(turmaId))
+            && get(classPath(turmaId)).data.status != 'encerrada'
+            && resource.data.frozen != true
+            && request.resource.data.frozen == true
+            && request.resource.data.closing == true)
+          || (resource.data.frozen == true
+            && resource.data.closing == true
+            && existsAfter(classPath(turmaId))
+            && getAfter(classPath(turmaId)).data.status == 'encerrada'
+            && request.resource.data.frozen == true
+            && request.resource.data.closing == false)
+        );
+      allow delete: if false;
+    }
+
+    match /edicaoOrdem/{editorId} {
+      allow read: if orderCanRead(resource.data.turmaId);
+      allow create, update: if activeUser()
+        && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId))
+        && orderCanEdit(request.resource.data.turmaId)
+        && request.resource.data.keys().hasOnly(['turmaId','uid','nome','posicaoId','editing','touchedAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() <= 120
+        && request.resource.data.posicaoId is string
+        && request.resource.data.editing is bool
+        && request.resource.data.touchedAt is string;
+      allow delete: if false;
+    }
+
+    match /batismos/{batismoId} {
+      allow read: if staffRead();
+      // Criados atomicamente na transação que muda a turma para encerrada.
+      allow create: if staffWrite()
+        && validBaptismRecord()
+        && exists(classPath(request.resource.data.turmaId))
+        && get(classPath(request.resource.data.turmaId)).data.status != 'encerrada'
+        && existsAfter(classPath(request.resource.data.turmaId))
+        && getAfter(classPath(request.resource.data.turmaId)).data.status == 'encerrada';
+      allow update, delete: if false;
     }
 
     match /pessoas/{pessoaId} {
@@ -222,7 +428,8 @@ service cloud.firestore {
       allow create: if validPersonRoot()
         && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid)
         && (!('revision' in request.resource.data) || request.resource.data.revision == 1)
-        && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId));
+        && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId))
+        && personClassOpen(request.resource.data.turmaId);
       allow update: if validPersonRoot()
         && request.resource.data.updatedBy == request.auth.uid
         && request.resource.data.revision is int
@@ -233,7 +440,8 @@ service cloud.firestore {
           'camiseta','pendencia','ordemNumero','pastor','batizado','batizadoEm',
           'revision','updatedAt','updatedBy'
         ])
-        && (staffWrite() || (leaderOwnsTurma(resource.data.turmaId) && leaderOwnsTurma(request.resource.data.turmaId)));
+        && (staffWrite() || (leaderOwnsTurma(resource.data.turmaId) && leaderOwnsTurma(request.resource.data.turmaId)))
+        && (personClassOpen(resource.data.turmaId) || archivePersonDuringClose(resource.data.turmaId));
       allow delete: if false;
 
       match /privado/{tipo} {
@@ -251,17 +459,27 @@ service cloud.firestore {
     }
 
     match /ordem/{posicaoId} {
-      allow read: if staffRead()
-        || leaderOwnsTurma(resource.data.turmaId)
-        || (voluntario()
-          && resource.data.turmaId == 'turma_36'
-          && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa');
-      allow create: if validOrderRoot() && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId));
-      allow update: if validOrderRoot() && (staffWrite()
-        || (leaderOwnsTurma(resource.data.turmaId) && leaderOwnsTurma(request.resource.data.turmaId)));
+      allow read: if orderCanRead(resource.data.turmaId);
+      allow create: if orderCanEdit(request.resource.data.turmaId)
+        && validOrderRoot()
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.revision == 1
+        && (!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null
+          || (exists(/databases/$(database)/documents/pessoas/$(request.resource.data.pessoaId))
+            && get(/databases/$(database)/documents/pessoas/$(request.resource.data.pessoaId)).data.turmaId == request.resource.data.turmaId));
+      allow update: if orderCanEdit(resource.data.turmaId)
+        && validOrderRoot()
+        && request.resource.data.turmaId == resource.data.turmaId
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.revision == (('revision' in resource.data) ? resource.data.revision + 1 : 1)
+        && (!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null
+          || request.resource.data.pessoaId == resource.data.pessoaId
+          || (exists(/databases/$(database)/documents/pessoas/$(request.resource.data.pessoaId))
+            && get(/databases/$(database)/documents/pessoas/$(request.resource.data.pessoaId)).data.turmaId == request.resource.data.turmaId));
       allow delete: if false;
       match /privado/origem {
-        allow read, write: if pastor();
+        allow read: if pastor();
+        allow create, update: if pastor();
         allow delete: if false;
       }
     }
