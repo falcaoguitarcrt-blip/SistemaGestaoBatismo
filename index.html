@@ -1992,8 +1992,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
     var comparison = inspectImportRows(payload.people || [], appData && appData.people || []);
     var fieldLabels = [['name','Nome'],['age','Idade'],['phone','Telefone'],['turma','Turma'],['date','Data do batismo'],['journey','Jornada'],['lesson','Aula'],['group','Grupo'],['shirt','Camiseta'],['shirtPaid','Camiseta paga'],['status','Status'],['pending','Pendência'],['baptized','Batizado'],['profile','Perfil']];
+    var differingFields = new Set(comparison.changed.reduce(function (all, item) { item.diffs.forEach(function (diff) { all.add(diff.field); }); return all; }, new Set()));
     document.getElementById('update-field-options').innerHTML = fieldLabels.map(function (field) {
-      return '<label class="check-row"><input type="checkbox" data-update-field="' + field[0] + '" checked> ' + field[1] + '</label>';
+      var differs = differingFields.has(field[0]);
+      return '<label class="check-row' + (differs ? ' import-field-diff' : '') + '"><input type="checkbox" data-update-field="' + field[0] + '"> ' + field[1] + (differs ? ' · DIFERE DA BASE' : '') + '</label>';
     }).join('');
     var sampleRows = (payload.people || []).slice(0, 10);
     var sampleHtml = sampleRows.map(function (person) {
@@ -2017,12 +2019,14 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<div class="data-summary">Alterados: ' + numberLabel(comparison.changed.length) + '</div>' +
       '<div class="data-summary">Ausentes no arquivo: ' + numberLabel(comparison.absent.length) + '</div>' +
       '<div class="data-summary">Duplicados no arquivo: ' + numberLabel(comparison.duplicates.length) + '</div>' +
-      '<div class="data-summary">Linhas com problema: ' + numberLabel(comparison.invalid.length) + '</div></div>' +
+      '<div class="data-summary">Linhas com problema: ' + numberLabel(comparison.invalid.length) + '</div>' +
+      '<div class="data-summary">Ambíguos para decisão manual: ' + numberLabel(comparison.ambiguous.length) + '</div></div>' +
       '<h4>Amostra de 10 linhas mapeadas</h4><div style="overflow:auto"><table><thead><tr><th>Linha</th><th>Nome</th><th>Telefone</th><th>Turma</th></tr></thead><tbody>' + sampleHtml + '</tbody></table></div>' +
       '<h4>Alterações propostas (antes → depois)</h4>' + (changedHtml || '<p class="section-sub">Nenhuma alteração comparável encontrada.</p>') +
       '<h4>Ausentes no arquivo, não serão apagados no modo padrão</h4>' + (absentHtml || '<p class="section-sub">Nenhum cadastro ausente.</p>') +
+      '<h4>Ambíguos, não serão mesclados automaticamente</h4>' + (comparison.ambiguous.map(function (item) { return '<div class="item-meta">Linha ' + esc(item.sourceRow) + ' · ' + esc(item.name) + ' · ' + esc(item.issue) + '</div>'; }).join('') || '<p class="section-sub">Nenhum ambíguo.</p>') +
       '<h4>Problemas para revisão</h4>' + (problemHtml || '<p class="section-sub">Nenhum problema encontrado.</p>') +
-      '<p class="note">A chave de comparação é nome normalizado + dígitos do telefone. No modo padrão, cadastros ausentes permanecem na base. O modo Substituir tudo fica bloqueado enquanto houver problemas de dados.</p></div>';
+      '<p class="note">A chave exige nome e telefone válido (10 a 13 dígitos). Telefone ausente/curto e linhas sem nome não são correspondidos automaticamente. Nenhum campo existente é atualizado por padrão; marque explicitamente os campos que diferem. No modo padrão, cadastros ausentes permanecem na base. O modo Substituir tudo fica bloqueado enquanto houver problemas de dados.</p></div>';
     var modeSelect = document.getElementById('import-mode');
     var replaceWrap = document.getElementById('replace-confirm-wrap');
     var replaceText = document.getElementById('replace-confirm-text');
@@ -2317,7 +2321,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       document.getElementById('confirm-import').disabled = true;
       setImportMessage('Arquivo conferido. Escolha e confirme a turma da ordem antes de habilitar a importação.', 'success');
     } catch (error) {
-      setImportMessage(error.message || 'Não foi possível ler a planilha. Nenhum dado foi substituído.', 'error');
+      pendingImport = null;
+      document.getElementById('confirm-import').disabled = true;
+      document.getElementById('import-preview').innerHTML = '';
+      setImportMessage('Falha ao ler o Excel: ' + (error && error.message ? error.message : 'arquivo inválido ou biblioteca indisponível') + '. Nenhum dado foi alterado. O login e o check-in continuam disponíveis.', 'error');
     }
   });
 
