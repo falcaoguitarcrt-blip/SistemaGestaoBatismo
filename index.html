@@ -148,6 +148,14 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .record-editor-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
 .record-editor-actions .btn{min-width:120px}
 @media(max-width:600px){.record-editor-fields{grid-template-columns:1fr}.record-editor-card{padding:14px}.record-editor-field.wide{grid-column:auto}.record-editor-actions{flex-direction:column-reverse}.record-editor-actions .btn{width:100%}}
+/* Check-in do Dia do Batismo */
+.day-sync{position:sticky;top:0;z-index:4;padding:10px 12px;margin:-14px -14px 12px;background:#e7f5ec;color:#176b3a;font-weight:700;border-bottom:1px solid var(--ln)}
+.day-tools{display:grid;gap:8px}.day-tools input{width:100%;padding:12px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
+.day-filters,.day-tools-actions{display:flex;gap:6px;flex-wrap:wrap}.day-filters button{min-height:48px;padding:8px 12px;border:1px solid var(--ln);border-radius:99px;background:var(--card);color:var(--tx);font:inherit}.day-filters button.active{background:var(--pri);color:white}
+.day-tools-actions .btn,.day-row .item-actions .btn{min-height:48px;flex:1}.day-row{align-items:center}.day-row.next-waiting{border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--card))}.day-warning{font-size:12px;color:var(--pe);margin-top:5px}
+.day-count{display:grid;grid-template-columns:minmax(110px,auto) 1fr;align-items:center;gap:10px;margin:8px 0}.day-toast{display:none;position:fixed;left:50%;bottom:18px;z-index:30;transform:translateX(-50%);width:min(92vw,480px);padding:12px;background:var(--tx);color:var(--card);border-radius:12px;text-align:center}.day-toast.show{display:block}.day-undo{min-height:48px;border:0;border-radius:8px;padding:0 14px;background:var(--gold);font-weight:700}#day-print-list{display:none}
+@media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
+@media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
 </style>
 </head>
 <body class="auth-pending">
@@ -1118,35 +1126,39 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('order-pager').innerHTML = '<button type="button" class="btn o" data-page="order:-1" ' + (orderState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + orderState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="order:1" ' + (orderState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
-  function buildDay() {
-    document.getElementById('dia').innerHTML = '<h2 class="t">Dia do batismo · check-in sincronizado</h2><div class="card" id="day-summary"></div><div class="data-toolbar"><input id="day-search" type="search" placeholder="Buscar pessoa na ordem…" aria-label="Buscar pessoa na ordem"><div></div><span class="local-only-note">As marcações são sincronizadas pelo Firebase para os usuários autorizados.</span></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div>';
-    document.getElementById('day-search').addEventListener('input', function () { dayState.query = this.value; dayState.page = 1; drawDayResults(); });
+  var dayMarks = {}, dayFilter='todos', dayStatus={online:navigator.onLine,pending:0,ready:false}, undoTimer=null;
+  function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
+  function personForDay(row){var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)==='36';})||(appData.people||[]).find(function(p){return normal(p.name)===n;})||null;}
+  function dayId(row){return '36_'+String(clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');}
+  function dayBadges(row,p){var b='';if(normal(row.note||'').includes('prioridade'))b+=chip('Prioridade','t-er');if(p&&Number(p.age)>0&&Number(p.age)<18)b+=chip('Menor','t-pe');if(p&&hasPendingSignal(p))b+=chip('Pendência','t-pe');return b;}
+  function buildDay(){
+    var sec=document.getElementById('dia');
+    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Dia do batismo</h2><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button><button type="button" class="btn o" id="day-json-backup" hidden>Exportar backup JSON agora</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
+    sec.querySelector('#day-search').oninput=function(){dayState.query=this.value;dayState.page=1;drawDayResults();};
+    sec.querySelectorAll('[data-day-filter]').forEach(function(b){b.onclick=function(){dayFilter=b.dataset.dayFilter;dayState.page=1;drawDayResults();};});
+    sec.querySelector('[data-day-print]').onclick=function(){window.print();};
+    var jb=sec.querySelector('#day-json-backup');jb.hidden=!window.firebaseIsAdmin;jb.onclick=function(){if(window.firebaseIsAdmin&&appData)downloadJson(Object.assign({},appData,{marcacoesBatismo:dayMarks}));};
+    window.addEventListener('firebase-admin-status',function(){jb.hidden=!window.firebaseIsAdmin;});
+    window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawDayResults();});
+    window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawDayResults();});
+    window.addEventListener('online',function(){dayStatus.online=true;drawDayResults();});window.addEventListener('offline',function(){dayStatus.online=false;drawDayResults();});
     drawDayResults();
   }
-  function drawDayResults() {
-    if (!appData || !document.getElementById('day-results')) return;
-    var namedOrder = appData.order.filter(function (row) { return !!row.name; });
-    var records = namedOrder.map(function (row) {
-      var state = (appData.checkin || {})[String(row.sourceRow)] || {};
-      return { row: row, state: state };
-    }).filter(function (entry) {
-      return !dayState.query || normal([entry.row.name, entry.row.number, entry.row.note].join(' ')).indexOf(normal(dayState.query)) >= 0;
-    });
-    var pages = Math.max(1, Math.ceil(records.length / PAGE_SIZE));
-    dayState.page = Math.min(Math.max(1, dayState.page), pages);
-    var start = (dayState.page - 1) * PAGE_SIZE;
-    var view = records.slice(start, start + PAGE_SIZE);
-    var baptized = namedOrder.filter(function (row) { return !!((appData.checkin || {})[String(row.sourceRow)] || {}).baptized; }).length;
-    var present = namedOrder.filter(function (row) { return !!((appData.checkin || {})[String(row.sourceRow)] || {}).present; }).length;
-    document.getElementById('day-summary').innerHTML = '<small style="color:var(--mut)">MARCAÇÕES DO DIA · FIREBASE</small><div class="data-metrics" style="margin:10px 0 0">' + metric('Pessoas nomeadas na ordem', namedOrder.length, 'Aba Ordem') + metric('Presentes marcados', present, 'Sincronizado no Firebase') + metric('Batizados marcados', baptized, 'Salvo neste navegador') + '</div>';
-    document.getElementById('day-results').innerHTML = view.map(function (entry) {
-      var row = entry.row;
-      var state = entry.state;
-      return '<div class="data-item"><div class="n">' + esc(display(row.number)) + '</div><div class="item-main"><strong>' + esc(row.name) + '</strong><div class="item-meta">Ficha retirada: ' + esc(display(row.removed)) + (row.note ? '<br>Observação: ' + esc(row.note) : '') + '</div></div><div class="item-actions"><button type="button" class="btn ' + (state.present ? 'g' : 'o') + '" data-checkin="present" data-order-row="' + esc(row.sourceRow) + '">' + (state.present ? '✓ Presente' : 'Presente') + '</button><button type="button" class="btn ' + (state.baptized ? 'g' : '') + '" data-checkin="baptized" data-order-row="' + esc(row.sourceRow) + '">' + (state.baptized ? '✓ Batizado' : 'Marcar batizado') + '</button></div></div>';
-    }).join('') || '<div class="data-empty">Nenhuma pessoa encontrada na ordem.</div>';
-    document.getElementById('day-pager').innerHTML = '<button type="button" class="btn o" data-page="day:-1" ' + (dayState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + dayState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="day:1" ' + (dayState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  function drawDayResults(){
+    var host=document.getElementById('day-results');if(!appData||!host)return;
+    var all=(appData.order||[]).slice().sort(function(a,b){return Number(a.number||a.sourceRow)-Number(b.number||b.sourceRow);});
+    var rows=all.filter(function(r){return !!r.name;}).map(function(r){return {row:r,id:dayId(r),s:dayMarks[dayId(r)]||{},p:personForDay(r)};});
+    var total=rows.length,pres=rows.filter(function(x){return x.s.presente;}).length,bat=rows.filter(function(x){return x.s.batizado;}).length;
+    rows=rows.filter(function(x){if(dayFilter==='aguardando'&&(x.s.presente||x.s.batizado))return false;if(dayFilter==='presentes'&&!x.s.presente)return false;if(dayFilter==='batizados'&&!x.s.batizado)return false;return !dayState.query||normal([x.row.name,x.row.number,x.row.note].join(' ')).includes(normal(dayState.query));});
+    var next=rows.findIndex(function(x){return !x.s.presente&&!x.s.batizado;}),pages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));dayState.page=Math.min(Math.max(1,dayState.page),pages);
+    var start=(dayState.page-1)*PAGE_SIZE,view=rows.slice(start,start+PAGE_SIZE);
+    document.getElementById('day-sync').textContent=!dayStatus.online?'Offline · '+dayStatus.pending+' alterações pendentes':(!dayStatus.ready||dayStatus.pending?'Sincronizando…':'Online · sincronizado');
+    document.getElementById('day-summary').innerHTML='<div class="day-count"><b>Presentes '+pres+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?pres*100/total:0)+'%"></i></div></div><div class="day-count"><b>Batizados '+bat+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?bat*100/total:0)+'%"></i></div></div>';
+    document.querySelectorAll('[data-day-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.dayFilter===dayFilter);});
+    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s;var when=function(v){return v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';};return '<div class="data-item day-row '+(next===i?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+(x.p&&hasPendingSignal(x.p)?'<div class="day-warning">Há pendência no cadastro; confirme com a equipe.</div>':'')+(s.porNome?'<div class="item-meta">Marcado por '+esc(s.porNome)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
+    document.getElementById('day-pager').innerHTML='<button class="btn o" data-page="day:-1" '+(dayState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+dayState.page+' de '+pages+'</span><button class="btn o" data-page="day:1" '+(dayState.page>=pages?'disabled':'')+'>Próxima →</button>';
+    document.getElementById('day-print-list').innerHTML='<h1>Lista de apoio · Dia do Batismo</h1><table><thead><tr><th>Nº</th><th>Nome</th><th>Ficha</th><th>Presente</th><th>Batizado</th><th>Observação</th></tr></thead><tbody>'+all.map(function(r){var st=dayMarks[dayId(r)]||{};return '<tr><td>'+esc(display(r.number))+'</td><td>'+esc(display(r.name))+'</td><td>'+(asBoolean(r.removed)===true?'☒':'☐')+'</td><td>'+(st.presente?'☒':'☐')+'</td><td>'+(st.batizado?'☒':'☐')+'</td><td>'+esc(display(r.note))+'</td></tr>';}).join('')+'</tbody></table>';
   }
-
   function buildPending() {
     var pending = appData.people.filter(hasPendingSignal);
     var statusCount = appData.people.filter(function (p) { return normal(p.status) === 'pendencia'; }).length;
@@ -1485,30 +1497,15 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       return;
     }
 
-    var checkinButton = event.target.closest('[data-checkin][data-order-row]');
-    if (checkinButton && appData) {
-      var rowId = String(checkinButton.dataset.orderRow);
-      appData.checkin = appData.checkin || {};
-      var status = appData.checkin[rowId] || {};
-      if (checkinButton.dataset.checkin === 'present') status.present = !status.present;
-      if (checkinButton.dataset.checkin === 'baptized') {
-        status.baptized = !status.baptized;
-        if (status.baptized) status.present = true;
-      }
-      appData.checkin[rowId] = status;
-      try {
-        if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
-        await window.firebaseSaveWorkspace(appData, false);
-        var localCheckinWarning = '';
-        try { await saveWorkspace(appData, false); }
-        catch (localError) { localCheckinWarning = ' A marcação foi salva na nuvem, mas a cópia local deste navegador não foi atualizada.'; }
-        drawDayResults();
-        if (localCheckinWarning) setImportMessage(localCheckinWarning.trim(), 'error');
-      } catch (error) {
-        setImportMessage('Não foi possível sincronizar a marcação com o Firebase: ' + error.message, 'error');
-      }
+    var checkinButton = event.target.closest('[data-checkin][data-checkin-id]');
+    if(checkinButton&&appData){
+      if(!window.firebaseToggleDayMark){dayToast('Aguarde a conexão com o Firestore.');return;}
+      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=(appData.order||[]).find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':'batizadoEm';
+      await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row);
+      dayToast(on?'Marcação salva'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação desfeita',async function(){await window.firebaseToggleDayMark(id,{[kind]:!!prior[kind],[timeKey]:prior[timeKey]||null},row);if(kind==='batizado'&&on&&!prior.presente)await window.firebaseToggleDayMark(id,{presente:false,presenteEm:null},row);});
       return;
     }
+    if(event.target.closest('[data-day-print]')){window.print();return;}
 
     var restoreButton = event.target.closest('[data-restore-backup]');
     if (restoreButton) {
@@ -1604,7 +1601,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
-import { getFirestore, doc, collection, getDoc, getDocs, setDoc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',
@@ -1616,7 +1613,7 @@ const firebaseConfig = {
 };
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
-const firestore = getFirestore(firebaseApp);
+let firestore;\ntry { firestore = initializeFirestore(firebaseApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); } catch(e) { firestore = getFirestore(firebaseApp); }
 const loginShell = document.getElementById('auth-shell');
 const loginForm = document.getElementById('firebase-login');
 const loginStatus = document.getElementById('firebase-status');
@@ -1782,6 +1779,28 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
+let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine;
+window.firebaseIsAdmin=false;
+function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,pending:dayPending.size,ready:!!ready}}));}
+window.addEventListener('online',function(){dayOnline=true;emitDayStatus(!!dayUnsub);});
+window.addEventListener('offline',function(){dayOnline=false;emitDayStatus(!!dayUnsub);});
+window.firebaseToggleDayMark=async function(id,fields,row){
+ if(!auth.currentUser)throw new Error('Faça login para marcar.');
+ const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
+ const data=Object.assign({turmaId:'36',posicaoOuPessoaId:String(row&&(row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields);
+ dayPending.add(id);emitDayStatus(!!dayUnsub);await setDoc(ref,data,{merge:true});
+};
+function startDayListener(user){
+ if(dayUnsub)dayUnsub();
+ const q=query(collection(firestore,'marcacoesBatismo'),where('turmaId','==','36'));
+ dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
+  const marks={};dayPending.clear();snap.forEach(function(d){marks[d.id]=d.data();if(d.metadata.hasPendingWrites)dayPending.add(d.id);});
+  dayOnline=navigator.onLine;
+  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,pending:dayPending.size,ready:true}}}));
+ },function(e){console.error(e);});
+ user.getIdTokenResult().then(function(t){window.firebaseIsAdmin=t.claims.admin===true;window.dispatchEvent(new Event('firebase-admin-status'));}).catch(function(){});
+}
+
 
 googleLoginButton.addEventListener('click', async function () {
   googleLoginButton.disabled = true;
@@ -1842,7 +1861,7 @@ onAuthStateChanged(auth, async function (user) {
   loginShell.hidden = false;
   setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
   try {
-    const workspace = await loadCloudWorkspace();
+    const workspace = await loadCloudWorkspace();\n    startDayListener(user);
     await new Promise(function (resolve) {
       const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
       window.addEventListener('firebase-ui-ready', onReady, { once: true });
