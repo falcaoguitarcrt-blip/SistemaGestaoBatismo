@@ -184,7 +184,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <header>
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
-<button class="on" data-s="home">▦ Visão geral</button><button data-s="pes">♙ Pessoas</button><button data-s="fic">📋 Ficha</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
+<button class="on" data-s="home">▦ Visão geral</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
 </nav>
 </header>
 <main>
@@ -223,7 +223,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <p class="note">Toque numa pessoa para abrir a ficha demonstrativa</p>
 </section>
 
-<section id="fic">
+<section id="fic" aria-label="Ficha individual" hidden>
 <div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">AP</div><div class="m"><h2 style="font-size:20px">Ana Paula Reis</h2><div>28 anos · (16) 9XXXX-XXXX · Turma 36</div></div></div>
 <span class="tag t-pe">2 pendências</span><span class="tag t-in">Pr. Gustavo</span></div>
 <p class="note" style="margin:0 0 10px">Os detalhes de preparação abaixo são exemplos estáticos neste protótipo.</p>
@@ -893,9 +893,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function buildPeople() {
     var section = document.getElementById('pes');
     var turmas = Array.from(new Set(appData.people.map(function (p) { return clean(p.turma); }).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
+    // Não presumir que a turma de maior número seja a atual.
+    // Até existir uma configuração explícita de turma vigente, mostrar todas.
+    if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
     section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
       '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
-      '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '">Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
+      '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
       '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>' +
       '<p class="note">Os registros repetidos permanecem separados. Toque em um registro para abrir a ficha completa com os campos da planilha.</p>';
     document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
@@ -942,7 +945,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       ['STATUS', person.fields[10]], ['PENDENCIA', person.fields[11]], ['BATIZADO', person.fields[12]],
       ['INVESTIGAÇÃO PERFIL (FBI)', person.fields[13]]
     ];
-    section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>Linha ' + esc(person.sourceRow) + ' da aba Batismo · Turma ' + esc(display(person.turma)) + '</div></div></div>' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Tem observação', 't-pe') : '') + '</div>' +
+    section.innerHTML = '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button></div><h2 class="t">Ficha individual</h2><div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>Linha ' + esc(person.sourceRow) + ' da aba Batismo · Turma ' + esc(display(person.turma)) + '</div></div></div>' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Tem observação', 't-pe') : '') + '</div>' +
       '<div class="card"><b>Todos os campos da planilha</b><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></div>' +
       '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button><button type="button" class="btn o" data-go="imp">Importação e backups</button></div>' +
       '<p class="note">Use “Editar cadastro” para salvar alterações no Firebase. O arquivo Excel original permanece como cópia de origem.</p>';
@@ -1471,9 +1474,11 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var openPersonButton = event.target.closest('[data-open-person]');
     if (openPersonButton && appData) {
       selectedPersonRow = Number(openPersonButton.dataset.openPerson);
-      var person = appData.people.find(function (p) { return p.sourceRow === selectedPersonRow; });
+      var person = appData.people.find(function (p) { return Number(p.sourceRow) === selectedPersonRow; });
       buildFiche(person);
-      goTo('fic');
+      document.getElementById('fic').hidden = false;
+      goTo('pes');
+      document.getElementById('fic').classList.add('on');
       return;
     }
 
