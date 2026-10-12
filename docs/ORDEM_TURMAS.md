@@ -64,6 +64,7 @@ Se a conexão cair durante o arquivamento, a turma continua bloqueada com o esta
 - [ ] Em homologação, avance a data para o dia seguinte. Marque alguns batismos e deixe pelo menos uma pendência aberta.
 - [ ] Inicie o encerramento. Confirme que posição e cadastro não aceitam nova edição, que a pendência recebe `arquivadaRevisao: true` e auditoria, e que só pessoas marcadas geram `batismos/{id}`.
 - [ ] Simule interrupção de rede durante o arquivamento, volte à tela e use **Continuar encerramento**. Confirme que a pendência já arquivada não duplica.
+- [ ] Com o encerramento em andamento, tente alterar uma marcação de check-in em outro aparelho; confirme que a regra bloqueia a escrita até o fim do processo.
 - [ ] Depois de encerrar, tente reordenar, editar posição e alterar dados da turma; deve ser bloqueado pelas regras.
 
 ### Regras e privacidade
