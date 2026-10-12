@@ -230,6 +230,91 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 @media(min-width:701px){
  main{max-width:1500px}
 }
+
+/* Ordem por turma: interação, mobile e impressão A4 */
+.order-head,.order-class-info,.order-metrics,.order-list-toolbar,.order-toolbar-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.order-head{margin-bottom:8px}
+.order-head .section-sub{margin:0}
+.order-class-card label{display:block;font-size:13px}
+.order-class-card select{width:100%;min-height:48px;margin:7px 0 4px;padding:10px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+.order-class-info{justify-content:flex-start;color:var(--mut);font-size:13px;gap:10px}
+.order-class-info strong{color:var(--tx)}
+.order-closed-note{background:#d9951b1a;color:var(--pe);padding:10px;border-radius:10px;font-size:13px;margin:10px 0 0}
+.order-presence{min-height:30px;margin:5px 2px 10px;color:var(--mut);font-size:12px}
+.order-metrics{justify-content:space-between;border-bottom:1px solid var(--ln);padding-bottom:8px}
+.order-metrics .data-summary{margin:0;font-weight:700}
+.order-list-toolbar{align-items:flex-start;margin:10px 0}
+.order-list-toolbar input{flex:1;min-width:min(100%,240px);min-height:48px;margin:0;padding:11px 12px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+.order-list-toolbar .order-toolbar-actions{flex:1;justify-content:flex-end}
+.order-list-toolbar .btn,.order-toolbar-actions .btn{min-height:48px}
+.order-list{display:grid;gap:8px}
+.order-position{display:grid;grid-template-columns:48px 40px minmax(0,1fr) auto auto;align-items:center;gap:9px;padding:11px;border:1px solid var(--ln);border-radius:12px;background:var(--card);min-width:0}
+.order-position-main{min-width:0}
+.order-position-main>strong{overflow-wrap:anywhere}
+.order-position-meta{font-size:12px;color:var(--mut);margin-top:3px;overflow-wrap:anywhere}
+.order-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.order-badges .tag{margin:0}
+.order-alerts{font-size:12px;color:var(--er);margin-top:5px;overflow-wrap:anywhere}
+.order-drag{width:48px;height:48px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--mut);font-size:22px;cursor:grab;touch-action:none}
+.order-drag:active{cursor:grabbing}
+.order-drag:disabled{opacity:.35;cursor:not-allowed}
+.order-ficha{display:flex;align-items:center;gap:7px;min-height:48px;white-space:nowrap;font-size:12px}
+.order-ficha input{width:24px;height:24px;accent-color:var(--ok)}
+.order-edit-button{min-height:48px!important}
+.order-ghost{opacity:.45;background:color-mix(in srgb,var(--aq) 12%,var(--card))}
+.order-toast{position:fixed;left:50%;bottom:16px;z-index:35;transform:translate(-50%,10px);padding:10px 15px;border-radius:12px;background:var(--tx);color:var(--card);opacity:0;pointer-events:none;transition:opacity .15s ease,transform .15s ease;width:min(92vw,520px);text-align:center}
+.order-toast.show{opacity:1;transform:translate(-50%,0)}
+.order-dialog-shell{position:fixed;inset:0;z-index:9200;display:grid;place-items:center;padding:14px;background:#08120e99}
+.order-dialog-shell[hidden]{display:none!important}
+.order-dialog-card{width:min(700px,100%);max-height:92vh;overflow:auto;padding:18px;border:1px solid var(--ln);border-radius:18px;background:var(--card);color:var(--tx);box-shadow:0 18px 70px #0004}
+.order-dialog-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;margin-bottom:10px}
+.order-dialog-head h2{font-size:22px}
+.order-dialog-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.order-field{display:block;min-width:0;font-size:12px;font-weight:700;color:var(--mut)}
+.order-field input,.order-field select,.order-field textarea{display:block;width:100%;min-height:46px;margin-top:5px;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit}
+.order-field textarea{resize:vertical}
+.order-mode{grid-column:1/-1;border:1px solid var(--ln);border-radius:10px;padding:10px}
+.order-mode legend{font-size:12px;font-weight:700;color:var(--mut)}
+.order-mode label{display:inline-flex;gap:6px;align-items:center;margin:4px 12px 4px 0;min-height:40px}
+.order-mode input,.order-check input{width:22px;height:22px;accent-color:var(--pri)}
+.order-check{display:flex;align-items:center;gap:8px;min-height:46px;color:var(--tx);font-weight:700;font-size:13px}
+.order-person-options{display:grid;gap:5px;margin:6px 0}
+.order-person-option{display:flex;justify-content:space-between;gap:8px;text-align:left;border:1px solid var(--ln);border-radius:9px;background:var(--bg);color:var(--tx);padding:10px;min-height:48px;font:inherit}
+.order-person-option small{color:var(--mut)}
+.order-dialog-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.order-dialog-actions .btn{min-width:130px;min-height:48px}
+#order-external-picker[hidden],#order-person-picker[hidden]{display:none}
+#order-print-list{display:none}
+@media(max-width:700px){
+ .order-head{align-items:flex-start;flex-direction:column}
+ .order-head>.order-toolbar-actions{width:100%}
+ .order-head>.order-toolbar-actions .btn{flex:1}
+ .order-list-toolbar{display:grid;grid-template-columns:1fr;width:100%}
+ .order-list-toolbar .order-toolbar-actions{display:grid;grid-template-columns:1fr}
+ .order-position{grid-template-columns:48px 34px minmax(0,1fr);gap:7px;padding:9px}
+ .order-ficha{grid-column:2/4;justify-self:start}
+ .order-edit-button{grid-column:2/4;width:100%}
+ .order-dialog-fields{grid-template-columns:1fr}
+ .order-mode{grid-column:auto}
+ .order-dialog-actions{flex-direction:column-reverse}
+ .order-dialog-actions .btn{width:100%}
+}
+@media print{
+ body.print-order-mode *{visibility:hidden!important}
+ body.print-order-mode #ord,body.print-order-mode #ord *{visibility:visible!important}
+ body.print-order-mode #dia,body.print-order-mode #dia *{display:none!important;visibility:hidden!important}
+ body.print-order-mode header,body.print-order-mode nav,body.print-order-mode .order-head,body.print-order-mode .order-class-card,body.print-order-mode #order-editing-label,body.print-order-mode #order-count,body.print-order-mode #order-save-status,body.print-order-mode .order-list-toolbar,body.print-order-mode #order-results,body.print-order-mode .order-toast{display:none!important}
+ body.print-order-mode #ord{display:block!important;position:absolute;inset:0;width:100%;max-width:none;padding:0;background:#fff;color:#111}
+ body.print-order-mode #order-print-list{display:block!important;font:9pt Arial,sans-serif;color:#111}
+ body.print-order-mode #order-print-list h1{font-size:15pt;margin:0 0 5mm}
+ body.print-order-mode #order-print-list p{margin:0 0 5mm}
+ body.print-order-mode #order-print-list table{width:100%;border-collapse:collapse;table-layout:fixed}
+ body.print-order-mode #order-print-list th,body.print-order-mode #order-print-list td{border:1px solid #555;padding:5px;text-align:left;overflow-wrap:anywhere;vertical-align:top}
+ body.print-order-mode #order-print-list thead{display:table-header-group}
+ body.print-order-mode #order-print-list tr{break-inside:avoid;page-break-inside:avoid}
+ body.print-order-mode .print-box{font-size:14pt}
+ @page{size:A4 portrait;margin:12mm}
+}
 </style>
 </head>
 <body class="auth-pending">
@@ -418,6 +503,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 </main>
 <div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.7/Sortable.min.js"></script>
 <script>
 (function () {
   'use strict';
@@ -549,7 +635,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var pendingImport = null;
   var selectedPersonRow = null;
   var peopleState = { query: '', turma: '36', journey: '', pending: '', shirt: '', age: '', noPhone: false, duplicates: false, minors: false, page: 1, pageSize: 25, sort: 'nome', direction: 1, selected: {} };
-  var orderState = { query: '', page: 1 };
+  var orderState = { query: '', turmaId: '', ready: false };
   var dayState = { query: '' , page: 1 };
   var pendingState = { query: '', page: 1 };
   var shirtState = { query: '', page: 1 };
@@ -1470,29 +1556,324 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     }
   });
 
-  function buildOrder() {
-    var section = document.getElementById('ord');
-    section.innerHTML = '<h2 class="t">Ordem de batismo</h2><div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-order>+ Adicionar posição</button></div><div class="card"><p class="section-sub">Aba de origem: Ordem. Posições numeradas vazias foram preservadas e aparecem como pendentes de nome. Alterações são salvas no Firebase.</p><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><div></div><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
-    document.getElementById('order-search').addEventListener('input', function () { orderState.query = this.value; orderState.page = 1; drawOrderResults(); });
-    drawOrderResults();
-  }
-  function drawOrderResults() {
-    if (!appData || !document.getElementById('order-results')) return;
-    var query = normal(orderState.query);
-    var items = appData.order.filter(function (r) {
-      return !query || normal([r.number, r.name, r.note, r.removed, r.sourceRow].join(' ')).indexOf(query) >= 0;
+  var structuredOrder = [], orderTurmas = [], orderPresence = [], orderMeta = {revision:0,frozen:false}, orderReady = false;
+  var selectedOrderTurmaId = '', orderClassUnsubscribe = null, orderDialogPosition = null, orderDialogPersonId = '', orderDialogMode = 'pessoa', orderSortable = null, orderDragRevision = 0;
+  var orderRole = function(){return (window.firebaseUserProfile||{}).perfil||'';};
+  function orderCanManage(turmaId){var role=orderRole();return role==='admin'||role==='secretaria'||(role==='lider'&&String((window.firebaseUserProfile||{}).turmaId||'')===String(turmaId||selectedOrderTurmaId));}
+  function orderCanAdmin(){return ['admin','secretaria'].indexOf(orderRole())>=0;}
+  function orderClass(){return orderTurmas.find(function(t){return t.id===selectedOrderTurmaId;})||null;}
+  function orderToday(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+  function orderDatePassed(value){return !!value&&String(value).slice(0,10)<orderToday();}
+  function orderDefaultClass(list){
+    var today=orderToday(), active=list.filter(function(t){return t.status==='ativa';}).sort(function(a,b){return Number(a.numero)-Number(b.numero);});
+    if(active.length)return active[0];
+    var planned=list.filter(function(t){return t.status==='planejada';}).sort(function(a,b){
+      var ad=String(a.dataBatismo||'9999-12-31').slice(0,10),bd=String(b.dataBatismo||'9999-12-31').slice(0,10);
+      var af=ad>=today?0:1,bf=bd>=today?0:1;return (af-bf)||ad.localeCompare(bd)||Number(a.numero)-Number(b.numero);
     });
-    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
-    orderState.page = Math.min(Math.max(1, orderState.page), pages);
-    var start = (orderState.page - 1) * PAGE_SIZE;
-    var view = items.slice(start, start + PAGE_SIZE);
-    var named = appData.order.filter(function (r) { return !!r.name; }).length;
-    document.getElementById('order-count').textContent = numberLabel(items.length) + ' linhas com conteúdo · ' + numberLabel(named) + ' posições com nome · ' + numberLabel(appData.order.length - named) + ' posições sem nome';
-    document.getElementById('order-results').innerHTML = view.map(function (r) {
-      return '<div class="data-item"><div class="n">' + esc(display(r.number)) + '</div><div class="item-main"><strong>' + esc(r.name || 'Posição reservada sem nome') + '</strong><div class="item-meta">Número original: ' + esc(display(r.number)) + ' · Ficha retirada: ' + esc(display(r.removed)) + (r.note ? '<br>Observação: ' + esc(r.note) : '') + '<br>Linha original ' + esc(r.sourceRow) + '</div><div class="item-badges">' + (r.name ? chip('Nome preenchido', 't-ok') : chip('Precisa conferir', 't-pe')) + (r.note ? chip('Com observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-order="' + esc(r.sourceRow) + '">Editar posição</button></div></div>';
-    }).join('') || '<div class="data-empty">Nenhuma posição encontrada.</div>';
-    document.getElementById('order-pager').innerHTML = '<button type="button" class="btn o" data-page="order:-1" ' + (orderState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + orderState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="order:1" ' + (orderState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+    return planned[0]||list.slice().sort(function(a,b){return Number(b.numero)-Number(a.numero);})[0]||null;
   }
+  function orderPersonFor(position){
+    if(!position)return null;
+    if(position.pessoaId){var person=structuredPeople.find(function(p){return p.id===position.pessoaId;});if(person)return String(person.turmaId||'')===String(position.turmaId||'')?person:(position.resumoPessoa||null);}
+    return position.resumoPessoa||null;
+  }
+  function orderSafePersonSummary(person){
+    if(!person)return null;
+    var pending=person.pendencia||{},impeditiva=!!(pending.impeditiva||pending.bloqueante||/^(impeditiva|bloqueante|bloqueio)$/.test(normal(pending.tipo||'')));
+    return {menor:person.menor===true,responsavelInformado:person.responsavelInformado===true,camiseta:{opcao:(person.camiseta||{}).opcao||'',tamanho:(person.camiseta||{}).tamanho||''},pendencia:{aberta:!!(pending.aberta||(pending.texto&&!pending.arquivadaRevisao)),impeditiva:impeditiva}};
+  }
+  function orderPositionAlerts(position){
+    var alerts=[];
+    if(!clean(position.nome))alerts.push('Posição sem nome');
+    else if(position.fichaRetirada!==true&&position.fichasRetiradas!==true)alerts.push('Ficha não retirada');
+    var person=orderPersonFor(position);
+    if(person&&person.menor===true&&person.responsavelInformado!==true)alerts.push('Menor sem responsável');
+    if(position.pessoaId){var linked=structuredPeople.find(function(p){return p.id===position.pessoaId;});if(linked&&String(linked.turmaId||'')!==String(position.turmaId||''))alerts.push('Vínculo fora da turma');}
+    else if(position.nome&&position.tipoVinculo!=='externo')alerts.push('Vínculo a confirmar');
+    var pend=person&&person.pendencia||{};
+    if(pend&&pend.arquivadaRevisao!==true&&(/^(impeditiva|bloqueante|bloqueio)$/.test(normal(pend.tipo||''))||pend.impeditiva===true||pend.bloqueante===true))alerts.push('Pendência impeditiva');
+    return alerts;
+  }
+  function orderIsAlert(position){return orderPositionAlerts(position).length>0;}
+  function orderShirtLabel(person){
+    var c=person&&person.camiseta||{};
+    if(c.opcao==='quer')return 'Camiseta'+(c.tamanho?' · '+c.tamanho:'');
+    if(c.opcao==='ja_tem')return 'Já tem camiseta';
+    if(c.opcao==='nao_quer')return 'Não quer camiseta';
+    return '';
+  }
+  function orderMetaLabel(position){
+    var p=orderPersonFor(position),parts=[];
+    parts.push('Turma '+String(selectedOrderTurmaId||'').replace(/^turma_/,''));
+    var shirt=orderShirtLabel(p);if(shirt)parts.push(shirt);
+    if(p&&p.menor===true)parts.push('Menor');
+    if(p&&p.pendencia&&(p.pendencia.aberta||(p.pendencia.texto&&!p.pendencia.arquivadaRevisao)))parts.push('Pendência');
+    if(position.tipoVinculo==='externo')parts.push('Visitante/externo');
+    return parts.join(' · ');
+  }
+  function orderPriorityText(position){
+    var labels={gestante:'Gestante',idoso:'Idoso',necessidade_especial:'Necessidade especial'};
+    return (position.prioridades||[]).map(function(v){return labels[v]||'';}).filter(Boolean);
+  }
+  function ensureOrderDialogs(){
+    if(!document.getElementById('order-position-dialog')){
+      var positionShell=document.createElement('div');positionShell.id='order-position-dialog';positionShell.className='order-dialog-shell';positionShell.hidden=true;
+      positionShell.innerHTML='<form id="order-position-form" class="order-dialog-card" role="dialog" aria-modal="true" aria-labelledby="order-position-title"><div class="order-dialog-head"><div><h2 id="order-position-title">Editar posição</h2><p class="section-sub" id="order-position-subtitle"></p></div><button type="button" class="btn o" data-order-dialog-close aria-label="Fechar">Fechar</button></div><div class="order-dialog-fields"><fieldset class="order-mode"><legend>Quem vai nesta posição?</legend><label><input type="radio" name="order-mode" value="pessoa"> Pessoa cadastrada</label><label><input type="radio" name="order-mode" value="externo"> Visitante/externo</label></fieldset><div id="order-person-picker"><label class="order-field">Buscar na turma<input id="order-person-search" type="search" autocomplete="off" placeholder="Digite o nome da pessoa"></label><div id="order-person-options" class="order-person-options"></div><div id="order-person-selected" class="data-empty">Selecione uma pessoa da turma.</div></div><div id="order-external-picker" hidden><label class="order-field">Nome do visitante/externo<input id="order-external-name" maxlength="120" autocomplete="off"></label><p class="section-sub">Esse nome ficará identificado como visitante/externo.</p></div><label class="order-field">Pastor responsável<input id="order-pastor" list="order-pastor-list" maxlength="120" autocomplete="off" placeholder="Escolher ou digitar nome"><datalist id="order-pastor-list"></datalist></label><label class="order-field">Subgrupo<select id="order-subgroup"><option value="">Sem subgrupo</option><option value="kids">Kids</option><option value="grupo_especial">Grupo especial</option></select></label><label class="order-check"><input id="order-form-taken" type="checkbox"> Ficha retirada</label><fieldset class="order-mode"><legend>Prioridades</legend><label><input type="checkbox" name="order-priority" value="gestante"> Gestante</label><label><input type="checkbox" name="order-priority" value="idoso"> Idoso</label><label><input type="checkbox" name="order-priority" value="necessidade_especial"> Necessidade especial</label></fieldset></div><p id="order-position-status" class="record-editor-status" role="status" aria-live="polite"></p><div class="order-dialog-actions"><button type="button" class="btn o" data-order-dialog-close>Cancelar</button><button type="submit" class="btn" id="order-position-save">Salvar posição</button></div></form>';
+      document.body.appendChild(positionShell);
+      positionShell.addEventListener('click',function(e){if(e.target===positionShell||e.target.closest('[data-order-dialog-close]')){positionShell.hidden=true;if(window.firebaseOrderApi)window.firebaseOrderApi.releasePresence();}});
+      positionShell.querySelectorAll('input[name="order-mode"]').forEach(function(r){r.addEventListener('change',function(){orderDialogMode=this.value;syncOrderPositionMode();});});
+      positionShell.querySelector('#order-person-search').addEventListener('input',drawOrderPersonOptions);
+      positionShell.addEventListener('click',function(e){var pick=e.target.closest('[data-order-person-pick]');if(!pick)return;orderDialogPersonId=pick.dataset.orderPersonPick;var p=structuredPeople.find(function(x){return x.id===orderDialogPersonId;});positionShell.querySelector('#order-person-selected').textContent=p?personName(p)+' · Pessoa cadastrada':'Selecione uma pessoa da turma.';positionShell.querySelector('#order-person-options').innerHTML='';});
+      positionShell.querySelector('#order-position-form').addEventListener('submit',saveOrderPositionForm);
+    }
+    if(!document.getElementById('order-class-dialog')){
+      var classShell=document.createElement('div');classShell.id='order-class-dialog';classShell.className='order-dialog-shell';classShell.hidden=true;
+      classShell.innerHTML='<form id="order-class-form" class="order-dialog-card" role="dialog" aria-modal="true" aria-labelledby="order-class-title"><div class="order-dialog-head"><div><h2 id="order-class-title">Turma</h2><p class="section-sub" id="order-class-subtitle"></p></div><button type="button" class="btn o" data-order-class-close>Fechar</button></div><div class="order-dialog-fields"><label class="order-field">Número da turma<input id="order-class-number" type="number" min="1" max="999" required></label><label class="order-field">Data do batismo<input id="order-class-date" type="date"></label><label class="order-field">Local<input id="order-class-place" maxlength="160"></label><label class="order-field">Capacidade<input id="order-class-capacity" type="number" min="0" max="10000"></label><label class="order-field">Situação<select id="order-class-status"><option value="planejada">Planejada</option><option value="ativa">Ativa</option></select></label></div><p id="order-class-status-message" class="record-editor-status" role="status"></p><div class="order-dialog-actions"><button type="button" class="btn o" data-order-class-close>Cancelar</button><button type="submit" class="btn">Salvar turma</button></div></form>';
+      document.body.appendChild(classShell);
+      classShell.addEventListener('click',function(e){if(e.target===classShell||e.target.closest('[data-order-class-close]'))classShell.hidden=true;});
+      classShell.querySelector('#order-class-form').addEventListener('submit',saveOrderClassForm);
+    }
+  }
+  function syncOrderPositionMode(){
+    var shell=document.getElementById('order-position-dialog');if(!shell)return;
+    var external=orderDialogMode==='externo';
+    shell.querySelector('#order-person-picker').hidden=external;
+    shell.querySelector('#order-external-picker').hidden=!external;
+    shell.querySelectorAll('input[name="order-mode"]').forEach(function(r){r.checked=r.value===orderDialogMode;});
+  }
+  function drawOrderPersonOptions(){
+    var shell=document.getElementById('order-position-dialog'),host=shell&&shell.querySelector('#order-person-options'),input=shell&&shell.querySelector('#order-person-search');
+    if(!host||!input)return;
+    var q=normal(input.value),turma=selectedOrderTurmaId;
+    var matches=structuredPeople.filter(function(p){return String(p.turmaId||'')===turma&&(!q||normal(personName(p)).indexOf(q)>=0);}).slice(0,10);
+    host.innerHTML=matches.map(function(p){return '<button type="button" class="order-person-option" data-order-person-pick="'+esc(p.id)+'"><strong>'+esc(personName(p))+'</strong><small>'+esc((p.idade!=null?String(p.idade)+' anos':'Idade não informada')+(p.menor===true?' · Menor':''))+'</small></button>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada nesta turma.</div>';
+  }
+  function orderPastorChoices(){
+    var names=Array.from(new Set(structuredOrder.map(function(p){return clean(p.pastor||'');}).filter(Boolean)));
+    var list=document.getElementById('order-pastor-list');if(list)list.innerHTML=names.map(function(n){return '<option value="'+esc(n)+'"></option>';}).join('');
+  }
+  function openOrderPosition(id){
+    var position=id?structuredOrder.find(function(p){return p.id===id;}):null;
+    if(id&&!position)return;
+    if(!orderCanManage(selectedOrderTurmaId)||!orderClass()||orderClass().status==='encerrada'||orderMeta.frozen===true)return;
+    ensureOrderDialogs();orderDialogPosition=position?Object.assign({},position):null;
+    orderDialogPersonId=position&&position.pessoaId?position.pessoaId:'';
+    var oldLinked=position&&position.pessoaId?structuredPeople.find(function(p){return p.id===position.pessoaId;}):null;
+    if(oldLinked&&String(oldLinked.turmaId||'')!==String(selectedOrderTurmaId||''))orderDialogPersonId='';
+    orderDialogMode=position&&position.tipoVinculo==='externo'?'externo':'pessoa';
+    var shell=document.getElementById('order-position-dialog'),form=shell.querySelector('#order-position-form');
+    form.dataset.expectedRevision=String(position&&position.revision||0);
+    form.dataset.expectedOrderRevision=String(orderMeta.revision||0);
+    shell.querySelector('#order-position-title').textContent=position?'Editar posição '+display(position.posicao):'Adicionar pessoa à ordem';
+    shell.querySelector('#order-position-subtitle').textContent='Turma '+String(selectedOrderTurmaId).replace(/^turma_/,'')+' · '+(position?'A posição será atualizada somente se ninguém tiver alterado este registro.':'Nova posição no fim da ordem.');
+    shell.querySelector('#order-person-search').value='';
+    shell.querySelector('#order-external-name').value=position&&position.tipoVinculo==='externo'?position.nome||'':'';
+    shell.querySelector('#order-person-options').innerHTML='';
+    var selected=orderPersonFor(position);shell.querySelector('#order-person-selected').textContent=selected&&orderDialogPersonId?personName(selected)+' · Pessoa cadastrada':(oldLinked?'O vínculo atual é de outra turma. Selecione uma pessoa desta turma.':'Selecione uma pessoa da turma.');
+    shell.querySelector('#order-pastor').value=position&&position.pastor||'';
+    shell.querySelector('#order-subgroup').value=position&&position.subgrupo||'';
+    shell.querySelector('#order-form-taken').checked=!!(position&&(position.fichaRetirada===true||position.fichasRetiradas===true));
+    var priorities=position&&Array.isArray(position.prioridades)?position.prioridades:[];
+    shell.querySelectorAll('input[name="order-priority"]').forEach(function(c){c.checked=priorities.indexOf(c.value)>=0;});
+    shell.querySelector('#order-position-status').textContent='';
+    shell.querySelector('#order-position-save').disabled=false;
+    syncOrderPositionMode();shell.hidden=false;
+    if(window.firebaseOrderApi)window.firebaseOrderApi.touchPresence(selectedOrderTurmaId,position?position.id:'editando');
+  }
+  async function saveOrderPositionForm(event){
+    event.preventDefault();
+    var shell=document.getElementById('order-position-dialog'),form=event.currentTarget,status=shell.querySelector('#order-position-status'),save=shell.querySelector('#order-position-save');
+    var turma=selectedOrderTurmaId,klass=orderClass();
+    if(!klass||klass.status==='encerrada'){status.textContent='Esta turma foi encerrada e a ordem está congelada.';return;}
+    var name='',personId=null;
+    if(orderDialogMode==='pessoa'){
+      var person=structuredPeople.find(function(p){return p.id===orderDialogPersonId;});
+      if(!person||String(person.turmaId||'')!==turma){status.textContent='Selecione uma pessoa cadastrada da turma '+String(turma).replace(/^turma_/, '');return;}
+      name=personName(person);personId=person.id;
+    }else name=titleCasePerson(shell.querySelector('#order-external-name').value);
+    if(!name){status.textContent=orderDialogMode==='pessoa'?'Escolha uma pessoa na lista.':'Informe o nome do visitante/externo.';return;}
+    var patch={turmaId:turma,nome:name,nomeBusca:normal(name),pessoaId:personId,tipoVinculo:orderDialogMode==='externo'?'externo':'pessoa',resumoPessoa:orderDialogMode==='pessoa'?orderSafePersonSummary(structuredPeople.find(function(p){return p.id===personId;})):null,pastor:titleCasePerson(shell.querySelector('#order-pastor').value),subgrupo:shell.querySelector('#order-subgroup').value||'',fichaRetirada:shell.querySelector('#order-form-taken').checked,prioridades:Array.from(shell.querySelectorAll('input[name="order-priority"]:checked')).map(function(c){return c.value;})};
+    if(patch.prioridades.length>3){status.textContent='Selecione até três prioridades.';return;}
+    save.disabled=true;status.textContent='Salvando…';
+    try{
+      var expected=Number(form.dataset.expectedRevision||0),expectedOrder=Number(form.dataset.expectedOrderRevision||0);
+      if(orderDialogPosition)await window.firebaseOrderApi.savePosition(orderDialogPosition.id,patch,expected,expectedOrder);
+      else{
+        var next=Math.max.apply(null,structuredOrder.map(function(p){return Number(p.posicao)||0;}).concat([0]))+1;
+        var clsKey=turma.replace(/[^a-z0-9]/gi,'');
+        var newId='ord_'+clsKey+'_pos_'+String(next).replace(/[^a-zA-Z0-9_-]/g,'_');
+        await window.firebaseOrderApi.createPosition(newId,Object.assign({posicao:next},patch),expectedOrder);
+      }
+      shell.hidden=true;
+      orderToast(orderDialogPosition?'Posição salva.':'Posição adicionada.');
+      if(window.firebaseOrderApi)window.firebaseOrderApi.releasePresence();
+    }catch(error){
+      status.textContent=/CONFLITO/.test(error.message||'')?'Outra pessoa alterou a ordem. As mudanças mais recentes foram carregadas; reabra esta posição antes de salvar.':'Não foi possível salvar: '+(error.message||'confira a conexão e as permissões.');
+      save.disabled=false;
+    }
+  }
+  var orderClassEditingId='';
+  function openOrderClass(id){
+    if(!orderCanAdmin())return;
+    ensureOrderDialogs();
+    var c=id?orderTurmas.find(function(x){return x.id===id;}):null,shell=document.getElementById('order-class-dialog');
+    orderClassEditingId=c?c.id:'';
+    shell.querySelector('#order-class-title').textContent=c?'Editar turma '+c.numero:'Criar turma';
+    shell.querySelector('#order-class-subtitle').textContent=c?'A turma encerrada não pode ser alterada.':'O número será usado como identificador permanente.';
+    shell.querySelector('#order-class-number').value=c?c.numero:'';
+    shell.querySelector('#order-class-number').disabled=!!c;
+    shell.querySelector('#order-class-date').value=c&&c.dataBatismo?String(c.dataBatismo).slice(0,10):'';
+    shell.querySelector('#order-class-place').value=c&&c.local||'';
+    shell.querySelector('#order-class-capacity').value=c&&c.capacidade!=null?c.capacidade:'';
+    shell.querySelector('#order-class-status').value=c&&c.status==='ativa'?'ativa':'planejada';
+    shell.querySelector('#order-class-status').disabled=!!c;
+    shell.querySelector('#order-class-status-message').textContent='';
+    shell.querySelector('#order-class-form').dataset.revision=String(c&&c.revision||0);
+    shell.querySelector('#order-class-form').dataset.id=c?c.id:'';
+    shell.hidden=false;
+  }
+  async function saveOrderClassForm(event){
+    event.preventDefault();
+    var shell=document.getElementById('order-class-dialog'),form=event.currentTarget,status=shell.querySelector('#order-class-status-message');
+    var n=Number(shell.querySelector('#order-class-number').value),id=orderClassEditingId||('turma_'+n),capacity=shell.querySelector('#order-class-capacity').value;
+    if(!Number.isInteger(n)||n<1||n>999){status.textContent='Informe um número de turma válido.';return;}
+    var data={numero:n,dataBatismo:shell.querySelector('#order-class-date').value||null,local:shell.querySelector('#order-class-place').value.trim()||null,status:shell.querySelector('#order-class-status').value,capacidade:capacity===''?null:Number(capacity)};
+    if(data.capacidade!==null&&(!Number.isInteger(data.capacidade)||data.capacidade<0)){status.textContent='A capacidade deve ser um número inteiro igual ou maior que zero.';return;}
+    if(orderClassEditingId&&orderClassEditingId!==id){status.textContent='O número identifica a turma e não pode ser alterado depois da criação.';return;}
+    status.textContent='Salvando turma…';
+    try{
+      await window.firebaseOrderApi.saveClass(id,data,Number(form.dataset.revision||0),!orderClassEditingId);
+      shell.hidden=true;
+      if(!orderClassEditingId){selectedOrderTurmaId=id;orderState.turmaId=id;window.firebaseOrderApi.watchClass(id);}
+      orderToast(orderClassEditingId?'Turma atualizada.':'Turma criada.');
+    }catch(error){status.textContent='Não foi possível salvar: '+(error.message||'confira a conexão e as permissões.');}
+  }
+  function orderToast(message){
+    var host=document.getElementById('order-status');if(host){host.textContent=message;host.classList.add('show');setTimeout(function(){host.classList.remove('show');},3500);}
+  }
+  async function toggleOrderForm(id,checked){
+    var row=structuredOrder.find(function(p){return p.id===id;});if(!row)return;
+    try{await window.firebaseOrderApi.savePosition(id,{fichaRetirada:checked},Number(row.revision||0),Number(orderMeta.revision||0));orderToast(checked?'Ficha marcada como retirada.':'Marcação da ficha desfeita.');}
+    catch(error){orderToast(/CONFLITO/.test(error.message||'')?'A ordem mudou em outro aparelho; os dados mais recentes foram carregados.':'Não foi possível salvar a ficha: '+(error.message||'verifique o acesso.'));}
+  }
+  async function syncOrderSummaries(){
+    var klass=orderClass();if(!klass||!orderCanManage(klass.id))return;
+    var summaries=structuredOrder.filter(function(p){return p.turmaId===klass.id&&p.pessoaId;}).map(function(p){
+      var person=structuredPeople.find(function(x){return x.id===p.pessoaId;});
+      return person?{id:p.id,pessoaId:p.pessoaId,resumoPessoa:orderSafePersonSummary(person)}:null;
+    }).filter(Boolean);
+    if(!summaries.length){orderToast('Não há vínculos de pessoas para atualizar nesta turma.');return;}
+    if(!window.confirm('Atualizar os dados resumidos usados na Ordem desta turma? Serão compartilhados apenas menor, camiseta e existência de pendência; telefone e responsável não serão copiados.'))return;
+    try{var result=await window.firebaseOrderApi.syncSummaries(klass.id,summaries,Number(orderMeta.revision||0));orderToast(result.atualizadas+' posição(ões) atualizadas.');}
+    catch(error){orderToast('Não foi possível atualizar os dados da Ordem: '+(error.message||''));}
+  }
+  async function closeOrderClass(){
+    var c=orderClass();if(!c||!orderCanAdmin())return;
+    if(!orderDatePassed(c.dataBatismo)){orderToast('O encerramento só pode acontecer no dia seguinte ao batismo.');return;}
+    var msg=(orderMeta.closing?'Continuar':'Encerrar')+' a turma '+c.numero+'? A ordem ficará congelada, as pendências abertas serão arquivadas para revisão e só serão criados registros de batismo para as pessoas marcadas como batizadas no Dia do Batismo.';
+    if(!window.confirm(msg))return;
+    try{var result=await window.firebaseOrderApi.closeClass(c.id);orderToast('Turma encerrada. '+result.batizados+' registro(s) de batismo criado(s) e '+result.arquivadas+' pendência(s) arquivada(s).');}
+    catch(error){orderToast('Não foi possível encerrar: '+(error.message||'confira a conexão e as permissões.'));}
+  }
+  function orderPrint(onlyPending){
+    var c=orderClass(),host=document.getElementById('order-print-list');if(!c||!host)return;
+    var list=structuredOrder.slice().sort(function(a,b){return Number(a.posicao)-Number(b.posicao);}).filter(function(p){return !onlyPending||orderIsAlert(p);});
+    var rows=list.map(function(p){
+      var alerts=orderPositionAlerts(p),person=orderPersonFor(p),pend=person&&person.pendencia||{},note=orderPriorityText(p).concat(p.subgrupo?[p.subgrupo==='kids'?'Kids':'Grupo especial']:[],orderShirtLabel(person)?[orderShirtLabel(person)]:[],person&&person.menor?['Menor']:[],person&&pend&&(pend.aberta||(pend.texto&&!pend.arquivadaRevisao))?['Pendência']:[],alerts).filter(Boolean).join(' · ');
+      return '<tr><td>'+esc(display(p.posicao))+'</td><td>'+esc(p.nome||'Sem nome nesta posição')+(p.tipoVinculo==='externo'?' <small>(Visitante/externo)</small>':'')+'</td><td>'+esc(p.pastor||'')+'</td><td><span class="print-box">'+((p.fichaRetirada===true||p.fichasRetiradas===true)?'☒':'☐')+'</span></td><td>'+esc(note)+'</td><td></td></tr>';
+    }).join('');
+    host.innerHTML='<h1>Ordem do batismo · Turma '+esc(c.numero)+'</h1><p>Data: '+esc(c.dataBatismo?new Date(String(c.dataBatismo).slice(0,10)+'T12:00:00').toLocaleDateString('pt-BR'):'Não informada')+' · Local: '+esc(c.local||'Não informado')+(onlyPending?' · Somente posições com alerta':'')+'</p><table><thead><tr><th>Nº</th><th>Nome</th><th>Pastor</th><th>Ficha</th><th>Observações</th><th>Assinatura</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    document.body.classList.add('print-order-mode');
+    var cleanup=function(){document.body.classList.remove('print-order-mode');window.removeEventListener('afterprint',cleanup);};
+    window.addEventListener('afterprint',cleanup);window.print();setTimeout(cleanup,2000);
+  }
+  function drawOrderModule(){
+    var section=document.getElementById('ord'),select=section&&section.querySelector('#order-turma-select');
+    if(!section||!select)return;
+    var role=orderRole(),klass=orderClass(),canManage=orderCanManage(selectedOrderTurmaId),canAdmin=orderCanAdmin();
+    select.innerHTML=orderTurmas.map(function(t){return '<option value="'+esc(t.id)+'"'+(t.id===selectedOrderTurmaId?' selected':'')+'>Turma '+esc(t.numero)+' · '+esc(t.status==='ativa'?'Ativa':t.status==='encerrada'?'Encerrada':'Planejada')+'</option>';}).join('')||'<option value="">Nenhuma turma cadastrada</option>';
+    select.value=selectedOrderTurmaId||'';
+    var info=section.querySelector('#order-class-info');
+    if(info)info.innerHTML=klass?'<strong>Turma '+esc(klass.numero)+'</strong><span>'+(klass.dataBatismo?'📅 '+esc(new Date(String(klass.dataBatismo).slice(0,10)+'T12:00:00').toLocaleDateString('pt-BR')):'Data não informada')+' · '+esc(klass.local||'Local não informado')+' · '+esc(klass.status==='encerrada'?'Encerrada':klass.status==='ativa'?'Ativa':'Planejada')+'</span>':'<span>Crie uma turma para organizar a ordem.</span>';
+    var adminNew=section.querySelector('[data-order-new-class]'),editClass=section.querySelector('[data-order-edit-class]'),syncSummary=section.querySelector('[data-order-sync-summary]'),closeBtn=section.querySelector('[data-order-close-class]'),addBtn=section.querySelector('[data-order-add]');
+    if(adminNew)adminNew.hidden=!canAdmin;
+    if(editClass)editClass.hidden=!canAdmin||!klass||klass.status==='encerrada'||orderMeta.closing===true;
+    if(syncSummary)syncSummary.hidden=!canManage||!klass||klass.status==='encerrada'||orderMeta.closing===true;
+    if(closeBtn){closeBtn.hidden=!canAdmin||!klass||klass.status==='encerrada';closeBtn.textContent=orderMeta.closing?'Continuar encerramento':'Encerrar turma';closeBtn.disabled=!klass||!orderDatePassed(klass.dataBatismo);closeBtn.title=closeBtn.disabled?'Aguarde o dia seguinte ao batismo para encerrar.':'';}
+    if(addBtn){addBtn.hidden=!canManage||!klass||klass.status==='encerrada';addBtn.disabled=!orderReady;}
+    var editLabel=section.querySelector('#order-editing-label');
+    if(editLabel){
+      var active=orderPresence.filter(function(p){return p.editing!==false&&p.uid!==((window.firebaseCurrentUser||{}).uid)&&Date.now()-new Date(p.touchedAt||0).getTime()<30000;});
+      editLabel.textContent=active.length?'Editando agora: '+active.map(function(p){return (p.nome||'Equipe')+(p.posicaoId&&p.posicaoId!=='reordenando'?' · posição '+esc(String(p.posicaoId).replace(/^ord_.*_pos_/,'')):'');}).join(', '):'Ninguém mais está editando esta ordem.';
+    }
+    var host=section.querySelector('#order-results'),count=section.querySelector('#order-count');
+    if(!host||!count)return;
+    if(!orderReady){host.innerHTML='<div class="person-skeleton"></div><div class="person-skeleton"></div><div class="person-skeleton"></div>';count.textContent='Carregando a ordem desta turma…';return;}
+    if(!klass){host.innerHTML='<div class="data-empty">Nenhuma turma disponível. '+(canAdmin?'Crie uma turma para começar.':'Peça à secretaria que cadastre uma turma.')+'</div>';count.textContent='0 posições, 0 preenchidas, 0 com alerta';return;}
+    var all=structuredOrder.filter(function(p){return p.turmaId===selectedOrderTurmaId;}).slice().sort(function(a,b){return (Number(a.posicao)||0)-(Number(b.posicao)||0)||String(a.id).localeCompare(String(b.id));});
+    var named=all.filter(function(p){return !!clean(p.nome);}).length,alerts=all.filter(orderIsAlert).length;
+    count.textContent=all.length+' posições, '+named+' preenchidas, '+alerts+' com alerta';
+    var q=normal(orderState.query),visible=all.filter(function(p){return !q||normal([p.nome,p.posicao,p.pastor,orderMetaLabel(p)].join(' ')).indexOf(q)>=0;});
+    var writable=canManage&&klass.status!=='encerrada'&&orderMeta.frozen!==true;
+    host.innerHTML=visible.map(function(p){
+      var person=orderPersonFor(p),flags=orderPositionAlerts(p),shirt=orderShirtLabel(person),priorities=orderPriorityText(p);
+      var badges=(p.tipoVinculo==='externo'?chip('Visitante/externo','t-in'):'')+(p.pessoaId?'':(p.nome?chip('Vínculo a confirmar','t-pe'):chip('Posição sem nome','t-pe')))+(person&&person.menor?chip('Menor','t-pe'):'')+(shirt?chip(esc(shirt),'t-in'):'')+(person&&person.pendencia&&(person.pendencia.aberta||(person.pendencia.texto&&!person.pendencia.arquivadaRevisao))?chip('Pendência','t-pe'):'')+priorities.map(function(v){return chip(esc(v),'t-er');}).join('')+flags.filter(function(a){return a==='Pendência impeditiva'||a==='Menor sem responsável';}).map(function(a){return chip(esc(a),'t-er');}).join('');
+      var ficha=p.fichaRetirada===true||p.fichasRetiradas===true;
+      return '<article class="order-position" data-order-id="'+esc(p.id)+'"><button type="button" class="order-drag" aria-label="Arrastar para reordenar" '+(!writable||q?'disabled':'')+'>⠿</button><span class="n">'+esc(display(p.posicao))+'</span><div class="order-position-main"><strong>'+esc(p.nome||'Posição reservada sem nome')+'</strong><div class="order-position-meta">'+esc(orderMetaLabel(p))+'</div><div class="order-badges">'+badges+'</div><div class="order-position-meta">'+esc(p.pastor?'Pastor: '+p.pastor:'Pastor não definido')+(p.subgrupo?' · '+esc(p.subgrupo==='kids'?'Kids':'Grupo especial'):'')+'</div>'+(flags.length?'<div class="order-alerts">'+flags.map(function(a){return '⚠ '+esc(a);}).join(' · ')+'</div>':'')+'</div><label class="order-ficha"><input type="checkbox" data-order-ficha="'+esc(p.id)+'" '+(ficha?'checked ':'')+(!writable?'disabled':'')+'><span>Ficha retirada</span></label>'+(writable?'<button type="button" class="btn o order-edit-button" data-order-edit="'+esc(p.id)+'">Editar</button>':'')+'</article>';
+    }).join('')||'<div class="data-empty">'+(all.length?'Nenhuma posição encontrada nessa busca.':'Não há posições nesta turma. Adicione a primeira pessoa para começar.')+'</div>';
+    var printAll=section.querySelector('[data-order-print-all]'),printPending=section.querySelector('[data-order-print-pending]');
+    if(printAll)printAll.disabled=!all.length;if(printPending)printPending.disabled=!all.length;
+    var closeSummary=section.querySelector('#order-closed-note');
+    if(closeSummary){closeSummary.hidden=!klass||klass.status!=='encerrada'&&orderMeta.closing!==true;closeSummary.textContent=klass&&klass.status==='encerrada'?'Turma encerrada · ordem congelada para consulta.':'Encerramento em andamento · continue para arquivar pendências e finalizar.';}
+    if(orderSortable){orderSortable.destroy();orderSortable=null;}
+    if(writable&&!q&&window.Sortable&&host.children.length>0)orderSortable=window.Sortable.create(host,{handle:'.order-drag',draggable:'.order-position',animation:150,ghostClass:'order-ghost',onStart:function(evt){orderDragRevision=Number(orderMeta.revision||0);if(window.firebaseOrderApi)window.firebaseOrderApi.touchPresence(selectedOrderTurmaId,evt.item.dataset.orderId);},onEnd:async function(){
+      if(!window.firebaseOrderApi)return;
+      var ids=Array.prototype.slice.call(host.querySelectorAll('.order-position')).map(function(el){return el.dataset.orderId;});
+      var status=section.querySelector('#order-save-status');if(status)status.textContent='Salvando a nova ordem…';
+      try{await window.firebaseOrderApi.reorder(selectedOrderTurmaId,ids,orderDragRevision);if(status)status.textContent='Ordem sincronizada.';}
+      catch(error){if(status)status.textContent=/CONFLITO/.test(error.message||'')?'Outra pessoa mudou a ordem. A versão atual foi recarregada.':'Falha ao reordenar: '+(error.message||'');orderToast(status?status.textContent:'Não foi possível salvar a ordem.');drawOrderModule();}
+      if(window.firebaseOrderApi)window.firebaseOrderApi.releasePresence();
+    }});
+  }
+  function buildOrder(){
+    var section=document.getElementById('ord');if(!section)return;
+    ensureOrderDialogs();
+    section.innerHTML='<div class="order-head"><div><h2 class="t">Ordem do batismo</h2><p class="section-sub">Organize as posições e acompanhe as informações da turma em tempo real.</p></div><div class="order-toolbar-actions"><button type="button" class="btn o" data-order-new-class hidden>Criar turma</button><button type="button" class="btn o" data-order-edit-class hidden>Editar turma</button><button type="button" class="btn o" data-order-sync-summary hidden>Atualizar dados da Ordem</button><button type="button" class="btn o" data-order-close-class hidden>Encerrar turma</button></div></div><div class="card order-class-card"><label for="order-turma-select"><b>Turma</b></label><select id="order-turma-select" aria-label="Selecionar turma"></select><div id="order-class-info" class="order-class-info"></div><p id="order-closed-note" class="order-closed-note" hidden>Turma encerrada · ordem congelada para consulta.</p></div><div class="order-presence" id="order-editing-label" aria-live="polite">Conectando à ordem…</div><div class="card"><div class="order-metrics"><div id="order-count" class="data-summary"></div><div id="order-save-status" class="data-summary"></div></div><div class="order-list-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, posição ou observação" aria-label="Buscar ordem"><div class="order-toolbar-actions"><button type="button" class="btn" data-order-add>+ Adicionar posição</button><button type="button" class="btn o" data-order-print-all>🖨 Imprimir A4</button><button type="button" class="btn o" data-order-print-pending>Imprimir somente pendentes</button></div></div><p class="section-sub">Arraste pela alça para mudar a sequência. A mudança é salva para todos os usuários.</p><div id="order-results" class="order-list" aria-live="polite"></div></div><div id="order-status" class="order-toast" role="status" aria-live="polite"></div><div id="order-print-list"></div>';
+    if(!section.dataset.orderWired){
+      section.dataset.orderWired='1';
+      section.addEventListener('input',function(e){if(e.target.id==='order-search'){orderState.query=e.target.value;drawOrderModule();}});
+      section.addEventListener('change',function(e){
+        if(e.target.id==='order-turma-select'){selectedOrderTurmaId=e.target.value;orderState.turmaId=selectedOrderTurmaId;orderState.query='';section.querySelector('#order-search').value='';orderReady=false;structuredOrder=[];orderPresence=[];orderMeta={revision:0,frozen:false};if(window.firebaseOrderApi)window.firebaseOrderApi.watchClass(selectedOrderTurmaId);drawOrderModule();}
+        if(e.target.matches('[data-order-ficha]'))toggleOrderForm(e.target.dataset.orderFicha,e.target.checked);
+      });
+      section.addEventListener('click',function(e){
+        var target=e.target.closest('[data-order-add],[data-order-edit],[data-order-new-class],[data-order-edit-class],[data-order-close-class],[data-order-sync-summary],[data-order-print-all],[data-order-print-pending]');
+        if(!target)return;
+        if(target.matches('[data-order-add]')){openOrderPosition('');return;}
+        if(target.matches('[data-order-edit]')){openOrderPosition(target.dataset.orderEdit);return;}
+        if(target.matches('[data-order-new-class]')){openOrderClass('');return;}
+        if(target.matches('[data-order-edit-class]')){openOrderClass(selectedOrderTurmaId);return;}
+        if(target.matches('[data-order-close-class]')){closeOrderClass();return;}
+        if(target.matches('[data-order-sync-summary]')){syncOrderSummaries();return;}
+        if(target.matches('[data-order-print-all]')){orderPrint(false);return;}
+        if(target.matches('[data-order-print-pending]')){orderPrint(true);return;}
+      });
+    }
+    if(!selectedOrderTurmaId&&orderTurmas.length){var preferred=orderDefaultClass(orderTurmas);selectedOrderTurmaId=preferred?preferred.id:'';orderState.turmaId=selectedOrderTurmaId;if(selectedOrderTurmaId&&window.firebaseOrderApi)window.firebaseOrderApi.watchClass(selectedOrderTurmaId);}
+    drawOrderModule();
+  }
+  window.addEventListener('structured-order-classes-updated',function(e){
+    orderTurmas=e.detail&&e.detail.classes||[];
+    if(!selectedOrderTurmaId&&orderTurmas.length){var preferred=orderDefaultClass(orderTurmas);selectedOrderTurmaId=preferred?preferred.id:'';orderState.turmaId=selectedOrderTurmaId;if(selectedOrderTurmaId&&window.firebaseOrderApi)window.firebaseOrderApi.watchClass(selectedOrderTurmaId);}
+    if(selectedOrderTurmaId&&!orderTurmas.some(function(t){return t.id===selectedOrderTurmaId;})){var fallback=orderDefaultClass(orderTurmas);selectedOrderTurmaId=fallback?fallback.id:'';orderState.turmaId=selectedOrderTurmaId;if(selectedOrderTurmaId&&window.firebaseOrderApi)window.firebaseOrderApi.watchClass(selectedOrderTurmaId);}
+    drawOrderModule();
+  });
+  window.addEventListener('structured-order-updated',function(e){
+    var d=e.detail||{};structuredOrder=d.positions||[];orderMeta=d.meta||{revision:0,frozen:false};orderPresence=d.presence||[];orderReady=!!d.ready;drawOrderModule();
+  });
+  window.addEventListener('structured-order-error',function(e){orderReady=true;var host=document.getElementById('order-results');if(host)host.innerHTML='<div class="data-empty">Não foi possível carregar a Ordem: '+esc(e.detail&&e.detail.message||'verifique seu acesso à turma.')+'</div>';});
+  function drawOrderResults(){drawOrderModule();}
 
   var dayMarks = {}, dayFilter='todos', dayStatus={online:navigator.onLine,pending:0,ready:false}, undoTimer=null;
   function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
@@ -1652,7 +2033,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       home: { title: 'Visão geral', message: 'Nenhuma planilha foi carregada no banco central. Os números e nomes do arquivo de demonstração não serão exibidos como se fossem dados reais.' },
       pes: { title: 'Pessoas', message: 'Os cadastros aparecerão aqui depois que você importar a planilha Excel e confirmar o envio ao Firebase.' },
       fic: { title: 'Ficha individual', message: 'Selecione uma pessoa depois que os registros reais estiverem carregados.' },
-      ord: { title: 'Ordem do batismo', message: 'A ordem será exibida aqui depois que a aba Ordem da planilha for importada.' },
       dia: { title: 'Dia do batismo', message: 'A lista de presença e o acompanhamento só ficam disponíveis quando há registros reais carregados.' },
       pen: { title: 'Pendências', message: 'As pendências serão calculadas a partir dos cadastros importados.' },
       cam: { title: 'Camisetas', message: 'O resumo de tamanhos e pagamentos será calculado a partir da planilha importada.' },
@@ -1665,6 +2045,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       if (!section) return;
       section.innerHTML = '<h2 class="t">' + item.title + '</h2><div class="card"><b>Nenhum dado carregado</b><p class="section-sub">' + item.message + '</p><button type="button" class="btn" data-go="imp">Selecionar planilha Excel →</button></div>';
     });
+    buildOrder();
   }
 
   function buildAll() {
@@ -2029,6 +2410,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     peopleAccessRestricted=!!detail.restricted;
     structuredPeopleReady=true;
     buildPeople();
+    drawOrderModule();
     if(currentPersonId&&!currentPerson){openPersonById(currentPersonId);return;}
     if(currentPersonId){
       var fresh=getPeopleViewData().find(function(p){return p.id===currentPersonId;});
@@ -2338,6 +2720,263 @@ function startPeopleListener(user,profile){
  try{window.firebasePeopleApi.subscribe(profile);}catch(error){window.dispatchEvent(new CustomEvent('structured-people-error',{detail:{message:error.message}}));}
 }
 
+
+let orderClassesUnsub=null, orderPositionsUnsub=null, orderMetaUnsub=null, orderPresenceUnsub=null, orderMarksUnsub=null;
+let orderCurrentClassId='', orderPresenceTimer=null, orderPresenceUid='';
+function actorName(){return (auth.currentUser&&auth.currentUser.displayName)||(auth.currentUser&&auth.currentUser.email)||'Equipe';}
+function orderClassRef(id){return doc(firestore,'turmas',id);}
+function orderMetaRef(id){return doc(firestore,'ordemTurma',id);}
+function orderCollectionQuery(id){return query(collection(firestore,'ordem'),where('turmaId','==',id));}
+function orderPresenceQuery(id){return query(collection(firestore,'edicaoOrdem'),where('turmaId','==',id));}
+function orderMarkQuery(id){return query(collection(firestore,'marcacoesBatismo'),where('turmaId','==',String(id).replace(/^turma_/,'')));}
+function cleanOrderSnapshot(snap){return snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});});}
+function stopOrderWatchers(){
+ [orderPositionsUnsub,orderMetaUnsub,orderPresenceUnsub,orderMarksUnsub].forEach(function(fn){if(fn)fn();});
+ orderPositionsUnsub=orderMetaUnsub=orderPresenceUnsub=orderMarksUnsub=null;orderCurrentClassId='';
+}
+function publishOrderUpdate(){
+ const meta=window.__orderMetaCache||{revision:0,frozen:false};
+ window.dispatchEvent(new CustomEvent('structured-order-updated',{detail:{
+  positions:window.__orderPositionsCache||[],meta:meta,presence:window.__orderPresenceCache||[],marks:window.__orderMarksCache||{},ready:!!window.__orderPositionsReady
+ }}));
+}
+function stopOrderApi(){
+ if(orderClassesUnsub){orderClassesUnsub();orderClassesUnsub=null;}
+ stopOrderWatchers();
+ if(orderPresenceTimer){clearInterval(orderPresenceTimer);orderPresenceTimer=null;}
+ window.__orderPositionsCache=[];window.__orderPresenceCache=[];window.__orderMarksCache={};window.__orderMetaCache={revision:0,frozen:false};window.__orderPositionsReady=false;
+}
+window.firebaseOrderApi={
+ subscribeClasses:function(profile){
+  if(orderClassesUnsub)orderClassesUnsub();
+  const role=profile&&profile.perfil||'';
+  let source;
+  if(role==='voluntario')source=query(collection(firestore,'turmas'),where('status','==','ativa'));
+  else source=collection(firestore,'turmas');
+  orderClassesUnsub=onSnapshot(source,function(snap){
+   const classes=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});}).sort(function(a,b){return Number(a.numero)-Number(b.numero);});
+   window.dispatchEvent(new CustomEvent('structured-order-classes-updated',{detail:{classes:classes,ready:true}}));
+  },function(error){
+   if(error.code==='permission-denied'||error.code==='firestore/permission-denied'){
+    const own=profile&&profile.turmaId;
+    if(own){
+     onSnapshot(orderClassRef(String(own)),function(snap){window.dispatchEvent(new CustomEvent('structured-order-classes-updated',{detail:{classes:snap.exists()?[Object.assign({},snap.data(),{id:snap.id})]:[],ready:true}}));},function(e){window.dispatchEvent(new CustomEvent('structured-order-error',{detail:{message:e.message||'Sem acesso às turmas.'}}));});
+    }else window.dispatchEvent(new CustomEvent('structured-order-error',{detail:{message:'Sua conta não pode consultar turmas.'}}));
+   }else window.dispatchEvent(new CustomEvent('structured-order-error',{detail:{message:error.message||'Não foi possível consultar as turmas.'}}));
+  });
+ },
+ watchClass:function(turmaId){
+  if(!turmaId)return;
+  if(orderCurrentClassId===turmaId&&orderPositionsUnsub)return;
+  stopOrderWatchers();orderCurrentClassId=turmaId;
+  window.__orderPositionsCache=[];window.__orderPresenceCache=[];window.__orderMarksCache={};window.__orderMetaCache={revision:0,frozen:false};window.__orderPositionsReady=false;publishOrderUpdate();
+  orderPositionsUnsub=onSnapshot(orderCollectionQuery(turmaId),{includeMetadataChanges:true},function(snap){
+   window.__orderPositionsCache=cleanOrderSnapshot(snap);
+   window.__orderPositionsReady=true;publishOrderUpdate();
+  },function(error){window.dispatchEvent(new CustomEvent('structured-order-error',{detail:{message:error.message||'Falha ao ler as posições.'}}));});
+  orderMetaUnsub=onSnapshot(orderMetaRef(turmaId),function(snap){
+   window.__orderMetaCache=snap.exists()?Object.assign({revision:0,frozen:false},snap.data()):{revision:0,frozen:false};
+   publishOrderUpdate();
+  },function(error){window.dispatchEvent(new CustomEvent('structured-order-error',{detail:{message:error.message||'Falha ao ler o estado da ordem.'}}));});
+  orderPresenceUnsub=onSnapshot(orderPresenceQuery(turmaId),function(snap){window.__orderPresenceCache=cleanOrderSnapshot(snap);publishOrderUpdate();},function(){});
+  orderMarksUnsub=onSnapshot(orderMarkQuery(turmaId),function(snap){const marks={};snap.forEach(function(d){marks[d.id]=d.data();});window.__orderMarksCache=marks;publishOrderUpdate();},function(){window.__orderMarksCache={};publishOrderUpdate();});
+ },
+ touchPresence:function(turmaId,positionId){
+  if(!auth.currentUser||!turmaId)return Promise.resolve();
+  const uid=auth.currentUser.uid;
+  if(orderPresenceUid&&orderPresenceUid!==uid&&orderPresenceTimer){clearInterval(orderPresenceTimer);orderPresenceTimer=null;}
+  orderPresenceUid=uid;
+  const ref=doc(firestore,'edicaoOrdem',String(turmaId)+'_'+uid);
+  const write=function(){return setDoc(ref,{turmaId:String(turmaId),uid:uid,nome:actorName().slice(0,120),posicaoId:positionId?String(positionId).slice(0,150):'',editing:true,touchedAt:new Date().toISOString()},{merge:true});};
+  if(orderPresenceTimer)clearInterval(orderPresenceTimer);
+  orderPresenceTimer=setInterval(function(){if(auth.currentUser&&auth.currentUser.uid===uid)write().catch(function(){});},12000);
+  return write().catch(function(){});
+ },
+ releasePresence:function(){
+  if(orderPresenceTimer){clearInterval(orderPresenceTimer);orderPresenceTimer=null;}
+  if(!auth.currentUser||!orderCurrentClassId)return Promise.resolve();
+  const ref=doc(firestore,'edicaoOrdem',String(orderCurrentClassId)+'_'+auth.currentUser.uid);
+  return setDoc(ref,{turmaId:orderCurrentClassId,uid:auth.currentUser.uid,nome:actorName().slice(0,120),posicaoId:'',editing:false,touchedAt:new Date().toISOString()},{merge:true}).catch(function(){});
+ },
+ saveClass:async function(id,data,expectedRevision,isCreate){
+  if(!auth.currentUser)throw new Error('Entre novamente para salvar a turma.');
+  const ref=orderClassRef(id),auditRef=doc(collection(firestore,'auditoria')),now=new Date().toISOString();
+  return runTransaction(firestore,async function(tx){
+   const snap=await tx.get(ref);
+   if(isCreate&&snap.exists())throw new Error('Já existe uma turma com esse número.');
+   if(!isCreate&&!snap.exists())throw new Error('A turma não foi encontrada.');
+   const current=snap.exists()?snap.data():{};
+   if(!isCreate&&Number(current.revision||0)!==Number(expectedRevision||0))throw new Error('CONFLITO: outra pessoa atualizou a turma.');
+   if(!isCreate&&current.status==='encerrada')throw new Error('Turma encerrada não pode ser alterada.');
+   const nextRevision=Number(current.revision||0)+1,actor=actorName();
+   const next=Object.assign({},current,safeValue(data),{revision:nextRevision,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(ref,next);
+   const changes=Object.keys(data).map(function(field){return {campo:field,valorAntigo:safeValue(current[field]),valorNovo:safeValue(data[field])};});
+   tx.set(auditRef,{acao:isCreate?'turma_criada':'turma_atualizada',documento:'turmas/'+id,turmaId:id,uid:auth.currentUser.uid,porNome:actor,quando:now,alteracoes:changes});
+   return {revision:nextRevision};
+  });
+ },
+ createPosition:async function(id,data,expectedOrderRevision){
+  if(!auth.currentUser)throw new Error('Entre novamente para alterar a ordem.');
+  const classId=data.turmaId,ref=doc(firestore,'ordem',id),metaRef=orderMetaRef(classId),classRef=orderClassRef(classId),auditRef=doc(collection(firestore,'auditoria')),now=new Date().toISOString();
+  return runTransaction(firestore,async function(tx){
+   const results=await Promise.all([tx.get(ref),tx.get(metaRef),tx.get(classRef)]),snap=results[0],metaSnap=results[1],classSnap=results[2];
+   if(snap.exists())throw new Error('CONFLITO: essa posição já existe. Atualize a tela.');
+   if(!classSnap.exists()||classSnap.data().status==='encerrada')throw new Error('A turma não está disponível para edição.');
+   const meta=metaSnap.exists()?metaSnap.data():{revision:0,frozen:false};
+   if(meta.frozen||Number(meta.revision||0)!==Number(expectedOrderRevision||0))throw new Error('CONFLITO: a ordem mudou em outro aparelho.');
+   const actor=actorName(),docData=Object.assign({},safeValue(data),{revision:1,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(ref,docData);
+   tx.set(metaRef,{turmaId:classId,revision:Number(meta.revision||0)+1,frozen:false,closing:false,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(auditRef,{acao:'ordem_criada',documento:'ordem/'+id,turmaId:classId,posicaoId:id,uid:auth.currentUser.uid,porNome:actor,quando:now,alteracoes:Object.keys(docData).filter(function(k){return k!=='updatedAt'&&k!=='updatedBy';}).map(function(k){return {campo:k,valorAntigo:null,valorNovo:safeValue(docData[k])};})});
+   return {revision:1};
+  });
+ },
+ savePosition:async function(id,patch,expectedRevision,expectedOrderRevision){
+  if(!auth.currentUser)throw new Error('Entre novamente para alterar a ordem.');
+  const ref=doc(firestore,'ordem',id),metaRef=orderMetaRef(String(patch.turmaId||orderCurrentClassId)),classRef=orderClassRef(String(patch.turmaId||orderCurrentClassId)),auditRef=doc(collection(firestore,'auditoria')),now=new Date().toISOString();
+  return runTransaction(firestore,async function(tx){
+   const results=await Promise.all([tx.get(ref),tx.get(metaRef),tx.get(classRef)]),snap=results[0],metaSnap=results[1],classSnap=results[2];
+   if(!snap.exists())throw new Error('A posição não existe mais.');
+   if(!classSnap.exists()||classSnap.data().status==='encerrada')throw new Error('A turma foi encerrada; a ordem está congelada.');
+   const before=snap.data(),meta=metaSnap.exists()?metaSnap.data():{revision:0,frozen:false};
+   if(Number(before.revision||0)!==Number(expectedRevision||0)||Number(meta.revision||0)!==Number(expectedOrderRevision||0))throw new Error('CONFLITO: outra pessoa alterou a ordem.');
+   if(meta.frozen)throw new Error('A ordem está congelada.');
+   const actor=actorName(),cleanPatch=safeValue(patch),nextRevision=Number(before.revision||0)+1;
+   const after=Object.assign({},before,cleanPatch,{revision:nextRevision,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(ref,after);
+   tx.set(metaRef,{turmaId:before.turmaId,revision:Number(meta.revision||0)+1,frozen:false,closing:false,updatedAt:now,updatedBy:auth.currentUser.uid});
+   const changes=Object.keys(cleanPatch).filter(function(k){return JSON.stringify(safeValue(before[k]))!==JSON.stringify(safeValue(cleanPatch[k]));}).map(function(k){return {campo:k,valorAntigo:safeValue(before[k]),valorNovo:safeValue(cleanPatch[k])};});
+   tx.set(auditRef,{acao:'ordem_atualizada',documento:'ordem/'+id,turmaId:before.turmaId,posicaoId:id,uid:auth.currentUser.uid,porNome:actor,quando:now,alteracoes:changes});
+   return {revision:nextRevision};
+  });
+ },
+
+ async syncSummaries(turmaId,summaries,expectedOrderRevision){
+  if(!auth.currentUser)throw new Error('Entre novamente para atualizar a ordem.');
+  if(!Array.isArray(summaries)||summaries.length>450)throw new Error('A atualização excede o limite seguro da turma.');
+  const metaRef=orderMetaRef(turmaId),classRef=orderClassRef(turmaId),refs=summaries.map(function(x){return doc(firestore,'ordem',x.id);}),auditRef=doc(collection(firestore,'auditoria')),now=new Date().toISOString();
+  return runTransaction(firestore,async function(tx){
+   const base=await Promise.all([tx.get(metaRef),tx.get(classRef)]);
+   const metaSnap=base[0],classSnap=base[1],meta=metaSnap.exists()?metaSnap.data():{revision:0,frozen:false};
+   if(!classSnap.exists()||classSnap.data().status==='encerrada'||meta.frozen)throw new Error('A ordem está congelada.');
+   if(Number(meta.revision||0)!==Number(expectedOrderRevision||0))throw new Error('CONFLITO: a ordem foi alterada em outro aparelho.');
+   const snaps=await Promise.all(refs.map(function(ref){return tx.get(ref);}));
+   if(snaps.some(function(s){return !s.exists();}))throw new Error('CONFLITO: uma posição mudou. Atualize e tente novamente.');
+   const updates=[];
+   summaries.forEach(function(item,index){
+    const before=snaps[index].data();
+    if(before.pessoaId!==item.pessoaId)throw new Error('CONFLITO: o vínculo de pessoa mudou.');
+    if(JSON.stringify(before.resumoPessoa||null)!==JSON.stringify(item.resumoPessoa||null))updates.push({ref:refs[index],before:before,summary:item.resumoPessoa});
+   });
+   if(!updates.length)return {atualizadas:0,revision:Number(meta.revision||0)};
+   if(updates.length+2>500)throw new Error('Muitas posições para atualizar em uma transação.');
+   updates.forEach(function(item){tx.set(item.ref,Object.assign({},item.before,{resumoPessoa:safeValue(item.summary),revision:Number(item.before.revision||0)+1,updatedAt:now,updatedBy:auth.currentUser.uid}));});
+   tx.set(metaRef,{turmaId:turmaId,revision:Number(meta.revision||0)+1,frozen:false,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(auditRef,{acao:'ordem_resumos_atualizados',documento:'ordemTurma/'+turmaId,turmaId:turmaId,uid:auth.currentUser.uid,porNome:actorName(),quando:now,alteracoes:[{campo:'resumosDePessoas',valorAntigo:null,valorNovo:updates.length}]});
+   return {atualizadas:updates.length,revision:Number(meta.revision||0)+1};
+ },
+ reorder:async function(turmaId,ids,expectedOrderRevision){
+  if(!auth.currentUser)throw new Error('Entre novamente para reordenar.');
+  if(!Array.isArray(ids)||ids.length>450)throw new Error('A turma excede o limite seguro de posições para reordenação.');
+  const metaRef=orderMetaRef(turmaId),classRef=orderClassRef(turmaId),refs=ids.map(function(id){return doc(firestore,'ordem',id);}),auditRef=doc(collection(firestore,'auditoria')),now=new Date().toISOString();
+  return runTransaction(firestore,async function(tx){
+   const first=await Promise.all([tx.get(metaRef),tx.get(classRef)]);
+   const metaSnap=first[0],classSnap=first[1],meta=metaSnap.exists()?metaSnap.data():{revision:0,frozen:false};
+   if(!classSnap.exists()||classSnap.data().status==='encerrada'||meta.frozen)throw new Error('A turma está encerrada ou a ordem congelada.');
+   if(Number(meta.revision||0)!==Number(expectedOrderRevision||0))throw new Error('CONFLITO: outra pessoa já reordenou a lista.');
+   const snaps=await Promise.all(refs.map(function(ref){return tx.get(ref);}));
+   const current=snaps.map(function(s){return s.exists()?Object.assign({},s.data(),{id:s.id}):null;});
+   if(current.some(function(p){return !p;}))throw new Error('CONFLITO: uma posição foi removida. Atualize a tela.');
+   const currentIds=current.map(function(p){return p.id;});
+   if(ids.length!==currentIds.length||new Set(ids).size!==ids.length||ids.some(function(id){return currentIds.indexOf(id)<0;}))throw new Error('CONFLITO: a lista de posições mudou. Atualize a tela.');
+   const actor=actorName(),changes=[];
+   current.forEach(function(p){const newIndex=ids.indexOf(p.id)+1;if(Number(p.posicao)!==newIndex)changes.push({documento:p.id,numeroAnterior:p.posicao,numeroNovo:newIndex});});
+   if(!changes.length)return {revision:Number(meta.revision||0)};
+   if(ids.length+2>500)throw new Error('A turma excede o limite de operações por transação.');
+   const byId=new Map(current.map(function(p){return [p.id,p];}));
+   ids.forEach(function(id,index){const p=byId.get(id),nextRevision=Number(p.revision||0)+1;tx.set(doc(firestore,'ordem',id),Object.assign({},p,{posicao:index+1,revision:nextRevision,updatedAt:now,updatedBy:auth.currentUser.uid}));});
+   tx.set(metaRef,{turmaId:turmaId,revision:Number(meta.revision||0)+1,frozen:false,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(auditRef,{acao:'ordem_reordenada',documento:'ordemTurma/'+turmaId,turmaId:turmaId,uid:auth.currentUser.uid,porNome:actor,quando:now,alteracoes:changes});
+   return {revision:Number(meta.revision||0)+1};
+  });
+ },
+ closeClass:async function(turmaId){
+  if(!auth.currentUser)throw new Error('Entre novamente para encerrar a turma.');
+  const classRef=orderClassRef(turmaId),metaRef=orderMetaRef(turmaId),positionQuery=orderCollectionQuery(turmaId),peopleQuery=query(collection(firestore,'pessoas'),where('turmaId','==',turmaId)),marksQuery=orderMarkQuery(turmaId),actor=actorName(),now=new Date().toISOString();
+  // Primeira etapa: trava a ordem e impede novas edições enquanto o arquivamento é retomável.
+  await runTransaction(firestore,async function(tx){
+   const pair=await Promise.all([tx.get(classRef),tx.get(metaRef)]),classSnap=pair[0],metaSnap=pair[1];
+   if(!classSnap.exists())throw new Error('Turma não encontrada.');
+   const klass=classSnap.data(),meta=metaSnap.exists()?metaSnap.data():{revision:0,frozen:false,closing:false};
+   if(klass.status==='encerrada')throw new Error('A turma já foi encerrada.');
+   if(!klass.dataBatismo||String(klass.dataBatismo).slice(0,10)>=now.slice(0,10))throw new Error('O encerramento só pode acontecer no dia seguinte ao batismo.');
+   if(meta.closing===true&&meta.frozen===true)return;
+   if(meta.frozen===true)throw new Error('A ordem já está congelada por outro processo.');
+   const stamp=new Date().toISOString(),auditRef=doc(firestore,'auditoria','encerramento_inicio_'+turmaId+'_'+auth.currentUser.uid);
+   tx.set(metaRef,{turmaId:turmaId,revision:Number(meta.revision||0)+1,frozen:true,closing:true,updatedAt:stamp,updatedBy:auth.currentUser.uid});
+   tx.set(auditRef,{acao:'turma_encerramento_iniciado',documento:'ordemTurma/'+turmaId,turmaId:turmaId,uid:auth.currentUser.uid,porNome:actor,quando:stamp,alteracoes:[{campo:'encerramento',valorAntigo:false,valorNovo:true}]});
+  });
+  // A auditoria de cada pessoa exige get/getAfter nas regras; lotes pequenos ficam dentro do limite do Firestore.
+  const peopleSnapshot=await getDocs(peopleQuery),openPeople=peopleSnapshot.docs.filter(function(d){const p=d.data(),pend=p.pendencia||{};return !!String(pend.texto||'').trim()&&pend.arquivadaRevisao!==true;});
+  for(let offset=0;offset<openPeople.length;offset+=5){
+   const chunk=openPeople.slice(offset,offset+5),personRefs=chunk.map(function(d){return doc(firestore,'pessoas',d.id);});
+   const auditRefs=chunk.map(function(d){return doc(firestore,'auditoria','encerrar_'+turmaId+'_'+d.id);});
+   await runTransaction(firestore,async function(tx){
+    const head=await Promise.all([tx.get(classRef),tx.get(metaRef)]);
+    if(!head[0].exists()||head[0].data().status==='encerrada'||!head[1].exists()||head[1].data().closing!==true||head[1].data().frozen!==true)throw new Error('O encerramento foi interrompido. Reabra a turma e continue o processo.');
+    const snapshots=await Promise.all(personRefs.map(function(ref){return tx.get(ref);}));
+    snapshots.forEach(function(s,index){
+     if(!s.exists())return;
+     const person=s.data(),pend=person.pendencia||{};
+     if(!String(pend.texto||'').trim()||pend.arquivadaRevisao===true)return;
+     const revision=Number(person.revision||0)+1,stamp=new Date().toISOString();
+     tx.set(personRefs[index],Object.assign({},person,{pendencia:{texto:String(pend.texto||''),tipo:String(pend.tipo||''),arquivadaRevisao:true},revision:revision,updatedAt:stamp,updatedBy:auth.currentUser.uid}));
+     tx.set(auditRefs[index],{acao:'pendencia_arquivada_encerramento',documento:'pessoas/'+s.id,pessoaId:s.id,revision:revision,uid:auth.currentUser.uid,porNome:actor,quando:stamp,alteracoes:[{campo:'pendencia.arquivadaRevisao',valorAntigo:false,valorNovo:true}]});
+    });
+   });
+  }
+  return runTransaction(firestore,async function(tx){
+   const base=await Promise.all([tx.get(classRef),tx.get(metaRef),tx.get(positionQuery),tx.get(peopleQuery),tx.get(marksQuery)]);
+   const classSnap=base[0],metaSnap=base[1],positionSnap=base[2],peopleNow=base[3],marksSnap=base[4];
+   if(!classSnap.exists()||classSnap.data().status==='encerrada')throw new Error('A turma já foi encerrada.');
+   const klass=classSnap.data(),meta=metaSnap.exists()?metaSnap.data():{};
+   if(meta.closing!==true||meta.frozen!==true)throw new Error('A ordem não está travada para encerramento.');
+   const stillOpen=peopleNow.docs.some(function(d){const p=d.data(),pend=p.pendencia||{};return !!String(pend.texto||'').trim()&&pend.arquivadaRevisao!==true;});
+   if(stillOpen)throw new Error('Ainda há pendências abertas. Toque em Continuar encerramento para concluir a revisão.');
+   const positions=cleanOrderSnapshot(positionSnap),marks={};
+   marksSnap.forEach(function(d){marks[d.id]=d.data();});
+   const baptized=[];
+   positions.forEach(function(p){
+    if(!p.nome)return;
+    const posKey=String(p.posicao||'').replace(/[^a-zA-Z0-9_-]/g,'_'),personKey=String(p.pessoaId||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+    const turmaNumero=String(turmaId).replace(/^turma_/,'');
+    const mark=marks[turmaNumero+'_'+posKey]||marks[turmaNumero+'_'+personKey];
+    if(mark&&mark.batizado===true)baptized.push({position:p,mark:mark,id:'batismo_'+turmaId.replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+p.id});
+   });
+   const baptismRefs=baptized.map(function(item){return doc(firestore,'batismos',item.id);});
+   const baptismSnaps=await Promise.all(baptismRefs.map(function(ref){return tx.get(ref);}));
+   const newCount=baptismSnaps.filter(function(s){return !s.exists();}).length;
+   if(baptized.length+3>500)throw new Error('Muitas posições para concluir em uma operação. Peça suporte para encerrar esta turma.');
+   const stamp=new Date().toISOString(),auditRef=doc(collection(firestore,'auditoria'));
+   tx.set(classRef,Object.assign({},klass,{status:'encerrada',revision:Number(klass.revision||0)+1,updatedAt:stamp,updatedBy:auth.currentUser.uid}));
+   tx.set(metaRef,{turmaId:turmaId,revision:Number(meta.revision||0)+1,frozen:true,closing:false,updatedAt:stamp,updatedBy:auth.currentUser.uid});
+   baptized.forEach(function(item,index){
+    if(baptismSnaps[index].exists())return;
+    const p=item.position,m=item.mark;
+    tx.set(baptismRefs[index],{turmaId:turmaId,ordemId:p.id,posicao:Number(p.posicao)||null,pessoaId:p.pessoaId||null,nome:String(p.nome||'').slice(0,120),pastor:String(p.pastor||'').slice(0,120),dataBatismo:String(klass.dataBatismo||'').slice(0,10),confirmado:true,confirmadoEm:m.batizadoEm||stamp,confirmadoPorUid:String(m.porUid||auth.currentUser.uid),confirmadoPorNome:String(m.porNome||actor).slice(0,120),criadoEm:stamp});
+   });
+   tx.set(auditRef,{acao:'turma_encerrada',documento:'turmas/'+turmaId,turmaId:turmaId,uid:auth.currentUser.uid,porNome:actor,quando:stamp,alteracoes:[{campo:'status',valorAntigo:klass.status,valorNovo:'encerrada'},{campo:'batismosCriados',valorAntigo:null,valorNovo:newCount},{campo:'pendenciasArquivadas',valorAntigo:null,valorNovo:openPeople.length}]});
+   return {batizados:newCount,arquivadas:openPeople.length};
+  });
+ }
+};
+function startOrderListeners(user,profile){
+ stopOrderApi();
+ if(!user||!profile)return;
+ try{window.firebaseOrderApi.subscribeClasses(profile);}catch(error){window.dispatchEvent(new CustomEvent('structured-order-error',{detail:{message:error.message}}));}
+}
+
 let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine;
 window.firebaseIsAdmin=false;
 function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,pending:dayPending.size,ready:!!ready}}));}
@@ -2420,7 +3059,9 @@ onAuthStateChanged(auth, async function (user) {
   if (!user) {
     handlingUser = false;
     if(peopleUnsub){peopleUnsub();peopleUnsub=null;}
+    stopOrderApi();
     window.firebaseUserProfile=null;
+    window.firebaseCurrentUser=null;
     document.body.classList.add('auth-pending');
     loginShell.hidden = false;
     logoutButton.hidden = true;
@@ -2437,11 +3078,13 @@ onAuthStateChanged(auth, async function (user) {
     const profile=userSnap.exists()?userSnap.data():null;
     if(!profile||profile.ativo!==true||profile.email!==user.email)throw new Error('Esta conta ainda não está cadastrada como ativa em usuarios/{uid}.');
     window.firebaseUserProfile=profile;
+    window.firebaseCurrentUser={uid:user.uid,email:user.email||''};
     let workspace=null;
     try{workspace=await loadCloudWorkspace();}catch(readError){
       if(readError.code!=='permission-denied'&&readError.code!=='firestore/permission-denied')throw readError;
     }
     startPeopleListener(user,profile);
+    startOrderListeners(user,profile);
     startDayListener(user);
     await new Promise(function (resolve) {
       const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
