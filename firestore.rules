@@ -176,7 +176,7 @@ service cloud.firestore {
               && request.resource.data.revision is int
               && request.resource.data.porNome is string
               && request.resource.data.porNome.size() <= 120
-              && linkedPersonAudit())))
+              && linkedPersonAudit()))
         ));
     }
 
