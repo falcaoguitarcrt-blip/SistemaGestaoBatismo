@@ -24,3 +24,5 @@ jobs:
         run: node scripts/check-multiturma-contract.mjs
       - name: Verificar importação das duas abas da Turma 36
         run: node scripts/check-two-sheet-import-contract.mjs
+      - name: Verificar contratos de preservação de dados
+        run: node scripts/check-data-preservation-contract.mjs
