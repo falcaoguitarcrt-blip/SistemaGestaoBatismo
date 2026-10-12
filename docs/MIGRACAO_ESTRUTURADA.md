@@ -37,6 +37,26 @@ O arquivo `firestore.rules` protege as novas coleções e restringe os blocos an
 5. Digitar `MIGRAR` quando solicitado. A execução cria em lotes e não sobrescreve IDs já existentes; se for interrompida, reabra e repita, pois a migração é idempotente.
 6. Conferir os totais exibidos com as coleções e o log em `auditoria`. Só depois adaptar e validar as telas de uso diário para operar nas coleções estruturadas.
 
+
+## Checklist de validação
+
+**Antes da execução (simulação):**
+- Conferir que o Firestore tem 1.563 registros importados de Batismo, 140 posições de Ordem e 58 nomes na Ordem (os totais do painel devem refletir a versão atual, não esses números fixos).
+- Conferir 19 turmas propostas (19 a 37), turma 36 ativa e data 12/10/2026.
+- Conferir 54 grupos repetidos, 30 registros sem nome e as posições vazias da Ordem.
+- Aprovar interpretações uma a uma; validar especificamente “REPOR AULA 2 E 3” e “INSCRITA PARA AULÃO 09/11”.
+- Para cada mescla, escolher a pessoa principal e confirmar; verificar campos conflitantes antes de aplicar.
+- Resolver as posições ambíguas da Ordem e deixar as posições vazias sem `pessoaId`.
+- Baixar o JSON e guardar em local privado antes de digitar `MIGRAR`.
+
+**Depois da execução:**
+- Conferir no painel antes → depois: turmas, pessoas e ordem; somar a diferença com os documentos criados e confirmar que registros já existentes aparecem como ignorados.
+- Confirmar que a repetição da migração não cria novos documentos nem altera os já existentes.
+- Conferir que cada posição da Ordem, inclusive vazia, existe e que os vínculos únicos correspondem à pessoa correta.
+- Conferir em `auditoria` quem executou, quando, caminhos/campos criados e lotes processados; conferir que os valores da origem pessoal não foram duplicados no log.
+- Testar como visitante não autenticado, usuário sem `usuarios/{uid}` ativo, voluntário e admin; validar que o voluntário não lê telefone nem `privado/origem`.
+- Confirmar que a tela administrativa do sistema só mostra a entrada da migração para admin.
+
 ## Contagens para a conferência
 
 No código atual, a fonte foi importada dentro de `appData/primary` como pessoas e posições, além das abas brutas. O arquivo anexado mostra 1.564 linhas não vazias abaixo do cabeçalho na aba Batismo; uma é cabeçalho repetido, portanto a expectativa após a filtragem é 1.563 registros. A revisão de nomes repete os 54 grupos identificados. A aba Ordem tem 140 posições, incluindo posições sem nome; 58 nomes foram reportados na importação anterior. Os números de antes/depois das coleções estruturadas devem ser os lidos no Firestore pela simulação, não estimativas fixas.
