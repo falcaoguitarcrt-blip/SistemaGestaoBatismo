@@ -28,3 +28,5 @@ jobs:
         run: node scripts/check-data-preservation-contract.mjs
       - name: Testar comportamento de check-in e desfazer com mocks
         run: node scripts/test-day-checkin-behavior.mjs
+      - name: Testar concorrência de salvamento do workspace com mocks
+        run: node scripts/test-workspace-concurrency.mjs
