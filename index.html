@@ -2936,26 +2936,25 @@ window.firebaseOrderApi={
     });
    });
   }
+  // A trava já impede novas edições. Faça as consultas fora da transação Web; a transação só lê documentos.
+  const finalReads=await Promise.all([getDocs(positionQuery),getDocs(peopleQuery),getDocs(marksQuery)]);
+  const positionSnap=finalReads[0],peopleNow=finalReads[1],marksSnap=finalReads[2];
+  const stillOpen=peopleNow.docs.some(function(d){const p=d.data(),pend=p.pendencia||{};return !!String(pend.texto||'').trim()&&pend.arquivadaRevisao!==true;});
+  if(stillOpen)throw new Error('Ainda há pendências abertas. Toque em Continuar encerramento para concluir a revisão.');
+  const positions=cleanOrderSnapshot(positionSnap),marks={};
+  marksSnap.forEach(function(d){marks[d.id]=d.data();});
+  const baptized=[];
+  positions.forEach(function(p){
+   if(!p.nome)return;
+   const posKey=String(p.posicao||'').replace(/[^a-zA-Z0-9_-]/g,'_'),personKey=String(p.pessoaId||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+   const turmaNumero=String(turmaId).replace(/^turma_/,'');
+   const mark=marks[turmaNumero+'_'+posKey]||marks[turmaNumero+'_'+personKey];
+   if(mark&&mark.batizado===true)baptized.push({position:p,mark:mark,id:'batismo_'+turmaId.replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+p.id});
+  });
+  const baptismRefs=baptized.map(function(item){return doc(firestore,'batismos',item.id);});
   return runTransaction(firestore,async function(tx){
-   const base=await Promise.all([tx.get(classRef),tx.get(metaRef),tx.get(positionQuery),tx.get(peopleQuery),tx.get(marksQuery)]);
-   const classSnap=base[0],metaSnap=base[1],positionSnap=base[2],peopleNow=base[3],marksSnap=base[4];
-   if(!classSnap.exists()||classSnap.data().status==='encerrada')throw new Error('A turma já foi encerrada.');
-   const klass=classSnap.data(),meta=metaSnap.exists()?metaSnap.data():{};
-   if(meta.closing!==true||meta.frozen!==true)throw new Error('A ordem não está travada para encerramento.');
-   const stillOpen=peopleNow.docs.some(function(d){const p=d.data(),pend=p.pendencia||{};return !!String(pend.texto||'').trim()&&pend.arquivadaRevisao!==true;});
-   if(stillOpen)throw new Error('Ainda há pendências abertas. Toque em Continuar encerramento para concluir a revisão.');
-   const positions=cleanOrderSnapshot(positionSnap),marks={};
-   marksSnap.forEach(function(d){marks[d.id]=d.data();});
-   const baptized=[];
-   positions.forEach(function(p){
-    if(!p.nome)return;
-    const posKey=String(p.posicao||'').replace(/[^a-zA-Z0-9_-]/g,'_'),personKey=String(p.pessoaId||'').replace(/[^a-zA-Z0-9_-]/g,'_');
-    const turmaNumero=String(turmaId).replace(/^turma_/,'');
-    const mark=marks[turmaNumero+'_'+posKey]||marks[turmaNumero+'_'+personKey];
-    if(mark&&mark.batizado===true)baptized.push({position:p,mark:mark,id:'batismo_'+turmaId.replace(/[^a-zA-Z0-9_-]/g,'_')+'_'+p.id});
-   });
-   const baptismRefs=baptized.map(function(item){return doc(firestore,'batismos',item.id);});
-   const baptismSnaps=await Promise.all(baptismRefs.map(function(ref){return tx.get(ref);}));
+   const base=await Promise.all([tx.get(classRef),tx.get(metaRef)]);
+   const classSnap=base[0],metaSnap=base[1];   const baptismSnaps=await Promise.all(baptismRefs.map(function(ref){return tx.get(ref);}));
    const newCount=baptismSnaps.filter(function(s){return !s.exists();}).length;
    if(baptized.length+3>500)throw new Error('Muitas posições para concluir em uma operação. Peça suporte para encerrar esta turma.');
    const stamp=new Date().toISOString(),auditRef=doc(collection(firestore,'auditoria'));
