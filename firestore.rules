@@ -170,11 +170,13 @@ service cloud.firestore {
             && request.resource.data.documento.size() <= 512
             && request.resource.data.alteracoes is list
             && request.resource.data.alteracoes.size() <= 100
-            && request.resource.data.pessoaId is string
-            && request.resource.data.revision is int
-            && request.resource.data.porNome is string
-            && request.resource.data.porNome.size() <= 120
-            && (admin() || linkedPersonAudit()))
+            && (admin() || (
+              request.resource.data.pessoaId is string
+              && request.resource.data.pessoaId.size() <= 150
+              && request.resource.data.revision is int
+              && request.resource.data.porNome is string
+              && request.resource.data.porNome.size() <= 120
+              && linkedPersonAudit()))
         );
     }
 
