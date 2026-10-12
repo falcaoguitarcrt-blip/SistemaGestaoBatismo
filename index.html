@@ -643,13 +643,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
 
   var cloudVersionBanner = null;
-  function showCloudVersionBanner() {
+  var cloudVersionBannerMessage = null;
+  function showCloudVersionBanner(event) {
     if (!cloudVersionBanner) {
       cloudVersionBanner = document.createElement('div');
       cloudVersionBanner.id = 'cloud-version-conflict-banner';
       cloudVersionBanner.style.cssText = 'position:sticky;top:0;z-index:10000;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:#fff1d6;color:#754400;border-bottom:1px solid #e7bd66;font-weight:700;text-align:center';
-      var message = document.createElement('span');
-      message.textContent = 'Outra pessoa salvou alterações. Atualize os dados antes de continuar';
+      cloudVersionBannerMessage = document.createElement('span');
       var button = document.createElement('button');
       button.type = 'button';
       button.textContent = 'Atualizar agora';
@@ -673,9 +673,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
           note.textContent = error.message || 'Não foi possível atualizar os dados.';
         }
       });
-      cloudVersionBanner.appendChild(message);
+      cloudVersionBanner.appendChild(cloudVersionBannerMessage);
       cloudVersionBanner.appendChild(button);
     }
+    cloudVersionBannerMessage.textContent = (event && event.detail && event.detail.message) || 'Outra pessoa salvou alterações. Atualize os dados antes de continuar';
     if (!cloudVersionBanner.isConnected) document.body.prepend(cloudVersionBanner);
   }
   function hideCloudVersionBanner() {
@@ -697,6 +698,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     });
   }
   window.addEventListener('cloud-version-conflict', showCloudVersionBanner);
+  window.addEventListener('cloud-version-offline', showCloudVersionBanner);
   window.addEventListener('cloud-version-current', hideCloudVersionBanner);
   window.addEventListener('firebase-workspace-refresh', function (event) {
     var typedFields = captureTypedFields();
