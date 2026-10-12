@@ -44,17 +44,19 @@ async function loadSource(){
  const versionId=root.data().currentVersion,meta=await getDoc(doc(db,'appData','primary','versions',versionId));if(!meta.exists())throw Error('Versão atual não encontrada.');
  const ss=await getDocs(collection(db,'appData','primary','versions',versionId,'chunks'));
  const pieces=ss.docs.map(d=>d.data());
- const people=pieces.filter(x=>x.section==='people').flatMap(x=>x.items||[]);
- const order=pieces.filter(x=>x.section==='order').flatMap(x=>x.items||[]);
+ const orderedPieces=pieces.sort((a,b)=>String(a.section).localeCompare(String(b.section))||(Number(a.sheetIndex||0)-Number(b.sheetIndex||0))||(Number(a.part||0)-Number(b.part||0)));
+ const people=orderedPieces.filter(x=>x.section==='people').flatMap(x=>x.items||[]);
+ const order=orderedPieces.filter(x=>x.section==='order').flatMap(x=>x.items||[]);
  const rawSheets={};
- for(const p of pieces.filter(x=>x.section==='rawSheet').sort((a,b)=>(a.sheetIndex-b.sheetIndex)||(a.part-b.part))){
-  const nm=p.sheetName||'';
-  if(!rawSheets[nm])rawSheets[nm]=[];
-  for(const item of p.items||[])rawSheets[nm].push(Array.isArray(item)?item:(Array.isArray(item.cells)?item.cells:[]));
+ for(const p of orderedPieces.filter(x=>x.section==='rawSheet')){
+  const nm=p.sheetName||'';if(!rawSheets[nm])rawSheets[nm]=[];
+  for(const item of p.items||[])rawSheets[nm].push({sourceRow:Number(item.sourceRow)||rawSheets[nm].length+1,cells:Array.isArray(item)?item:(Array.isArray(item.cells)?item.cells:[])});
  }
- for(const nm of Object.keys(rawSheets))rawSheets[nm]=rawSheets[nm].sort((a,b)=>0);
+ for(const nm of Object.keys(rawSheets))rawSheets[nm]=rawSheets[nm].sort((a,b)=>a.sourceRow-b.sourceRow).map(x=>x.cells);
  if(!people.length)throw Error('A versão do Firestore não contém os registros da aba Batismo.');
- source={versionId,importedAt:meta.data().importedAt,people:rowsFromPeople(people),order:rowsFromOrder(order),rawSheets};
+ const [pt,pp,po]=await Promise.all([getDocs(collection(db,'turmas')),getDocs(collection(db,'pessoas')),getDocs(collection(db,'ordem'))]);
+ const existing={turmas:new Set(pt.docs.map(d=>d.id)),pessoas:new Set(pp.docs.map(d=>d.id)),ordem:new Set(po.docs.map(d=>d.id))};
+ source={versionId,importedAt:meta.data().importedAt,people:rowsFromPeople(people),order:rowsFromOrder(order),rawSheets,existing};
  return source;
 }
 function headerAndIndex(rows){
@@ -191,7 +193,7 @@ async function applyMigration(){
   const size=150;
   for(let i=0;i<writes.length;i+=size){
    const chunk=writes.slice(i,i+size);
-   await runTransaction(db,async tx=>{
+   const inserted=await runTransaction(db,async tx=>{
     const refs=chunk.map(w=>({w,ref:doc(db,w.path)}));
     const snaps=await Promise.all(refs.map(x=>tx.get(x.ref)));
     const fresh=[];
@@ -199,8 +201,9 @@ async function applyMigration(){
     fresh.forEach(({w,ref})=>tx.set(ref,w.data));
     const auditRef=doc(db,'auditoria',runId+'_lote_'+String(i/size).padStart(4,'0'));
     tx.set(auditRef,{acao:'migracao_estruturada',migrationId:runId,uid:user.uid,email:user.email||'',quando:new Date().toISOString(),documentosCriados:fresh.map(x=>x.w.path),documentosIgnorados:snaps.length-fresh.length,origemVersionId:source.versionId,camposNovos:['turmas','pessoas','ordem','gruposDuplicados','regrasInterpretacao'],valoresPessoais:'não replicados na auditoria',criadoEm:serverTimestamp()});
+    return {created:fresh.length,skipped:snaps.length-fresh.length};
    });
-   created+=chunk.length;
+   created+=inserted.created;skipped+=inserted.skipped;
   }
   msg('Migração concluída. '+created+' operações processadas; '+skipped+' documentos já existentes foram preservados. Atualize a página e confira as contagens no Firestore.',false);
  }catch(e){msg('Migração interrompida. Lotes já confirmados permanecem e podem ser retomados sem sobrescrever dados. Erro: '+e.message,true);$('#apply').disabled=false}
@@ -208,7 +211,8 @@ async function applyMigration(){
 function report(){
  plan=buildPlan();
  const mapped=plan.positions.filter(x=>x.pessoaId).length;
- $('#metrics').innerHTML=[['Pessoas fonte',plan.sourceCounts.people],['Turmas propostas',plan.turmas.length],['Posições na Ordem',plan.sourceCounts.order],['Grupos repetidos',plan.sourceCounts.duplicates],['Ordem vinculada',mapped],['Dados a revisar',plan.suspicious.length]].map(([a,b])=>'<div class="metric"><span>'+esc(a)+'</span><b>'+b+'</b></div>').join('');
+ const proposed={pessoas:plan.people.filter(x=>!source.existing.pessoas.has(x.id)).length,turmas:plan.turmas.filter(x=>!source.existing.turmas.has(x.id)).length,ordem:plan.positions.filter(x=>!source.existing.ordem.has(x.id)).length};
+ $('#metrics').innerHTML=[['Pessoas · antes → depois',source.existing.pessoas.size+' → '+(source.existing.pessoas.size+proposed.pessoas)],['Turmas · antes → depois',source.existing.turmas.size+' → '+(source.existing.turmas.size+proposed.turmas)],['Ordem · antes → depois',source.existing.ordem.size+' → '+(source.existing.ordem.size+proposed.ordem)],['Posições fonte',plan.sourceCounts.order],['Grupos repetidos',plan.sourceCounts.duplicates],['Ordem vinculada',mapped],['Dados a revisar',plan.suspicious.length]].map(([a,b])=>'<div class="metric"><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>').join('');
  render();
 }
 $('#simulate').onclick=()=>{try{report();msg('Simulação atualizada. Nenhuma escrita foi feita.')}catch(e){msg(e.message,true)}};
