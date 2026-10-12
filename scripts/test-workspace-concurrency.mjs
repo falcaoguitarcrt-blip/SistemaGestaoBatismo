@@ -177,5 +177,20 @@ const markHandler = html.slice(markHandlerStart, markHandlerEnd);
 assert.ok(markHandlerStart >= 0 && markHandlerEnd > markHandlerStart, 'não encontrou o fluxo independente de marcacoesBatismo');
 assert.ok(!/workspaceVersionConflict/.test(markHandler), 'o conflito do workspace não deve bloquear marcações de presença/batismo');
 assert.ok(markHandler.includes("'marcacoesBatismo'"), 'a marcação do dia deve continuar usando a coleção existente');
+const undoFnStart = html.indexOf("window.firebaseUndoDayMark=async function");
+if (undoFnStart >= 0) {
+  const undoFnEnd = html.indexOf("window.addEventListener('day-legacy-marks'", undoFnStart);
+  const undoFn = html.slice(undoFnStart, undoFnEnd);
+  assert.ok(undoFnEnd > undoFnStart, 'não encontrou o fim do fluxo Desfazer do dia');
+  assert.ok(!/workspaceVersionConflict/.test(undoFn), 'o conflito do workspace não deve bloquear Desfazer');
+}
+const undoUiStart = html.indexOf("dayToast(on?'Marcação salva");
+if (undoUiStart >= 0) {
+  const undoUiEnd = html.indexOf("return;", undoUiStart);
+  const undoUi = html.slice(undoUiStart, undoUiEnd);
+  assert.ok(undoUi.includes('firebaseToggleDayMark'), 'o botão Desfazer deve continuar usando o fluxo de marcação do dia');
+  assert.ok(!/workspaceVersionConflict/.test(undoUi), 'o conflito do workspace não deve bloquear o desfazer pela interface');
+}
+assert.ok(html.includes("window.addEventListener('cloud-version-conflict', showCloudVersionBanner)"), 'o evento de conflito deve apenas exibir o aviso do workspace');
 
-console.log('OK: concorrência bloqueada sem deletes; timeout seguido de confirmação preserva documentos e recarrega a base; Atualizar agora não salva automaticamente; marcações do dia independem do conflito.');
+console.log('OK: concorrência bloqueada sem deletes; timeout seguido de confirmação preserva documentos e recarrega a base; Atualizar agora não salva automaticamente; presença, batismo e desfazer independem do conflito do workspace.');
