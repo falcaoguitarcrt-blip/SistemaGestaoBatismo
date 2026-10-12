@@ -16,6 +16,8 @@ const firestore = {};
 const user = { uid: 'uid-teste', displayName: 'Teste', email: 'teste@example.invalid' };
 const context = {
   console,
+  setTimeout,
+  clearTimeout,
   firestore,
   auth: { currentUser: user },
   navigator: { onLine: true },
