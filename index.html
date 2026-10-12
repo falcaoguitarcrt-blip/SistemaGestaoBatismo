@@ -1485,6 +1485,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       generalUnmapped: workspace.generalUnmapped,
       turmas: workspace.turmas || [],
       turmaPadrao: workspace.turmaPadrao || '36',
+      participantes: workspace.participantes || [],
+      ordensTurma: workspace.ordensTurma || [],
       checkin: workspace.checkin || {}
     };
     downloadBlob(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' }), 'backup-gestao-batismo.json');
