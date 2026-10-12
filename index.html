@@ -1009,6 +1009,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       sheetStats: (appData.sheetStats || []).map(function (item) { return Object.assign({}, item); }),
       people: (appData.people || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
       order: (appData.order || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
+      turmas: (appData.turmas || []).map(function (item) { return Object.assign({}, item); }),
       checkin: Object.assign({}, appData.checkin || {})
     });
   }
@@ -1672,12 +1673,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         buildAll();
         goTo('home');
       } else {
-        appData = null;
+        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Cadastro iniciado no sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], generalAll: [], generalUnmapped: [], checkin: {}, turmas: [], turmaPadrao: '' };
         renderEmptyWorkspace();
-        setImportMessage('Firebase conectado. Ainda não há uma planilha principal na nuvem. Selecione o Excel original e confira os registros antes de importar.', 'success');
-        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Nenhuma planilha no banco central</b><p class="section-sub">O banco está pronto e seu login foi validado. Selecione o arquivo Excel original para enviar somente as duas primeiras abas, Batismo e Ordem, ao Firestore. As abas seguintes serão ignoradas. Nada será enviado antes de você conferir e confirmar a importação.</p></div>';
+        buildAll();
+        setImportMessage('Firebase conectado. Ainda não há uma planilha principal. Você pode criar uma turma vazia e cadastrar os participantes diretamente no sistema.', 'success');
+        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Cadastro iniciado do zero</b><p class="section-sub">Nenhuma planilha foi importada. Crie as turmas e cadastre os participantes no sistema. A turma 36 só será incluída se houver dados históricos carregados.</p></div>';
         await refreshBackups();
-        goTo('imp');
+        goTo('tur');
       }
     } catch (error) {
       setImportMessage('Não foi possível preparar a tela após o login: ' + (error.message || 'erro desconhecido'), 'error');
@@ -1808,7 +1810,7 @@ async function saveCloudWorkspace(payload, createVersion) {
   const versionMeta = {
     schemaVersion: 1,
     versionId: versionId,
-    sourceFileName: payload.sourceFileName || 'Planilha de batismo',
+    sourceFileName: payload.sourceFileName || 'Cadastro iniciado no sistema',
     sourceFileSize: Number(payload.sourceFileSize || 0),
     importedAt: payload.importedAt || new Date().toISOString(),
     sheetStats: safeValue(payload.sheetStats || []),
