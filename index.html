@@ -1615,7 +1615,8 @@ const firebaseConfig = {
 };
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
-let firestore;\ntry { firestore = initializeFirestore(firebaseApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); } catch(e) { firestore = getFirestore(firebaseApp); }
+let firestore;
+try { firestore = initializeFirestore(firebaseApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); } catch(e) { firestore = getFirestore(firebaseApp); }
 const loginShell = document.getElementById('auth-shell');
 const loginForm = document.getElementById('firebase-login');
 const loginStatus = document.getElementById('firebase-status');
@@ -1874,7 +1875,8 @@ onAuthStateChanged(auth, async function (user) {
   loginShell.hidden = false;
   setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
   try {
-    const workspace = await loadCloudWorkspace();\n    startDayListener(user);
+    const workspace = await loadCloudWorkspace();
+    startDayListener(user);
     await new Promise(function (resolve) {
       const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
       window.addEventListener('firebase-ui-ready', onReady, { once: true });
