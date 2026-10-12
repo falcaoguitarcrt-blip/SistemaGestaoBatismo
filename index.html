@@ -1959,6 +1959,53 @@ async function writeInBatches(actions) {
     await batch.commit();
   }
 }
+let baseWorkspaceVersionId = null;
+let workspaceVersionConflict = false;
+let savingWorkspaceVersionId = null;
+let workspaceVersionUnsubscribe = null;
+
+function workspaceConflictError() {
+  const error = new Error('Outra pessoa salvou alterações. Atualize os dados antes de continuar');
+  error.code = 'failed-precondition';
+  error.workspaceVersionConflict = true;
+  return error;
+}
+function workspaceNetworkError(error) {
+  return !!(error && ['unavailable', 'deadline-exceeded', 'network-request-failed'].includes(error.code)) || !navigator.onLine;
+}
+function workspaceOfflineError() {
+  const error = new Error('Sem conexão com o Firebase. A versão não foi ativada. Reconecte-se e tente novamente.');
+  error.code = 'unavailable';
+  error.workspaceNetworkError = true;
+  return error;
+}
+function startWorkspaceVersionListener(user) {
+  if (workspaceVersionUnsubscribe) workspaceVersionUnsubscribe();
+  workspaceVersionUnsubscribe = onSnapshot(rootRef(), function (snap) {
+    const currentVersion = snap.exists() ? (snap.data().currentVersion || null) : null;
+    if (savingWorkspaceVersionId && currentVersion === savingWorkspaceVersionId) {
+      baseWorkspaceVersionId = currentVersion;
+      workspaceVersionConflict = false;
+      window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: currentVersion } }));
+      return;
+    }
+    if (currentVersion !== baseWorkspaceVersionId) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: currentVersion } }));
+    }
+  }, function (error) {
+    console.error('Falha ao acompanhar a versão principal do espaço de trabalho', error);
+  });
+}
+function versionPointerValue(snap) {
+  return snap.exists() ? (snap.data().currentVersion || null) : null;
+}
+function assertWorkspaceVersion(tx, metaRef, expectedVersionId) {
+  return tx.get(metaRef).then(function (snap) {
+    if (versionPointerValue(snap) !== expectedVersionId) throw workspaceConflictError();
+    return snap;
+  });
+}
 function rootRef() { return doc(firestore, 'appData', 'primary'); }
 function versionRef(versionId) { return doc(firestore, 'appData', 'primary', 'versions', versionId); }
 function versionChunksRef(versionId) { return collection(firestore, 'appData', 'primary', 'versions', versionId, 'chunks'); }
@@ -1967,63 +2014,140 @@ function liveRef() { return doc(firestore, 'appData', 'primary', 'live', 'state'
 async function saveCloudWorkspace(payload, createVersion) {
   if (!auth.currentUser) throw new Error('Faça login antes de salvar dados no Firebase.');
   const metaRef = rootRef();
-  const metaSnap = await getDoc(metaRef);
   if (!createVersion) {
+    const metaSnap = await getDoc(metaRef);
     if (!metaSnap.exists() || !metaSnap.data().currentVersion) throw new Error('Ainda não existe uma planilha principal no Firebase. Importe o Excel e confirme a importação primeiro.');
     await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
     return true;
   }
-  const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
-  const chunks = [];
-  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
-    chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
-  });
-  const rawNames = Object.keys(payload.rawSheets || {});
-  rawNames.forEach(function (sheetName, sheetIndex) {
-    const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
-    // Firestore rejects nested arrays. Store each worksheet row as an object with one flat cell array.
-    const firestoreRows = rows.map(function (row, rowIndex) {
-      const cells = Array.isArray(row) ? row : [];
-      return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
-    });
-    chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
-  });
-  const chunksRef = versionChunksRef(versionId);
-  await writeInBatches(chunks.map(function (item) {
-    return { type: 'set', ref: doc(chunksRef, item.id), data: item };
-  }));
-  const versionMeta = {
-    schemaVersion: 1,
-    versionId: versionId,
-    sourceFileName: payload.sourceFileName || 'Cadastro iniciado no sistema',
-    sourceFileSize: Number(payload.sourceFileSize || 0),
-    importedAt: payload.importedAt || new Date().toISOString(),
-    sheetStats: safeValue(payload.sheetStats || []),
-    sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
-    turmaPadrao: String(payload.turmaPadrao || '36'),
-    skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
-    checkin: safeValue(payload.checkin || {}),
-    createdAt: new Date().toISOString(),
-    createdBy: auth.currentUser.uid,
-    counts: {
-      participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
-      people: Array.isArray(payload.people) ? payload.people.length : 0,
-      order: Array.isArray(payload.order) ? payload.order.length : 0,
-      order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
-      general: Array.isArray(payload.general) ? payload.general.length : 0,
-      rawSheets: rawNames.length,
-      chunks: chunks.length
+  if (workspaceVersionConflict) throw workspaceConflictError();
+  if (!navigator.onLine) throw workspaceOfflineError();
+
+  const expectedBaseVersionId = baseWorkspaceVersionId;
+  // Confirma conectividade e a versão-base no servidor antes de criar blocos.
+  try {
+    await runTransaction(firestore, async function (tx) {
+      await assertWorkspaceVersion(tx, metaRef, expectedBaseVersionId);
+    }, { maxAttempts: 3 });
+  } catch (error) {
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
     }
-  };
-  await setDoc(versionRef(versionId), versionMeta);
-  await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
-  await setDoc(metaRef, { schemaVersion: 1, currentVersion: versionId, updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid }, { merge: true });
-  return true;
+    if (workspaceNetworkError(error)) throw workspaceOfflineError();
+    throw error;
+  }
+
+  const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
+  savingWorkspaceVersionId = versionId;
+  const chunks = [];
+  let pointerTransactionStarted = false;
+  let chunksRef = null;
+  try {
+    ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
+      chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
+    });
+    const rawNames = Object.keys(payload.rawSheets || {});
+    rawNames.forEach(function (sheetName, sheetIndex) {
+      const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
+      // Preserve the existing row-object format to avoid nested arrays in Firestore.
+      const firestoreRows = rows.map(function (row, rowIndex) {
+        const cells = Array.isArray(row) ? row : [];
+        return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
+      });
+      chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
+    });
+    chunksRef = versionChunksRef(versionId);
+    await writeInBatches(chunks.map(function (item) {
+      return { type: 'set', ref: doc(chunksRef, item.id), data: item };
+    }));
+    const versionMeta = {
+      schemaVersion: 1,
+      versionId: versionId,
+      sourceFileName: payload.sourceFileName || 'Cadastro iniciado no sistema',
+      sourceFileSize: Number(payload.sourceFileSize || 0),
+      importedAt: payload.importedAt || new Date().toISOString(),
+      sheetStats: safeValue(payload.sheetStats || []),
+      sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
+      turmaPadrao: String(payload.turmaPadrao || '36'),
+      skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
+      checkin: safeValue(payload.checkin || {}),
+      createdAt: new Date().toISOString(),
+      createdBy: auth.currentUser.uid,
+      counts: {
+        participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
+        people: Array.isArray(payload.people) ? payload.people.length : 0,
+        order: Array.isArray(payload.order) ? payload.order.length : 0,
+        order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
+        general: Array.isArray(payload.general) ? payload.general.length : 0,
+        rawSheets: rawNames.length,
+        chunks: chunks.length
+      }
+    };
+    await setDoc(versionRef(versionId), versionMeta);
+
+    // Compare-and-swap do ponteiro: só publica a nova versão se a base ainda for a mesma.
+    pointerTransactionStarted = true;
+    await runTransaction(firestore, async function (tx) {
+      const snap = await tx.get(metaRef);
+      if (versionPointerValue(snap) !== expectedBaseVersionId) throw workspaceConflictError();
+      tx.set(metaRef, {
+        schemaVersion: 1,
+        currentVersion: versionId,
+        updatedAt: new Date().toISOString(),
+        updatedBy: auth.currentUser.uid
+      }, { merge: true });
+      tx.set(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+    }, { maxAttempts: 3 });
+
+    baseWorkspaceVersionId = versionId;
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+    window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: versionId } }));
+    return true;
+  } catch (error) {
+    savingWorkspaceVersionId = null;
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      // Remove apenas os documentos desta tentativa que ficou obsoleta.
+      const cleanup = chunks.map(function (item) {
+        return { type: 'delete', ref: doc(chunksRef || versionChunksRef(versionId), item.id) };
+      });
+      cleanup.push({ type: 'delete', ref: versionRef(versionId) });
+      await writeInBatches(cleanup).catch(function (cleanupError) {
+        console.warn('Não foi possível limpar a versão não ativada', cleanupError);
+      });
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
+    }
+    if (workspaceNetworkError(error)) {
+      if (!pointerTransactionStarted) {
+        const cleanup = chunks.map(function (item) {
+          return { type: 'delete', ref: doc(chunksRef || versionChunksRef(versionId), item.id) };
+        });
+        cleanup.push({ type: 'delete', ref: versionRef(versionId) });
+        await writeInBatches(cleanup).catch(function () {});
+      }
+      throw workspaceOfflineError();
+    }
+    if (!pointerTransactionStarted) {
+      const cleanup = chunks.map(function (item) {
+        return { type: 'delete', ref: doc(chunksRef || versionChunksRef(versionId), item.id) };
+      });
+      cleanup.push({ type: 'delete', ref: versionRef(versionId) });
+      await writeInBatches(cleanup).catch(function () {});
+    }
+    throw error;
+  }
 }
 async function loadCloudWorkspace() {
   const rootSnap = await getDoc(rootRef());
-  if (!rootSnap.exists() || !rootSnap.data().currentVersion) return null;
-  const versionId = rootSnap.data().currentVersion;
+  const versionId = versionPointerValue(rootSnap);
+  baseWorkspaceVersionId = versionId;
+  workspaceVersionConflict = false;
+  savingWorkspaceVersionId = null;
+  if (!versionId) return null;
   const versionSnap = await getDoc(versionRef(versionId));
   if (!versionSnap.exists()) throw new Error('A versão atual da planilha não foi encontrada no Firestore.');
   const meta = versionSnap.data();
@@ -2062,6 +2186,12 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
+window.firebaseRefreshWorkspace = async function () {
+  const workspace = await loadCloudWorkspace();
+  window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: workspace } }));
+  window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+  return workspace;
+};
 let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine;
 window.firebaseIsAdmin=false;
 function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,pending:dayPending.size,ready:!!ready}}));}
@@ -2147,6 +2277,9 @@ logoutButton.addEventListener('click', async function () {
 });
 onAuthStateChanged(auth, async function (user) {
   if (!user) {
+    if (workspaceVersionUnsubscribe) { workspaceVersionUnsubscribe(); workspaceVersionUnsubscribe = null; }
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
     handlingUser = false;
     document.body.classList.add('auth-pending');
     loginShell.hidden = false;
@@ -2161,6 +2294,7 @@ onAuthStateChanged(auth, async function (user) {
   setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
   try {
     const workspace = await loadCloudWorkspace();
+    startWorkspaceVersionListener(user);
     startDayListener(user);
     await new Promise(function (resolve) {
       const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
