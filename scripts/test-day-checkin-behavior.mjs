@@ -48,6 +48,10 @@ const context = {
     const value = docs.get(ref.path);
     return { exists: () => value !== undefined, data: () => value };
   },
+  getDocFromServer: async ref => {
+    const value = docs.get(ref.path);
+    return { exists: () => value !== undefined, data: () => value };
+  },
   runTransaction: async (_db, callback) => callback({
     get: async ref => {
       const value = docs.get(ref.path);
