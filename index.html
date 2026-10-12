@@ -1701,7 +1701,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     host.innerHTML = (appData.turmas || []).map(function (t) {
       var isDefault = String(appData.turmaPadrao) === String(t.id);
       var peopleCount = (appData.people || []).filter(function (p) { return String(clean(p.turma)) === String(t.number); }).length;
-      return '<div class="data-item"><div class="n">' + esc(display(t.number)) + '</div><div class="item-main"><strong>' + esc(t.name || ('Turma ' + t.number)) + '</strong><div class="item-meta">Identificador: ' + esc(t.id) + ' · Cadastros associados: ' + numberLabel(peopleCount) + ' · Situação: ' + esc(t.status || 'registrada') + '</div><div class="item-badges">' + (isDefault ? chip('Padrão selecionado', 't-ok') : '') + (String(t.id) === '36' ? chip('Base histórica protegida', 't-in') : chip('Cadastro novo', 't-pe')) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-default-turma="' + esc(t.id) + '" ' + (isDefault ? 'disabled' : '') + '>Definir padrão</button></div></div>';
+      return '<div class="data-item"><div class="n">' + esc(display(t.number)) + '</div><div class="item-main"><strong>' + esc(t.name || ('Turma ' + t.number)) + '</strong><div class="item-meta">Identificador: ' + esc(t.id) + ' · Cadastros associados: ' + numberLabel(peopleCount) + ' · Situação: ' + esc(t.status || 'registrada') + '</div><div class="item-badges">' + (isDefault ? chip('Padrão selecionado', 't-ok') : '') + (String(t.id) === '36' ? chip('Base histórica protegida', 't-in') : chip('Cadastro novo', 't-pe')) + '</div><label class="record-editor-field">Data do batismo (opcional)<input type="date" data-turma-date value="' + esc(t.dataBatismo || '') + '" aria-label="Data do batismo da turma ' + esc(t.number) + '"></label></div><div class="item-actions"><button type="button" class="btn o" data-save-turma-date="' + esc(t.id) + '">Salvar data</button><button type="button" class="btn o" data-default-turma="' + esc(t.id) + '" ' + (isDefault ? 'disabled' : '') + '>Definir padrão</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhuma turma cadastrada.</div>';
   }
 
@@ -1958,6 +1958,18 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       draftTurmas.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
       if (input) input.value = '';
       await persistTurmaRegistry(draftTurmas, 'Turma ' + number + ' criada vazia.');
+      return;
+    }
+    var saveTurmaDateButton = event.target.closest('[data-save-turma-date]');
+    if (saveTurmaDateButton && appData) {
+      var dateInput = saveTurmaDateButton.closest('.data-item').querySelector('[data-turma-date]');
+      var turmaIdForDate = saveTurmaDateButton.dataset.saveTurmaDate;
+      var draftDate = cloneWorkspaceForEdit();
+      var turmaForDate = (draftDate.turmas || []).find(function (t) { return String(t.id) === String(turmaIdForDate); });
+      if (!turmaForDate) return;
+      if (dateInput && dateInput.value) turmaForDate.dataBatismo = dateInput.value;
+      else delete turmaForDate.dataBatismo;
+      await persistTurmaRegistry(draftDate, dateInput && dateInput.value ? 'Data do batismo da turma ' + turmaForDate.number + ' atualizada.' : 'Data do batismo removida da turma ' + turmaForDate.number + '.');
       return;
     }
     var defaultTurmaButton = event.target.closest('[data-default-turma]');
@@ -2359,6 +2371,10 @@ async function saveCloudWorkspace(payload, createVersion) {
         chunks: chunks.length
       }
     };
+    // O campo opcional só é persistido quando a importação explicitamente o definiu.
+    if (Object.prototype.hasOwnProperty.call(payload, 'ordemTurmaId')) {
+      versionMeta.ordemTurmaId = String(payload.ordemTurmaId);
+    }
     await setDoc(versionRef(versionId), versionMeta);
 
     // Compare-and-swap do ponteiro: só publica a nova versão se a base ainda for a mesma.
@@ -2449,6 +2465,7 @@ async function loadCloudWorkspace() {
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
     general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
   };
+  if (Object.prototype.hasOwnProperty.call(meta, 'ordemTurmaId')) workspace.ordemTurmaId = String(meta.ordemTurmaId);
   const chunkSnap = await getDocs(versionChunksRef(versionId));
   const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
     if (a.section === 'rawSheet' && b.section !== 'rawSheet') return -1;
@@ -2478,6 +2495,20 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
+window.firebaseHasMarksForTurma = async function (turmaId) {
+  if (!auth.currentUser) throw new Error('Faça login antes de verificar as marcações da turma.');
+  const target = String(turmaId);
+  const marksRef = collection(firestore, 'marcacoesBatismo');
+  // Para turmas novas, consultar somente seus documentos evita ler as marcações da turma 36.
+  const snapshot = target === '36'
+    ? await getDocs(query(marksRef))
+    : await getDocs(query(marksRef, where('turmaId', '==', target)));
+  return snapshot.docs.some(function (documentSnapshot) {
+    const data = documentSnapshot.data() || {};
+    if (String(data.turmaId || '') === target) return true;
+    return target === '36' && /^36_/.test(documentSnapshot.id);
+  });
+};
 window.firebaseRefreshWorkspace = async function () {
   const workspace = await loadCloudWorkspace();
   if (!workspace) {
@@ -2559,7 +2590,9 @@ window.firebaseUndoDayMark=async function(id,prior,row,expected){
 };
 window.addEventListener('day-legacy-marks',async function(event){
  try {
-  const workspace=event.detail&&event.detail.workspace||{},legacy=workspace.checkin||{},order=workspace.order||[];let imported=0;
+  const workspace=event.detail&&event.detail.workspace||{};
+  if(String(workspace.ordemTurmaId || '36')!=='36')return;
+  const legacy=workspace.checkin||{},order=workspace.order||[];let imported=0;
   for(const key of Object.keys(legacy)){
    const row=order.find(function(r){return String(r.sourceRow)===String(key);}),old=legacy[key]||{};
    if(!row||(!old.present&&!old.baptized))continue;
