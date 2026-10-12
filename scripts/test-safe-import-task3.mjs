@@ -131,6 +131,7 @@ assert.ok(!html.includes('window.confirm('));
 assert.ok(!html.includes('window.alert('));
 
 console.log('OK: caixa, acentos, pontuação, espaços, aliases, coluna extra e cabeçalho repetido.');
+console.log('OK: campo vazio excluído da comparação de diferenças e nunca usado para limpar valor existente.');
 console.log('OK: telefone vazio/curto não forma chave; homônimos ambíguos e linhas sem nome não são mesclados.');
 console.log('OK: nenhum campo muda por padrão; campo vazio não apaga; sourceRow monotônico e preservado.');
 console.log('OK: escolha de turma, bloqueio por marcações, fechamento obrigatório e CAS preservados.');
