@@ -524,9 +524,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var orderState = { query: '', filter: 'all', page: 1, turmaId: '' };
   var manualOrderEditingId = '';
   var dayState = { query: '' , page: 1, turmaId: '' };
-  var pendingState = { query: '', page: 1 };
-  var shirtState = { query: '', page: 1 };
-  var returnState = { query: '', page: 1 };
+  var pendingState = { query: '', page: 1, turma: '' };
+  var shirtState = { query: '', page: 1, turma: '' };
+  var returnState = { query: '', page: 1, turma: '' };
   var historyState = { query: '', source: 'geral', page: 1 };
   var manualPersonEditingId = '';
 
@@ -836,15 +836,28 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function shirtPaidValue(person) {
     return asBoolean(person.shirtPaid);
   }
-  function shirtSummary() {
-    var shirts = appData.people.filter(shirtChosen);
+  function turmaFilterOptions(selected) {
+    var options = '<option value="">Todas as turmas</option>';
+    (appData.turmas || []).forEach(function (t) { var value = String(t.number || t.id); options += '<option value="' + esc(value) + '" ' + (String(selected || '') === value ? 'selected' : '') + '>' + esc(t.name || ('Turma ' + value)) + '</option>'; });
+    return options;
+  }
+  function matchesTurmaFilter(person, selected) {
+    if (!selected) return true;
+    var turma = String(clean(person && person.turma));
+    if (turma === String(selected)) return true;
+    var record = (appData.turmas || []).find(function (t) { return String(t.id) === String(selected) || String(t.number) === String(selected); });
+    return !!record && turma === String(record.number || record.id);
+  }
+  function shirtSummary(turmaFilter) {
+    var people = appData.people.filter(function (p) { return matchesTurmaFilter(p, turmaFilter || ''); });
+    var shirts = people.filter(shirtChosen);
     return {
       shirts: shirts,
       paid: shirts.filter(function (p) { return shirtPaidValue(p) === true; }),
       unpaid: shirts.filter(function (p) { return shirtPaidValue(p) === false; }),
       unknown: shirts.filter(function (p) { return shirtPaidValue(p) === null; }),
-      alreadyHas: appData.people.filter(function (p) { return normal(p.shirt) === 'ja tem'; }),
-      blank: appData.people.filter(function (p) { return isBlank(p.shirt); })
+      alreadyHas: people.filter(function (p) { return normal(p.shirt) === 'ja tem'; }),
+      blank: people.filter(function (p) { return isBlank(p.shirt); })
     };
   }
   function countBy(items, keyFn) {
@@ -1214,19 +1227,21 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('day-print-list').innerHTML='<h1>Lista de apoio · Dia do Batismo</h1><table><thead><tr><th>Nº</th><th>Nome</th><th>Ficha</th><th>Presente</th><th>Batizado</th><th>Observação</th></tr></thead><tbody>'+all.map(function(r){var st=dayMarks[dayId(r)]||{};return '<tr><td>'+esc(display(r.number))+'</td><td>'+esc(display(r.name))+'</td><td>'+(asBoolean(r.removed)===true?'☒':'☐')+'</td><td>'+(st.presente?'☒':'☐')+'</td><td>'+(st.batizado?'☒':'☐')+'</td><td>'+esc(display(r.note))+'</td></tr>';}).join('')+'</tbody></table>';
   }
   function buildPending() {
-    var pending = appData.people.filter(hasPendingSignal);
-    var statusCount = appData.people.filter(function (p) { return normal(p.status) === 'pendencia'; }).length;
-    var makeupCount = appData.people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
-    var noteCount = appData.people.filter(function (p) { return !isBlank(p.pending); }).length;
-    var noPhone = appData.people.filter(function (p) { return isBlank(p.phone); }).length;
-    document.getElementById('pen').innerHTML = '<h2 class="t">Observações e pendências da planilha</h2><div class="data-metrics">' + metric('Status PENDENCIA', statusCount, 'Campo STATUS') + metric('Sinais de reposição', makeupCount, 'JORNADA ou AULA P/ REPOR') + metric('Observações preenchidas', noteCount, 'Texto original preservado') + metric('Sem telefone', noPhone, 'Cadastro incompleto') + '</div><div class="card"><p class="section-sub">A planilha mistura pendências com observações operacionais. O texto não foi reinterpretado; cada valor é apresentado como veio da origem.</p><div class="data-toolbar"><input id="pending-search" type="search" placeholder="Buscar em nomes, pendências e observações…" aria-label="Buscar pendências"><div></div><span class="local-only-note">Não houve mesclagem nem correção automática.</span></div><div id="pending-count" class="data-summary"></div><div id="pending-results" class="data-list"></div><div id="pending-pager" class="data-pager"></div></div>';
+    var scopedPeople = appData.people.filter(function (p) { return matchesTurmaFilter(p, pendingState.turma); });
+    var pending = scopedPeople.filter(hasPendingSignal);
+    var statusCount = scopedPeople.filter(function (p) { return normal(p.status) === 'pendencia'; }).length;
+    var makeupCount = scopedPeople.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
+    var noteCount = scopedPeople.filter(function (p) { return !isBlank(p.pending); }).length;
+    var noPhone = scopedPeople.filter(function (p) { return isBlank(p.phone); }).length;
+    document.getElementById('pen').innerHTML = '<h2 class="t">Observações e pendências da planilha</h2><div class="data-metrics">' + metric('Status PENDENCIA', statusCount, 'Campo STATUS') + metric('Sinais de reposição', makeupCount, 'JORNADA ou AULA P/ REPOR') + metric('Observações preenchidas', noteCount, 'Texto original preservado') + metric('Sem telefone', noPhone, 'Cadastro incompleto') + '</div><div class="card"><p class="section-sub">A planilha mistura pendências com observações operacionais. O texto não foi reinterpretado; cada valor é apresentado como veio da origem.</p><div class="data-toolbar"><input id="pending-search" type="search" placeholder="Buscar em nomes, pendências e observações…" aria-label="Buscar pendências"><select id="pending-turma" aria-label="Filtrar pendências por turma">' + turmaFilterOptions(pendingState.turma) + '</select><span class="local-only-note">Não houve mesclagem nem correção automática.</span></div><div id="pending-count" class="data-summary"></div><div id="pending-results" class="data-list"></div><div id="pending-pager" class="data-pager"></div></div>';
     document.getElementById('pending-search').addEventListener('input', function () { pendingState.query = this.value; pendingState.page = 1; drawPendingResults(); });
+    document.getElementById('pending-turma').addEventListener('change', function () { pendingState.turma = this.value; pendingState.page = 1; buildPending(); });
     drawPendingResults();
   }
   function drawPendingResults() {
     if (!appData || !document.getElementById('pending-results')) return;
     var query = normal(pendingState.query);
-    var items = appData.people.filter(hasPendingSignal).filter(function (p) {
+    var items = appData.people.filter(function (p) { return matchesTurmaFilter(p, pendingState.turma); }).filter(hasPendingSignal).filter(function (p) {
       return !query || normal([p.name, p.phone, p.status, p.pending, p.lesson, p.journey, p.sourceRow].join(' ')).indexOf(query) >= 0;
     });
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
@@ -1241,18 +1256,19 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
 
   function buildShirts() {
-    var summary = shirtSummary();
+    var summary = shirtSummary(shirtState.turma);
     var bySize = countBy(summary.shirts, function (p) { return p.shirt; });
     var sizes = Object.keys(bySize).sort(function (a, b) { return a.localeCompare(b, 'pt-BR', { numeric: true }); });
     var max = Math.max.apply(null, sizes.map(function (size) { return bySize[size]; }).concat([1]));
-    document.getElementById('cam').innerHTML = '<h2 class="t">Camisetas · conforme a opção registrada</h2><div class="data-metrics">' + metric('Tamanhos preenchidos', summary.shirts.length, 'Não inclui “Já tem”') + metric('Pagamentos marcados', summary.paid.length, 'PG CAMISETA = verdadeiro') + metric('Pagamentos não marcados', summary.unpaid.length, 'Tamanho informado e pagamento falso') + metric('Já tem camiseta', summary.alreadyHas.length, 'Sem nova cobrança automática') + '</div><div class="card"><h2 class="t">Quantidade por tamanho</h2><p class="section-sub">Os tamanhos foram mantidos exatamente como registrados, inclusive variações como XG, G2 e G3.</p>' + (sizes.map(function (size) { return '<div class="data-bar-row"><span>' + esc(size) + '</span><div class="data-bar"><i style="width:' + Math.round((bySize[size] / max) * 100) + '%"></i></div><em>' + numberLabel(bySize[size]) + '</em></div>'; }).join('') || '<div class="data-empty">Nenhum tamanho preenchido.</div>') + '</div><div class="card"><h2 class="t">Pessoas com camiseta não marcada como paga</h2><div class="data-toolbar"><input id="shirt-search" type="search" placeholder="Buscar nome ou tamanho…" aria-label="Buscar camisetas a pagar"><div></div><span class="local-only-note">Não alteramos valores nem status do Excel.</span></div><div id="shirt-count" class="data-summary"></div><div id="shirt-results" class="data-list"></div><div id="shirt-pager" class="data-pager"></div></div>';
+    document.getElementById('cam').innerHTML = '<h2 class="t">Camisetas · conforme a opção registrada</h2><div class="data-metrics">' + metric('Tamanhos preenchidos', summary.shirts.length, 'Não inclui “Já tem”') + metric('Pagamentos marcados', summary.paid.length, 'PG CAMISETA = verdadeiro') + metric('Pagamentos não marcados', summary.unpaid.length, 'Tamanho informado e pagamento falso') + metric('Já tem camiseta', summary.alreadyHas.length, 'Sem nova cobrança automática') + '</div><div class="card"><h2 class="t">Quantidade por tamanho</h2><p class="section-sub">Os tamanhos foram mantidos exatamente como registrados, inclusive variações como XG, G2 e G3.</p>' + (sizes.map(function (size) { return '<div class="data-bar-row"><span>' + esc(size) + '</span><div class="data-bar"><i style="width:' + Math.round((bySize[size] / max) * 100) + '%"></i></div><em>' + numberLabel(bySize[size]) + '</em></div>'; }).join('') || '<div class="data-empty">Nenhum tamanho preenchido.</div>') + '</div><div class="card"><h2 class="t">Pessoas com camiseta não marcada como paga</h2><div class="data-toolbar"><input id="shirt-search" type="search" placeholder="Buscar nome ou tamanho…" aria-label="Buscar camisetas a pagar"><select id="shirt-turma" aria-label="Filtrar camisetas por turma">' + turmaFilterOptions(shirtState.turma) + '</select><span class="local-only-note">Não alteramos valores nem status do Excel.</span></div><div id="shirt-count" class="data-summary"></div><div id="shirt-results" class="data-list"></div><div id="shirt-pager" class="data-pager"></div></div>';
     document.getElementById('shirt-search').addEventListener('input', function () { shirtState.query = this.value; shirtState.page = 1; drawShirtResults(); });
+    document.getElementById('shirt-turma').addEventListener('change', function () { shirtState.turma = this.value; shirtState.page = 1; buildShirts(); });
     drawShirtResults();
   }
   function drawShirtResults() {
     if (!appData || !document.getElementById('shirt-results')) return;
     var query = normal(shirtState.query);
-    var items = shirtSummary().unpaid.filter(function (p) {
+    var items = shirtSummary(shirtState.turma).unpaid.filter(function (p) {
       return !query || normal([p.name, p.shirt, p.turma, p.phone, p.sourceRow].join(' ')).indexOf(query) >= 0;
     });
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
@@ -1267,15 +1283,16 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
 
   function buildReturns() {
-    var rows = appData.people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); });
-    document.getElementById('rep').innerHTML = '<h2 class="t">Reposição de aulas</h2><div class="card"><div class="data-metrics">' + metric('Registros com reposição', rows.length, 'JORNADA ou AULA P/ REPOR') + metric('Com aula descrita', rows.filter(function (p) { return !isBlank(p.lesson); }).length, 'Texto original da coluna AULA P/ REPOR') + '</div><div class="data-toolbar"><input id="return-search" type="search" placeholder="Buscar nome, aula ou turma…" aria-label="Buscar reposições"><div></div><span class="local-only-note">Datas e textos são exibidos como registrados.</span></div><div id="return-count" class="data-summary"></div><div id="return-results" class="data-list"></div><div id="return-pager" class="data-pager"></div></div>';
+    var rows = appData.people.filter(function (p) { return matchesTurmaFilter(p, returnState.turma) && (normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson)); });
+    document.getElementById('rep').innerHTML = '<h2 class="t">Reposição de aulas</h2><div class="card"><div class="data-metrics">' + metric('Registros com reposição', rows.length, 'JORNADA ou AULA P/ REPOR') + metric('Com aula descrita', rows.filter(function (p) { return !isBlank(p.lesson); }).length, 'Texto original da coluna AULA P/ REPOR') + '</div><div class="data-toolbar"><input id="return-search" type="search" placeholder="Buscar nome, aula ou turma…" aria-label="Buscar reposições"><select id="return-turma" aria-label="Filtrar reposições por turma">' + turmaFilterOptions(returnState.turma) + '</select><span class="local-only-note">Datas e textos são exibidos como registrados.</span></div><div id="return-count" class="data-summary"></div><div id="return-results" class="data-list"></div><div id="return-pager" class="data-pager"></div></div>';
     document.getElementById('return-search').addEventListener('input', function () { returnState.query = this.value; returnState.page = 1; drawReturnResults(); });
+    document.getElementById('return-turma').addEventListener('change', function () { returnState.turma = this.value; returnState.page = 1; buildReturns(); });
     drawReturnResults();
   }
   function drawReturnResults() {
     if (!appData || !document.getElementById('return-results')) return;
     var query = normal(returnState.query);
-    var items = appData.people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).filter(function (p) {
+    var items = appData.people.filter(function (p) { return matchesTurmaFilter(p, returnState.turma) && (normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson)); }).filter(function (p) {
       return !query || normal([p.name, p.lesson, p.journey, p.turma, p.sourceRow].join(' ')).indexOf(query) >= 0;
     });
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
