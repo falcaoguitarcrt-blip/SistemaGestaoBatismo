@@ -1253,7 +1253,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     currentPerson=personStructuredView(person);currentPersonId=currentPerson.id;
     var role=window.firebaseUserProfile&&window.firebaseUserProfile.perfil||'';
     var allowedPrivate=role==='admin'||role==='pastor';
-    var tabs=personTabs.filter(function(t){return t!=='Privado'||allowedPrivate;});
+    var tabs=personTabs.filter(function(t){return (t!=='Privado'||allowedPrivate)&&(t!=='Histórico'||role==='admin');});
     if(tabs.indexOf(currentPersonTab)<0)currentPersonTab='Resumo';
     var panel='<div class="person-sheet-card"><div class="person-sheet-head"><div><h2>'+esc(personName(currentPerson))+'</h2><div class="section-sub">Turma '+esc(personTurma(currentPerson))+(currentPerson.origem&&currentPerson.origem.linha?' · cadastro da turma':'')+'</div></div><button type="button" class="btn o" data-close-fiche>Fechar</button></div><div class="person-tabs">'+tabs.map(function(t){return '<button type="button" data-person-tab="'+esc(t)+'" class="'+(currentPersonTab===t?'active':'')+'">'+esc(t)+'</button>';}).join('')+'</div><div class="person-sheet-content" id="person-sheet-content">'+renderFicheTab(currentPerson,allowedPrivate)+'</div><div class="person-sheet-status" id="person-sheet-status" role="status"><span>'+(currentPersonConflict?'Outra pessoa atualizou este cadastro. Recarregue antes de salvar.':'Alterações salvam automaticamente.')+'</span><span><button type="button" class="btn o" data-person-reload'+(!currentPersonConflict?' hidden':'')+'>Recarregar</button> <button type="button" class="btn o" data-person-undo'+(!currentUndo?' disabled':'')+'>Desfazer</button></span></div></div>';
     sheet.innerHTML=panel;sheet.hidden=false;sheet.classList.toggle('person-sheet-readonly',!!currentPerson.__legacyOnly);
@@ -1368,7 +1368,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
   async function loadPersonHistory() {
     var box=document.getElementById('person-history');if(!box||!currentPerson)return;
-    if(!window.firebaseUserProfile||['admin','pastor'].indexOf(window.firebaseUserProfile.perfil)<0){box.textContent='O histórico detalhado é restrito a admin e pastor.';return;}
+    if(!window.firebaseUserProfile||window.firebaseUserProfile.perfil!=='admin'){box.textContent='O histórico detalhado é restrito a admin.';return;}
     try{
       var rows=await window.firebasePeopleApi.audit(currentPerson.id);
       box.innerHTML=rows.length?rows.map(function(item){return '<div class="data-item"><div class="item-main"><strong>'+esc(item.acao||'Alteração')+'</strong><div class="item-meta">'+esc(item.quando||'')+' · '+esc(item.porNome||item.uid||'Equipe')+'<br>'+esc((item.alteracoes||[]).map(function(a){return a.campo;}).join(', '))+'</div></div></div>';}).join(''):'<div class="data-empty">Ainda não há alterações registradas.</div>';
