@@ -714,7 +714,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     appData = Object.assign({}, workspace, { id: 'current' });
     buildAll();
     restoreTypedFields(typedFields);
-    setImportMessage('Base atualizada do Firebase. Confira os campos preservados antes de continuar.', 'success');
+    var editorReview = document.getElementById('manual-person-status');
+    if (editorReview) {
+      editorReview.className = 'import-status success';
+      editorReview.textContent = 'Dados atualizados, revise antes de salvar.';
+    }
+    setImportMessage('Dados atualizados, revise antes de salvar.', 'success');
   });
   function goTo(sectionId) {
     var button = document.querySelector('#nav [data-s="' + sectionId + '"]');
@@ -2204,6 +2209,7 @@ async function saveCloudWorkspace(payload, createVersion) {
         }).catch(function (lateError) {
           savingWorkspaceVersionId = null;
           workspaceVersionConflict = true;
+          console.warn('[workspace] versão possivelmente órfã preservada após confirmação tardia rejeitada:', versionId, lateError);
           if (lateError && lateError.workspaceVersionConflict) {
             window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
           } else {
@@ -2225,36 +2231,20 @@ async function saveCloudWorkspace(payload, createVersion) {
     if (!(error && error.workspaceTransactionPending)) savingWorkspaceVersionId = null;
     if (error && error.workspaceVersionConflict) {
       workspaceVersionConflict = true;
-      // Remove apenas os documentos desta tentativa que ficou obsoleta.
-      const cleanup = chunks.map(function (item) {
-        return { type: 'delete', ref: doc(chunksRef || versionChunksRef(versionId), item.id) };
-      });
-      cleanup.push({ type: 'delete', ref: versionRef(versionId) });
-      await writeInBatches(cleanup).catch(function (cleanupError) {
-        console.warn('Não foi possível limpar a versão não ativada', cleanupError);
-      });
+      console.warn('[workspace] versão órfã preservada após conflito:', versionId);
       window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
       throw error;
     }
     if (workspaceNetworkError(error)) {
-      if (!pointerTransactionStarted) {
-        const cleanup = chunks.map(function (item) {
-          return { type: 'delete', ref: doc(chunksRef || versionChunksRef(versionId), item.id) };
-        });
-        cleanup.push({ type: 'delete', ref: versionRef(versionId) });
-        await writeInBatches(cleanup).catch(function () {});
+      // Nunca apagar versões em falha de rede: a confirmação pode estar indeterminada.
+      if (!(error && error.workspaceTransactionPending)) {
+        console.warn('[workspace] versão possivelmente órfã preservada após falha:', versionId);
       }
       const offlineError = workspaceOfflineError();
       if (error && error.workspaceTransactionPending) offlineError.workspaceTransactionPending = true;
       throw offlineError;
     }
-    if (!pointerTransactionStarted) {
-      const cleanup = chunks.map(function (item) {
-        return { type: 'delete', ref: doc(chunksRef || versionChunksRef(versionId), item.id) };
-      });
-      cleanup.push({ type: 'delete', ref: versionRef(versionId) });
-      await writeInBatches(cleanup).catch(function () {});
-    }
+    console.warn('[workspace] versão órfã preservada após falha:', versionId);
     throw error;
   }
 }
