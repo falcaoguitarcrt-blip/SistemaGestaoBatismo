@@ -94,7 +94,7 @@ service cloud.firestore {
           && request.resource.data.aulao.keys().hasOnly(['inscrito','data','dataTexto'])
           && (!('inscrito' in request.resource.data.aulao) || request.resource.data.aulao.inscrito is bool)
           && (!('data' in request.resource.data.aulao) || request.resource.data.aulao.data == null || request.resource.data.aulao.data is string)
-          && (!('dataTexto' in request.resource.data.aulao) || request.resource.data.aulao.dataTexto is string)))
+          && (!('dataTexto' in request.resource.data.aulao) || request.resource.data.aulao.dataTexto == null || (request.resource.data.aulao.dataTexto is string && request.resource.data.aulao.dataTexto.size() <= 40))))
         && (!('telefoneRevisar' in request.resource.data) || request.resource.data.telefoneRevisar is bool);
     }
     function validOrderRoot() {
