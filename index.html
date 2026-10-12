@@ -1696,12 +1696,24 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
     var openPersonButton = event.target.closest('[data-open-person]');
     if (openPersonButton && appData) {
-      selectedPersonRow = Number(openPersonButton.dataset.openPerson);
-      var person = appData.people.find(function (p) { return Number(p.sourceRow) === selectedPersonRow; });
-      buildFiche(person);
-      document.getElementById('fic').hidden = false;
+      var sourceRow = String(openPersonButton.dataset.openPerson || '');
+      var person = (appData.people || []).find(function (p) { return String(p.sourceRow) === sourceRow; });
+      if (!person) {
+        var fallbackRow = Number(sourceRow);
+        person = (appData.people || []).find(function (p) { return Number(p.sourceRow) === fallbackRow; });
+      }
+      if (!person) {
+        dayToast('Não foi possível localizar este cadastro. Atualize a lista e tente novamente.');
+        return;
+      }
+      selectedPersonRow = Number(person.sourceRow);
+      var fichaSection = document.getElementById('fic');
       goTo('pes');
-      document.getElementById('fic').classList.add('on');
+      buildFiche(person);
+      fichaSection.removeAttribute('hidden');
+      fichaSection.hidden = false;
+      fichaSection.classList.add('on');
+      fichaSection.scrollIntoView({ behavior: 'auto', block: 'start' });
       return;
     }
 
