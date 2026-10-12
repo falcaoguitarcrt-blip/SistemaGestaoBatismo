@@ -570,7 +570,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function turmaDateSummary(turma) {
     var raw = turma && turma.dataBatismo;
     if (!raw) return '';
-    var match = typeof raw === 'string' ? raw.match(/^(\\d{4})-(\\d{2})-(\\d{2})/) : null;
+    var match = typeof raw === 'string' ? raw.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
     if (!match && raw instanceof Date && !isNaN(raw.getTime())) {
       match = [String(raw.getFullYear()), String(raw.getFullYear()), String(raw.getMonth() + 1).padStart(2, '0'), String(raw.getDate()).padStart(2, '0')];
     }
@@ -1092,7 +1092,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   function buildPeople() {
     var section = document.getElementById('pes');
-    var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
+    var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
     // Ao abrir Pessoas, usar a turma padrão configurada; se ela não existir, mostrar todas.
     var defaultTurma = String(appData.turmaPadrao || '');
     if (!peopleState.turma && defaultTurma && turmas.indexOf(defaultTurma) >= 0) peopleState.turma = defaultTurma;
@@ -1392,7 +1392,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function currentOrderItems(){var t=selectedOrderTurma(),orderTurma=workspaceOrderTurmaId(appData),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__turmaId:String(t.id),__manual:true});});if(String(t.id)===orderTurma)return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:orderTurma});}).concat(manual);return manual;}
   function buildOrder() {
     var section=document.getElementById('ord');
-    section.innerHTML='<h2 class="t">Ordem de batismo</h2><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select><p class="section-sub">A ordem histórica importada da turma 36 é preservada. As demais turmas têm posições independentes.</p></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
+    section.innerHTML='<h2 class="t">Ordem de batismo</h2><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select><p class="section-sub">A ordem importada pertence à turma escolhida. As marcações usam IDs próprios por turma; os IDs históricos da turma 36 continuam protegidos.</p></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
     document.getElementById('order-turma-select').onchange=function(){orderState.turmaId=this.value;orderState.page=1;manualOrderEditingId='';buildOrder();};
     document.getElementById('order-search').addEventListener('input',function(){orderState.query=this.value;orderState.page=1;drawOrderResults();});
     document.getElementById('order-filter').addEventListener('change',function(){orderState.filter=this.value;orderState.page=1;drawOrderResults();});
@@ -1583,17 +1583,17 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   function buildImportPreview(payload) {
     var orderSheetName = String((payload.sourceSheetNames || [])[1] || '');
-    var suggestionMatch = orderSheetName.match(/(?:ordem(?:\\s+batismo)?|turma)\\s*[-_ ]*(\\d+)/i);
+    var suggestionMatch = orderSheetName.match(/(?:ordem(?:\s+batismo)?|turma)\s*[-_ ]*(\d+)/i);
     suggestedImportOrderTurmaId = suggestionMatch ? String(Number(suggestionMatch[1])) : '';
     confirmedImportOrderTurmaId = '';
     var turmaOptions = {};
     (appData && appData.turmas || []).forEach(function (turma) {
       var id = String(turma.number || turma.id || '').trim();
-      if (/^\\d+$/.test(id)) turmaOptions[id] = turma.name || ('Turma ' + id);
+      if (/^\d+$/.test(id)) turmaOptions[id] = turma.name || ('Turma ' + id);
     });
     (appData && appData.people || []).forEach(function (person) {
       var id = String(person.turma || '').trim();
-      if (/^\\d+$/.test(id) && !turmaOptions[id]) turmaOptions[id] = 'Turma ' + id;
+      if (/^\d+$/.test(id) && !turmaOptions[id]) turmaOptions[id] = 'Turma ' + id;
     });
     if (suggestedImportOrderTurmaId && !turmaOptions[suggestedImportOrderTurmaId]) turmaOptions[suggestedImportOrderTurmaId] = 'Turma ' + suggestedImportOrderTurmaId + ' (sugerida pelo nome da aba)';
     var optionIds = Object.keys(turmaOptions).sort(function (a, b) { return Number(a) - Number(b); });
@@ -1635,13 +1635,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     function refreshChoice() {
       if (confirmedImportOrderTurmaId) return;
       customLabel.hidden = selector.value !== '__other__';
-      confirmButton.disabled = !/^\\d+$/.test(selectedChoice()) || Number(selectedChoice()) < 1;
+      confirmButton.disabled = !/^\d+$/.test(selectedChoice()) || Number(selectedChoice()) < 1;
     }
     selector.addEventListener('change', refreshChoice);
     customInput.addEventListener('input', refreshChoice);
     confirmButton.addEventListener('click', function () {
       var turmaId = selectedChoice();
-      if (!/^\\d+$/.test(turmaId) || Number(turmaId) < 1 || !pendingImport) return;
+      if (!/^\d+$/.test(turmaId) || Number(turmaId) < 1 || !pendingImport) return;
       turmaId = String(Number(turmaId));
       pendingImport.ordemTurmaId = turmaId;
       confirmedImportOrderTurmaId = turmaId;
@@ -2124,7 +2124,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var remoteWorkspace = detail.workspace || null;
       var localWorkspace = null;
       try { localWorkspace = await getCurrentWorkspace(); } catch (localError) {}
-      window.dispatchEvent(new CustomEvent('day-legacy-marks', { detail: { workspace: localWorkspace || remoteWorkspace || {} } }));
+      window.dispatchEvent(new CustomEvent('day-legacy-marks', { detail: { workspace: remoteWorkspace || localWorkspace || {} } }));
       if (remoteWorkspace) {
         if (localWorkspace && localWorkspace.importedAt === remoteWorkspace.importedAt && localWorkspace.sourceWorkbook) remoteWorkspace.sourceWorkbook = localWorkspace.sourceWorkbook;
         appData = Object.assign({}, remoteWorkspace, { id: 'current' });
