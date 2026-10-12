@@ -78,6 +78,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
 .data-item .item-badges .tag{margin:0}
 .data-item .item-actions{display:flex;flex-wrap:wrap;gap:6px}
 .data-item .item-actions .btn{padding:8px 10px;min-height:38px;font-size:12px}
+.data-item .item-actions [data-checkin]{min-height:40px}.data-item .item-badges .tag{white-space:normal}
 .data-empty{border:1px dashed var(--ln);padding:18px;text-align:center;border-radius:12px;color:var(--mut);font-size:13px}
 .data-pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 16px}
 .data-pager span{font-size:12px;color:var(--mut)}
@@ -946,7 +947,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
       '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa da planilha</button></div>' +
       '<div class="card"><h3 style="margin-top:0">Cadastro direto no sistema</h3><p class="section-sub">Cadastro com identificador próprio, independente das linhas do Excel.</p><form id="manual-person-form"><div class="record-editor-fields"><label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="name"></label><label class="record-editor-field">Telefone<input id="manual-person-phone" maxlength="50" autocomplete="tel"></label><label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label><label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('') + '</select></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite"></div></form><div id="manual-person-results" class="data-list"></div></div>' +
-      '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
+      '<div class="data-metrics" id="people-ops-summary"></div><div class="card"><p class="section-sub">Visão operacional da Turma 36: jornada, pendências, camiseta, pagamento, presença e batismo no mesmo cadastro. As marcações do dia só aparecem quando a associação com a ordem é segura; nomes repetidos ficam sem associação automática.</p><div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div></div>' +
       '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>' +
       '<p class="note">Os registros repetidos permanecem separados. Toque em um registro para abrir a ficha completa com os campos da planilha.</p>';
     document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
@@ -977,19 +978,50 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     finally{save.disabled=false;}
   }
   function editManualPerson(id){var p=(appData.participantes||[]).find(function(item){return item.id===id;});if(!p)return;manualPersonEditingId=p.id;document.getElementById('manual-person-name').value=p.nome||'';document.getElementById('manual-person-phone').value=p.telefone||'';document.getElementById('manual-person-age').value=p.idade||'';document.getElementById('manual-person-turma').value=p.turma||'';document.getElementById('manual-person-save').textContent='Salvar alterações';document.getElementById('manual-person-cancel').hidden=false;document.getElementById('manual-person-status').textContent='Ao mudar a turma, a turma anterior será registrada no histórico.';document.getElementById('manual-person-name').focus();}
+  function safeDayLinkForPerson(person) {
+    if (!person || !person.name || String(person.turma) !== '36') return null;
+    var samePeople = (appData.people || []).filter(function (p) {
+      return String(p.turma) === '36' && normal(p.name) === normal(person.name);
+    });
+    if (samePeople.length !== 1) return null;
+    var rows = (appData.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: '36' }); }).filter(function (r) {
+      return !!r.name && normal(r.name) === normal(person.name);
+    });
+    if (rows.length !== 1) return null;
+    return rows[0];
+  }
+  function drawPeopleOpsSummary(items) {
+    var host = document.getElementById('people-ops-summary');
+    if (!host) return;
+    var named = items.filter(function (p) { return !!p.name; });
+    var pending = named.filter(hasPendingSignal).length;
+    var journeyDone = named.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
+    var shirts = items.filter(shirtChosen);
+    var unpaid = shirts.filter(function (p) { return shirtPaidValue(p) === false; }).length;
+    var knownLinks = named.map(safeDayLinkForPerson).filter(Boolean);
+    var present = knownLinks.filter(function (r) { return !!(dayMarks[dayId(r)] || {}).presente; }).length;
+    var baptized = knownLinks.filter(function (r) { return !!(dayMarks[dayId(r)] || {}).batizado; }).length;
+    host.innerHTML = metric('Participantes', named.length, 'Cadastros com nome') +
+      metric('Pendências', pending, 'Com sinal registrado') +
+      metric('Jornada concluída', journeyDone, 'Status “concluída”') +
+      metric('Camisetas a pagar', unpaid, 'Pagamento marcado como pendente') +
+      metric('Presentes', present, knownLinks.length + ' associações seguras com a ordem') +
+      metric('Batizados', baptized, 'Marcações registradas');
+  }
   function drawPeopleResults() {
     if (!appData || !document.getElementById('people-results')) return;
     var query = normal(peopleState.query);
     var items = appData.people.filter(function (p) {
-      var text = normal([p.name, p.phone, p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.sourceRow].join(' '));
+      var text = normal([p.name, p.phone, p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.sourceRow, p.shirt, p.shirtPaid].join(' '));
       if (query && text.indexOf(query) < 0) return false;
       if (peopleState.turma && clean(p.turma) !== peopleState.turma) return false;
       if (peopleState.filter === 'pending' && !hasPendingSignal(p)) return false;
-      if (peopleState.filter === 'without-phone' && !isBlank(p.phone) ) return false;
+      if (peopleState.filter === 'without-phone' && !isBlank(p.phone)) return false;
       if (peopleState.filter === 'without-name' && p.name) return false;
       if (peopleState.filter === 'no-group' && asBoolean(p.group) !== false) return false;
       return true;
     });
+    drawPeopleOpsSummary((appData.people || []).filter(function (p) { return matchesTurmaFilter(p, peopleState.turma); }));
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
     peopleState.page = Math.min(Math.max(1, peopleState.page), pages);
     var start = (peopleState.page - 1) * PAGE_SIZE;
@@ -998,7 +1030,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('people-results').innerHTML = view.map(function (p) {
       var status = isBlank(p.status) ? (p.name ? 'Status não preenchido' : 'Registro incompleto') : p.status;
       var classes = p.name ? 't-in' : 't-er';
-      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Linha original ' + esc(p.sourceRow) + ' · Jornada: ' + esc(display(p.journey)) + '</div><div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
+      var shirtText = !shirtChosen(p) ? (normal(p.shirt) === 'ja tem' ? 'Já tem camiseta' : 'Camiseta não informada') : ('Camiseta ' + display(p.shirt));
+      var paid = shirtChosen(p) ? (shirtPaidValue(p) === true ? chip('Camiseta paga', 't-ok') : (shirtPaidValue(p) === false ? chip('Camiseta a pagar', 't-pe') : chip('Pagamento não informado', 't-in'))) : '';
+      var link = safeDayLinkForPerson(p);
+      var mark = link ? (dayMarks[dayId(link)] || {}) : null;
+      var attendance = link ? chip(mark && mark.presente ? 'Presente' : 'Não marcado presente', mark && mark.presente ? 't-ok' : 't-pe') + chip(mark && mark.batizado ? 'Batizado' : 'Não marcado batizado', mark && mark.batizado ? 't-ok' : 't-in') : chip('Ordem sem vínculo seguro', 't-in');
+      var checkinActions = link ? '<button type="button" class="btn o" data-checkin="presente" data-checkin-id="' + esc(dayId(link)) + '" data-order-row="' + esc(link.sourceRow) + '">' + (mark && mark.presente ? 'Desmarcar presença' : 'Marcar presente') + '</button><button type="button" class="btn o" data-checkin="batizado" data-checkin-id="' + esc(dayId(link)) + '" data-order-row="' + esc(link.sourceRow) + '">' + (mark && mark.batizado ? 'Desmarcar batismo' : 'Marcar batizado') + '</button>' : '';
+      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Jornada: ' + esc(display(p.journey)) + ' · ' + esc(shirtText) + '<br>Pendência/observação: ' + esc(display(p.pending)) + '</div><div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + paid + attendance + '</div></div><div class="item-actions">' + checkinActions + '<button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Ficha completa</button><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhum registro encontrado com estes filtros.</div>';
     document.getElementById('people-pager').innerHTML = '<button type="button" class="btn o" data-page="people:-1" ' + (peopleState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>' + numberLabel(start + (view.length ? 1 : 0)) + '–' + numberLabel(start + view.length) + ' de ' + numberLabel(items.length) + '</span><button type="button" class="btn o" data-page="people:1" ' + (peopleState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
@@ -1231,7 +1269,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     sec.querySelector('[data-day-print]').onclick=function(){window.print();};
     var jb=sec.querySelector('#day-json-backup');jb.hidden=!window.firebaseIsAdmin;jb.onclick=function(){if(window.firebaseIsAdmin&&appData)downloadJson(Object.assign({},appData,{marcacoesBatismo:dayMarks}));};
     window.addEventListener('firebase-admin-status',function(){jb.hidden=!window.firebaseIsAdmin;});
-    window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawDayResults();});
+    window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawDayResults();drawPeopleResults();buildHome();});
     window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawDayResults();});
     window.addEventListener('day-checkin-error',function(e){dayToast('Não foi possível salvar: '+((e.detail&&e.detail.message)||'verifique a conexão e as permissões.'));});
     window.addEventListener('online',function(){dayStatus.online=true;drawDayResults();});window.addEventListener('offline',function(){dayStatus.online=false;drawDayResults();});
