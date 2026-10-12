@@ -20,9 +20,17 @@ assert.ok(!/if\s*\(!\s*clean\(fields\[0\]\)\s*\)\s*continue/.test(importCode),
   'Não filtrar linhas importadas apenas porque o campo Nome está vazio.');
 
 // Contrato de compatibilidade: não trocar o namespace das marcações históricas da turma 36.
-const dayIdCode = section('function dayId(row)', 'function dayBadges(row,p)');
-assert.ok(dayIdCode.includes("t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos"),
-  'O formato de ID legado da turma 36 precisa permanecer estável até uma migração validada.');
+const dayIdCode = section('function dayMarkIdForRow(row, orderTurmaId)', 'function importMarksConfirmationValid(');
+assert.ok(dayIdCode.includes("turma === '36' && !(row && row.__manual) ? '36_' + position : 'tur_' + turma + '_' + position"),
+  'O formato de ID legado 36_n deve continuar reservado à turma 36; outras turmas usam tur_<turma>_<posição>.');
+assert.ok(html.includes("return String(workspace && workspace.ordemTurmaId || '36')"),
+  'Workspace sem ordemTurmaId deve manter compatibilidade com a turma 36.');
+assert.ok(html.includes('String(turmaAtual) === orderTurma'),
+  'A Home não deve mostrar a ordem importada de outra turma.');
+assert.ok(html.includes('workspace: remoteWorkspace || localWorkspace || {}'),
+  'A migração deve priorizar o workspace remoto atual para evitar associar marcações à turma errada.');
+assert.ok(html.includes("if(String(workspace.ordemTurmaId || '36')!=='36')return;"),
+  'A migração de marcações antigas só deve executar para a ordem legada da turma 36.');
 
 // Contrato de persistência: cadastros manuais, ordens multi-turma e marcações precisam estar nos backups.
 assert.ok(html.includes('participantes: workspace.participantes || []'),
@@ -33,6 +41,6 @@ assert.ok(html.includes('marcacoesBatismo: workspace.marcacoesBatismo || {}'),
   'Backup deve preservar marcações de presença e batismo.');
 
 console.log('OK: importação preserva linhas preenchidas sem nome.');
-console.log('OK: identificadores legados da turma 36 permanecem estáveis.');
+console.log('OK: IDs legados preservados e ordem isolada por turma.');
 console.log('OK: backup inclui cadastros manuais, ordens multi-turma e marcações.');
 console.log('Contratos de preservação de dados verificados: 3.');
