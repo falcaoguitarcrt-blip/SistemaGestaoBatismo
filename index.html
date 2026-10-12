@@ -2105,7 +2105,7 @@ window.firebaseToggleDayMark=async function(id,fields,row,before){
  if(Object.prototype.hasOwnProperty.call(fields,'presenteEm')&&fields.presenteEm!==null)data.presenteEm=serverTimestamp();
  if(Object.prototype.hasOwnProperty.call(fields,'batizadoEm')&&fields.batizadoEm!==null)data.batizadoEm=serverTimestamp();
  dayPending.add(id);daySyncError=false;emitDayStatus(!!dayUnsub);
- const auditPromise=setDoc(auditRef(),auditRecord('marcacao',id,row,before,Object.assign({},data,{atualizadoEm:null}),uid,nome,operationId)).catch(function(auditError){console.error('Falha real na auditoria da marcação',auditError);warnAuditOnce('A marcação foi processada, mas a auditoria falhou ('+(auditError.code||'erro')+'). Avise o administrador.');throw auditError;});
+ const auditPromise=setDoc(auditRef(),auditRecord('marcacao',id,row,before,Object.assign({},data,{atualizadoEm:null}),uid,nome,operationId)).catch(function(auditError){console.error('Falha real na auditoria da marcação',auditError);warnAuditOnce('A escrita da auditoria falhou ('+(auditError.code||'erro')+'). Avise o administrador.');throw auditError;});
  const savePromise=setDoc(ref,data,{merge:true});
  auditPromise.catch(function(){});
  try {
