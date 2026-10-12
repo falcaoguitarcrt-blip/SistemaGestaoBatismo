@@ -17,7 +17,7 @@
 - A turma 36 recebe `ativa` e `2026-10-12`, a data informada no sistema. Turmas 19–35 ficam `encerrada`, 37 `planejada`. O local e a capacidade ficam vazios para preenchimento confirmado. A data de outras turmas não é inferida da coluna `DATA`, pois essa coluna não identifica com segurança a data do batismo.
 - Faixas: menor (<18), jovem adulto (18–29), adulto (30–59), 60+; idade ausente fica desconhecida e `menor: null`.
 - Telefone é normalizado para `+55DDDNÚMERO` quando há 10 ou 11 dígitos nacionais. Formatação suspeita ou dígito inválido é listada para revisão, sem corrigir silenciosamente.
-- Camiseta preenchida vira `quer`; “já tem” vira `ja_tem`; vazio vira `nao_respondeu`. Apenas `PG CAMISETA = true` vira pago. Valor e entrega ficam nulos se não existem na planilha.
+- Camiseta preenchida vira `quer`; “já tem” vira `ja_tem`; vazio permanece `""` (sem pendência). Apenas `PG CAMISETA = true` vira pago. Valor e entrega ficam nulos se não existem na planilha.
 - Texto livre é agrupado e sugerido. A sugestão não altera os campos estruturados até o admin aprová-la. O texto original fica preservado em `privado/origem`.
 - Duplicados não são apagados. “Mesclar” exige escolher o documento principal e confirmação explícita; copia somente campos estruturados vazios para o principal, registra conflitos sem escolher valores e mantém todos os documentos e origens ligados pela relação canônica. “Manter ambos” e “Ignorar” também mantêm cada pessoa.
 - Ordem associa automaticamente apenas nome normalizado com correspondência única. Repetidos exigem escolha na revisão; sem correspondência ficam sem `pessoaId` para revisão posterior.
