@@ -2049,6 +2049,18 @@ function workspaceOfflineError() {
   error.workspaceNetworkError = true;
   return error;
 }
+function withWorkspaceTimeout(promise, milliseconds) {
+  let timer;
+  const timeout = new Promise(function (_, reject) {
+    timer = setTimeout(function () {
+      const error = new Error('Sem conexão ou tempo limite aguardando o Firebase.');
+      error.code = 'deadline-exceeded';
+      error.workspaceTransactionPending = true;
+      reject(error);
+    }, milliseconds);
+  });
+  return Promise.race([promise, timeout]).finally(function () { clearTimeout(timer); });
+}
 function startWorkspaceVersionListener(user) {
   if (workspaceVersionUnsubscribe) workspaceVersionUnsubscribe();
   workspaceVersionUnsubscribe = onSnapshot(rootRef(), function (snap) {
@@ -2096,9 +2108,9 @@ async function saveCloudWorkspace(payload, createVersion) {
   const expectedBaseVersionId = baseWorkspaceVersionId;
   // Confirma conectividade e a versão-base no servidor antes de criar blocos.
   try {
-    await runTransaction(firestore, async function (tx) {
+    await withWorkspaceTimeout(runTransaction(firestore, async function (tx) {
       await assertWorkspaceVersion(tx, metaRef, expectedBaseVersionId);
-    }, { maxAttempts: 3 });
+    }, { maxAttempts: 3 }), 12000);
   } catch (error) {
     if (error && error.workspaceVersionConflict) {
       workspaceVersionConflict = true;
@@ -2159,7 +2171,7 @@ async function saveCloudWorkspace(payload, createVersion) {
 
     // Compare-and-swap do ponteiro: só publica a nova versão se a base ainda for a mesma.
     pointerTransactionStarted = true;
-    await runTransaction(firestore, async function (tx) {
+    const pointerPromise = runTransaction(firestore, async function (tx) {
       const snap = await tx.get(metaRef);
       if (versionPointerValue(snap) !== expectedBaseVersionId) throw workspaceConflictError();
       tx.set(metaRef, {
@@ -2170,6 +2182,34 @@ async function saveCloudWorkspace(payload, createVersion) {
       }, { merge: true });
       tx.set(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
     }, { maxAttempts: 3 });
+    try {
+      await withWorkspaceTimeout(pointerPromise, 12000);
+    } catch (transactionError) {
+      if (transactionError && transactionError.workspaceTransactionPending) {
+        workspaceVersionConflict = true;
+        window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+          detail: { message: 'Sem conexão com o Firebase. A confirmação do salvamento ainda pode chegar. Atualize o estado antes de repetir.' }
+        }));
+        pointerPromise.then(async function () {
+          const refreshedWorkspace = await loadCloudWorkspace();
+          if (refreshedWorkspace) window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: refreshedWorkspace } }));
+          savingWorkspaceVersionId = null;
+          window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+          window.dispatchEvent(new CustomEvent('cloud-version-late-save-settled', { detail: { success: true } }));
+        }).catch(function (lateError) {
+          savingWorkspaceVersionId = null;
+          workspaceVersionConflict = true;
+          if (lateError && lateError.workspaceVersionConflict) {
+            window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+          } else {
+            window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+              detail: { message: 'O Firebase não confirmou o salvamento. Atualize o estado antes de tentar novamente.' }
+            }));
+          }
+        });
+      }
+      throw transactionError;
+    }
 
     baseWorkspaceVersionId = versionId;
     workspaceVersionConflict = false;
@@ -2177,7 +2217,7 @@ async function saveCloudWorkspace(payload, createVersion) {
     window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: versionId } }));
     return true;
   } catch (error) {
-    savingWorkspaceVersionId = null;
+    if (!(error && error.workspaceTransactionPending)) savingWorkspaceVersionId = null;
     if (error && error.workspaceVersionConflict) {
       workspaceVersionConflict = true;
       // Remove apenas os documentos desta tentativa que ficou obsoleta.
@@ -2199,7 +2239,9 @@ async function saveCloudWorkspace(payload, createVersion) {
         cleanup.push({ type: 'delete', ref: versionRef(versionId) });
         await writeInBatches(cleanup).catch(function () {});
       }
-      throw workspaceOfflineError();
+      const offlineError = workspaceOfflineError();
+      if (error && error.workspaceTransactionPending) offlineError.workspaceTransactionPending = true;
+      throw offlineError;
     }
     if (!pointerTransactionStarted) {
       const cleanup = chunks.map(function (item) {
