@@ -1781,9 +1781,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       try {
        var result=await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row,prior);
        dayWriteState[id]=result.auditError?{state:'audit-error'}:{state:'saved'};drawDayResults();
+       var restore=Object.assign({},prior,{[kind]:!!prior[kind],[timeKey]:prior[timeKey]||null});if(kind==='batizado'&&on&&!prior.presente){restore.presente=false;restore.presenteEm=null;}
        if(result.auditError){dayToast('Marcação salva no servidor, mas a auditoria não foi registrada. Avise o administrador.');}
        else dayToast(on?'Marcação salva no servidor'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação atualizada no servidor',async function(){
-        try { await window.firebaseUndoDayMark(id,prior,row,result.after);dayWriteState[id]={state:'saved'};drawDayResults();dayToast('Desfazer confirmado no servidor.'); }
+        try { await window.firebaseUndoDayMark(id,restore,row,result.after);dayWriteState[id]={state:'saved'};drawDayResults();dayToast('Desfazer confirmado no servidor.'); }
         catch(undoError){dayWriteState[id]={state:'error',message:undoError.message||'não foi possível desfazer'};drawDayResults();dayToast(undoError.message||'Não foi possível desfazer.');}
        });
       } catch(saveError) {dayWriteState[id]={state:'error',message:saveError.message||'verifique a conexão e tente novamente'};drawDayResults();dayToast('Não foi possível salvar no servidor: '+(saveError.message||'verifique a conexão.'));}
