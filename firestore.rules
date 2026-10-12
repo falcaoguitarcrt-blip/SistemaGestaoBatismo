@@ -503,6 +503,7 @@ service cloud.firestore {
         && validMark()
         && request.resource.data.turmaId == '36'
         && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa';
+        && (!exists(orderStatePath('turma_36')) || get(orderStatePath('turma_36')).data.frozen != true);
       allow delete: if admin();
     }
 
