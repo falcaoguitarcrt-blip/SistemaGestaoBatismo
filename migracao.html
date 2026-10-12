@@ -127,13 +127,30 @@ function buildPlan(){
  const people=source.people.map(r=>personObject(r,index,approved,{}));
  const byName=new Map();for(const p of people)if(p.nomeBusca){if(!byName.has(p.nomeBusca))byName.set(p.nomeBusca,[]);byName.get(p.nomeBusca).push(p)}
  const duplicateGroups=[...byName].filter(([,arr])=>arr.length>1).map(([key,arr])=>({key,id:'dup_'+stableHash(key),people:arr}));
- const canonicalMap={};
- for(const g of duplicateGroups){const d=decisions.duplicates.get(g.id);if(d&&d.choice==='mesclar'&&d.canonical){for(const p of g.people)canonicalMap[p.id]=d.canonical;}}
- const orderedPeople=people.map(p=>({...p,pessoaCanonicaId:canonicalMap[p.id]||p.id}));
+ const canonicalMap={},mergeConflicts={};
+ for(const g of duplicateGroups){
+  const d=decisions.duplicates.get(g.id);
+  if(!d||!d.confirmed||d.choice!=='mesclar'||!d.canonical)continue;
+  const main=people.find(p=>p.id===d.canonical);if(!main)continue;
+  const conflicts=[];
+  const mergeScalar=(path,get,set,empty)=>{for(const other of g.people){if(other.id===main.id)continue;const a=get(main),b=get(other);if(empty(a)&&!empty(b))set(main,b);else if(!empty(a)&&!empty(b)&&String(a)!==String(b))conflicts.push(path)}};
+  mergeScalar('telefone',p=>p.telefone,(p,v)=>p.telefone=v,v=>!v);
+  mergeScalar('idade',p=>p.idade,(p,v)=>{p.idade=v;p.faixaEtaria=v<18?'menor':v<30?'jovem_adulto':v<60?'adulto':'60_mais';p.menor=v<18},v=>v==null);
+  mergeScalar('jornada.status',p=>p.jornada.status,(p,v)=>p.jornada.status=v,v=>!v);
+  for(const n of [1,2,3,4])mergeScalar('aulas.'+n,p=>p.aulas[n],(p,v)=>p.aulas[n]=v,v=>v==null);
+  mergeScalar('aulao.status',p=>p.aulao.status,(p,v)=>p.aulao=v,v=>!v);
+  mergeScalar('camiseta.opcao',p=>p.camiseta.opcao,(p,v)=>p.camiseta.opcao=v,v=>v==='nao_respondeu');
+  mergeScalar('camiseta.tamanho',p=>p.camiseta.tamanho,(p,v)=>p.camiseta.tamanho=v,v=>!v);
+  mergeScalar('camiseta.pago',p=>p.camiseta.pago,(p,v)=>p.camiseta.pago=v,v=>v==null);
+  mergeScalar('pendencia.texto',p=>p.pendencia.texto,(p,v)=>{p.pendencia.texto=v;p.pendencia.tipo='a_revisar'},v=>!v);
+  mergeConflicts[g.id]=[...new Set(conflicts)];
+  for(const p of g.people)canonicalMap[p.id]=d.canonical;
+ }
+ const orderedPeople=people.map(p=>({...p,pessoaCanonicaId:canonicalMap[p.id]||p.id,mergeFonteIds:canonicalMap[p.id]===p.id?duplicateGroups.filter(g=>canonicalMap[g.people[0].id]===p.id).flatMap(g=>g.people.map(x=>x.id)).filter(id=>id!==p.id):[],camposConflitantes:canonicalMap[p.id]===p.id?mergeConflicts[duplicateGroups.find(g=>g.people.some(x=>x.id===p.id))?.id]||[]:[]}));
  const positions=source.order.map(x=>{
   const fields=x.fields,name=x.record.name||fields[2]||'',search=norm(name),candidates=search?(byName.get(search)||[]):[];
   const saved=decisions.order.get(String(x.sourceRow));
-  const pessoaId=saved|| (candidates.length===1?candidates[0].id:null);
+  const rawPessoaId=saved|| (candidates.length===1?candidates[0].id:null);const pessoaId=rawPessoaId?(canonicalMap[rawPessoaId]||rawPessoaId):null;
   return {id:'ord_turma36_pos_'+String(x.record.number??fields[1]??x.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_'),turmaId:'turma_36',posicao:x.record.number??fields[1]??x.sourceRow,nome:String(name||''),nomeBusca:search,pessoaId,ambiguidade:candidates.length>1,opcoes:candidates.map(p=>({id:p.id,nome:p.nomeExibicao,linha:p.origem.linha})),vazio:blank(name),origem:{aba:'Ordem',linha:x.sourceRow,versao:source.versionId},camposOriginais:fields};
  });
  const cohortCounts=new Map();for(const p of people){const n=Number(p._privateOrigin[index.TURMA]);if(Number.isInteger(n))cohortCounts.set(n,(cohortCounts.get(n)||0)+1);}
@@ -179,7 +196,7 @@ function buildWrites(){
   writes.push({path:'pessoas/'+id+'/privado/origem',data:{origem:_privateOrigin,idadeOriginal:_ageRaw,dataOriginal:_dateOriginal,updatedAt:serverTimestamp(),migrationVersion:1}});
  }
  for(const x of plan.positions){const {opcoes,ambiguidade,vazio,camposOriginais,...safe}=x;writes.push({path:'ordem/'+x.id,data:{...safe,updatedAt:serverTimestamp(),migrationVersion:1}});writes.push({path:'ordem/'+x.id+'/privado/origem',data:{camposOriginais,origem:x.origem,updatedAt:serverTimestamp(),migrationVersion:1}})}
- for(const g of plan.duplicateGroups){const d=decisions.duplicates.get(g.id);if(d?.confirmed)writes.push({path:'gruposDuplicados/'+g.id,data:{nomeBusca:g.key,pessoaIds:g.people.map(x=>x.id),decisao:d.choice,pessoaCanonicaId:d.canonical||null,confirmadoEm:new Date().toISOString(),migrationVersion:1}})}
+ for(const g of plan.duplicateGroups){const d=decisions.duplicates.get(g.id);if(d?.confirmed)writes.push({path:'gruposDuplicados/'+g.id,data:{nomeBusca:g.key,pessoaIds:g.people.map(x=>x.id),decisao:d.choice,pessoaCanonicaId:d.canonical||null,camposConflitantes:mergeConflicts[g.id]||[],confirmadoEm:new Date().toISOString(),migrationVersion:1}})}
  for(const g of plan.groups){const d=decisions.texts.get(g.key);if(d)writes.push({path:'regrasInterpretacao/'+stableHash(g.key),data:{campo:g.field,texto:g.text,normalizado:norm(g.text),ocorrencias:g.count,sugestao:g.suggestion,aprovado:!!d.approved,aprovadoPor:user.uid,updatedAt:serverTimestamp(),migrationVersion:1}})}
  return writes;
 }
