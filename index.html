@@ -1751,6 +1751,32 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('return-pager').innerHTML = '<button type="button" class="btn o" data-page="return:-1" ' + (returnState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + returnState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="return:1" ' + (returnState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
+  async function renderVersions() {
+    var host = document.getElementById('version-list');
+    var status = document.getElementById('version-status');
+    if (!host) return;
+    if (status) status.textContent = 'Carregando versões imutáveis do Firestore…';
+    host.innerHTML = '<span class="note">Carregando versões…</span>';
+    try {
+      if (typeof window.firebaseListVersions !== 'function') throw new Error('A conexão com o histórico de versões ainda não está pronta.');
+      var versions = await window.firebaseListVersions();
+      host.innerHTML = versions.map(function (version) {
+        var counts = version.counts || {};
+        return '<div class="data-item"><div class="item-main"><strong>' + esc(version.sourceFileName || 'Arquivo não informado') + (version.isCurrent ? ' · VERSÃO ATIVA' : '') + '</strong>' +
+          '<div class="item-meta">Data: ' + esc(version.createdAt ? new Date(version.createdAt).toLocaleString('pt-BR') : 'não informada') + '</div>' +
+          '<div class="item-meta">Quem: ' + esc(version.createdBy || 'UID não informado') + '</div>' +
+          '<div class="item-meta">Pessoas: ' + esc(counts.people || 0) + ' · Ordem: ' + esc(counts.order || 0) + ' · Participantes: ' + esc(counts.participantes || 0) + ' · Abas: ' + esc(counts.rawSheets || 0) + '</div>' +
+          '<div class="bb"><button type="button" class="btn o" data-version-download="' + esc(version.id) + '">Baixar JSON</button><button type="button" class="btn" data-version-restore="' + esc(version.id) + '">Restaurar como nova versão</button></div></div></div>';
+      }).join('') || '<div class="data-empty">Nenhuma versão encontrada.</div>';
+      if (status) status.textContent = versions.length + ' versão(ões) listada(s). Nenhuma versão foi apagada ou alterada.';
+    } catch (error) {
+      host.innerHTML = '<div class="data-empty">Não foi possível carregar as versões.</div>';
+      if (status) status.textContent = error.message || 'Falha ao carregar versões.';
+    }
+  }
+  document.getElementById('nav-more').addEventListener('change', function (event) {
+    if (event.target.value === 'ver') renderVersions();
+  });
   function buildHistory() {
     var transfers = [];
     (appData.participantes || []).forEach(function (p) {
@@ -2313,6 +2339,46 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   });
 
   document.addEventListener('click', async function (event) {
+    var versionDownloadButton = event.target.closest('[data-version-download]');
+    if (versionDownloadButton) {
+      try {
+        var versionForDownload = await window.firebaseLoadVersion(versionDownloadButton.dataset.versionDownload);
+        delete versionForDownload.sourceWorkbook;
+        var versionJson = JSON.stringify({ backupFormat: 'gestao-batismo-version-v1', exportedAt: new Date().toISOString(), workspace: versionForDownload }, null, 2);
+        downloadBlob(new Blob([versionJson], { type: 'application/json;charset=utf-8' }), 'versao-' + versionDownloadButton.dataset.versionDownload + '.json');
+        var versionStatus = document.getElementById('version-status');
+        if (versionStatus) versionStatus.textContent = 'JSON da versão baixado. Nenhum dado foi alterado.';
+      } catch (error) {
+        var versionStatusError = document.getElementById('version-status');
+        if (versionStatusError) versionStatusError.textContent = error.message || 'Falha ao baixar versão.';
+      }
+      return;
+    }
+    var versionRestoreButton = event.target.closest('[data-version-restore]');
+    if (versionRestoreButton) {
+      if (!(await accessibleConfirm('Restaurar esta versão como uma NOVA versão ativa? A versão atual e todas as versões anteriores serão preservadas. Digite CONFIRMAR para continuar.', { typedPhrase: 'CONFIRMAR', acceptLabel: 'Restaurar como nova versão' }))) return;
+      versionRestoreButton.disabled = true;
+      try {
+        var restoredPayload = await window.firebaseLoadVersion(versionRestoreButton.dataset.versionRestore);
+        delete restoredPayload.sourceWorkbook;
+        restoredPayload.importedAt = new Date().toISOString();
+        await window.firebaseSaveWorkspace(restoredPayload, true);
+        appData = Object.assign({}, restoredPayload, { id: 'current' });
+        try { await saveWorkspace(appData, true); } catch (localBackupError) { console.warn('Versão restaurada no Firebase; cópia local não atualizada.', localBackupError); }
+        buildAll();
+        await renderVersions();
+        var versionStatusSuccess = document.getElementById('version-status');
+        if (versionStatusSuccess) versionStatusSuccess.textContent = 'Restauração concluída como nova versão. A versão anterior foi preservada.';
+      } catch (error) {
+        var versionStatusFailure = document.getElementById('version-status');
+        if (versionStatusFailure) versionStatusFailure.textContent = 'Restauração cancelada ou não confirmada pelo Firebase: ' + (error.message || 'erro desconhecido') + '. Nenhuma versão antiga foi apagada.';
+      } finally {
+        versionRestoreButton.disabled = false;
+      }
+      return;
+    }
+    var versionNavButton = event.target.closest('[data-s="ver"]');
+    if (versionNavButton) renderVersions();
     var addPersonButton = event.target.closest('[data-add-person]');
     if (addPersonButton) { openRecordEditor('person', null); return; }
     var editPersonButton = event.target.closest('[data-edit-person]');
@@ -2841,12 +2907,14 @@ async function saveCloudWorkspace(payload, createVersion) {
     throw error;
   }
 }
-async function loadCloudWorkspace() {
+async function loadCloudWorkspace(requestedVersionId) {
   const rootSnap = await getDoc(rootRef());
-  const versionId = versionPointerValue(rootSnap);
-  baseWorkspaceVersionId = versionId;
-  workspaceVersionConflict = false;
-  savingWorkspaceVersionId = null;
+  const versionId = requestedVersionId || versionPointerValue(rootSnap);
+  if (!requestedVersionId) {
+    baseWorkspaceVersionId = versionId;
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+  }
   if (!versionId) return null;
   const versionSnap = await getDoc(versionRef(versionId));
   if (!versionSnap.exists()) throw new Error('A versão atual da planilha não foi encontrada no Firestore.');
@@ -2887,6 +2955,25 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
+window.firebaseListVersions = async function () {
+  if (!auth.currentUser) throw new Error('Faça login para consultar versões.');
+  const snapshot = await getDocs(collection(firestore, 'appData', 'primary', 'versions'));
+  return snapshot.docs.map(function (item) {
+    const data = item.data() || {};
+    return {
+      id: item.id, versionId: data.versionId || item.id, createdAt: data.createdAt || data.importedAt || '',
+      createdBy: data.createdBy || '', sourceFileName: data.sourceFileName || 'Arquivo não informado',
+      counts: data.counts || {}, isCurrent: item.id === baseWorkspaceVersionId
+    };
+  }).sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
+};
+window.firebaseLoadVersion = async function (versionId) {
+  if (!auth.currentUser) throw new Error('Faça login para abrir uma versão.');
+  if (!versionId || typeof versionId !== 'string') throw new Error('Identificador de versão inválido.');
+  const versionSnap = await getDoc(versionRef(versionId));
+  if (!versionSnap.exists()) throw new Error('A versão selecionada não existe mais.');
+  return loadCloudWorkspace(versionId);
+};
 window.firebaseHasMarksForTurma = async function (turmaId) {
   if (!auth.currentUser) throw new Error('Faça login antes de verificar as marcações da turma.');
   const target = String(turmaId);
