@@ -37,7 +37,10 @@ service cloud.firestore {
         && (!('presenteEm' in request.resource.data) || request.resource.data.presenteEm is string || request.resource.data.presenteEm is timestamp)
         && (!('batizadoEm' in request.resource.data) || request.resource.data.batizadoEm is string || request.resource.data.batizadoEm is timestamp)
         && request.resource.data.porUid == request.auth.uid
-        && request.resource.data.porNome is string;
+        && request.resource.data.porNome is string
+        && request.resource.data.porNome.size() <= 120
+        && request.resource.data.turmaId.size() <= 64
+        && request.resource.data.posicaoOuPessoaId.size() <= 128;
     }
     function validPersonRoot() {
       return request.resource.data.keys().hasOnly([
@@ -47,13 +50,16 @@ service cloud.firestore {
           'camposConflitantes','ordemNumero','pastor','batizado','batizadoEm',
           'revision','updatedAt','updatedBy','migrationVersion'
         ])
-        && (!('nomeExibicao' in request.resource.data) || request.resource.data.nomeExibicao is string)
-        && (!('nomeBusca' in request.resource.data) || request.resource.data.nomeBusca is string)
+        && (!('nomeExibicao' in request.resource.data) || (request.resource.data.nomeExibicao is string && request.resource.data.nomeExibicao.size() <= 120))
+        && (!('nomeBusca' in request.resource.data) || (request.resource.data.nomeBusca is string && request.resource.data.nomeBusca.size() <= 160))
         && (!('turmaId' in request.resource.data) || request.resource.data.turmaId == null || request.resource.data.turmaId is string)
-        && (!('telefone' in request.resource.data) || request.resource.data.telefone == null || request.resource.data.telefone is string)
+        && (!('telefone' in request.resource.data) || request.resource.data.telefone == null || (request.resource.data.telefone is string && request.resource.data.telefone.size() <= 20))
         && (!('telefoneValido' in request.resource.data) || request.resource.data.telefoneValido == null || request.resource.data.telefoneValido is bool)
         && (!('telefoneRevisar' in request.resource.data) || request.resource.data.telefoneRevisar is bool)
-        && (!('faixaEtaria' in request.resource.data) || request.resource.data.faixaEtaria is string)
+        && (!('faixaEtaria' in request.resource.data) || (request.resource.data.faixaEtaria is string && request.resource.data.faixaEtaria.size() <= 24))
+        && (!('pessoaCanonicaId' in request.resource.data) || request.resource.data.pessoaCanonicaId is string)
+        && (!('mergeFonteIds' in request.resource.data) || (request.resource.data.mergeFonteIds is list && request.resource.data.mergeFonteIds.size() <= 100))
+        && (!('camposConflitantes' in request.resource.data) || (request.resource.data.camposConflitantes is list && request.resource.data.camposConflitantes.size() <= 30))
         && (!('responsavelInformado' in request.resource.data) || request.resource.data.responsavelInformado == null || request.resource.data.responsavelInformado is bool)
         && (!('idade' in request.resource.data) || request.resource.data.idade == null || request.resource.data.idade is int)
         && (!('menor' in request.resource.data) || request.resource.data.menor == null || request.resource.data.menor is bool)
@@ -62,7 +68,9 @@ service cloud.firestore {
         && (!('updatedAt' in request.resource.data) || request.resource.data.updatedAt is string || request.resource.data.updatedAt is timestamp)
         && (!('jornada' in request.resource.data) || (request.resource.data.jornada is map
           && request.resource.data.jornada.keys().hasOnly(['status','arquivadaRevisao'])
-          && request.resource.data.jornada.status is string))
+          && request.resource.data.jornada.status is string
+          && request.resource.data.jornada.status.size() <= 40
+          && (!('arquivadaRevisao' in request.resource.data.jornada) || request.resource.data.jornada.arquivadaRevisao is bool)))
         && (!('aulas' in request.resource.data) || (request.resource.data.aulas is map
           && request.resource.data.aulas.keys().hasOnly(['1','2','3','4'])
           && (!('1' in request.resource.data.aulas) || request.resource.data.aulas['1'] == null || request.resource.data.aulas['1'] is bool)
@@ -72,29 +80,51 @@ service cloud.firestore {
         && (!('camiseta' in request.resource.data) || (request.resource.data.camiseta is map
           && request.resource.data.camiseta.keys().hasOnly(['opcao','tamanho','pago','valor','data','entregue','arquivadaRevisao'])
           && request.resource.data.camiseta.opcao in ['', 'quer', 'nao_quer', 'ja_tem']
-          && (!('tamanho' in request.resource.data.camiseta) || request.resource.data.camiseta.tamanho == null || request.resource.data.camiseta.tamanho is string)
+          && (!('tamanho' in request.resource.data.camiseta) || request.resource.data.camiseta.tamanho == null || (request.resource.data.camiseta.tamanho is string && request.resource.data.camiseta.tamanho.size() <= 20))
           && (!('data' in request.resource.data.camiseta) || request.resource.data.camiseta.data == null || request.resource.data.camiseta.data is string)
           && (!('pago' in request.resource.data.camiseta) || request.resource.data.camiseta.pago == null || request.resource.data.camiseta.pago is bool)
           && (!('entregue' in request.resource.data.camiseta) || request.resource.data.camiseta.entregue == null || request.resource.data.camiseta.entregue is bool)
           && (!('valor' in request.resource.data.camiseta) || request.resource.data.camiseta.valor == null || request.resource.data.camiseta.valor is number)))
         && (!('pendencia' in request.resource.data) || (request.resource.data.pendencia is map
           && request.resource.data.pendencia.keys().hasOnly(['texto','arquivadaRevisao','tipo'])
-          && (!('texto' in request.resource.data.pendencia) || request.resource.data.pendencia.texto is string)))
-        && (!('aulao' in request.resource.data) || request.resource.data.aulao is map)
+          && (!('texto' in request.resource.data.pendencia) || (request.resource.data.pendencia.texto is string && request.resource.data.pendencia.texto.size() <= 2000))
+          && (!('tipo' in request.resource.data.pendencia) || (request.resource.data.pendencia.tipo is string && request.resource.data.pendencia.tipo.size() <= 60))
+          && (!('arquivadaRevisao' in request.resource.data.pendencia) || request.resource.data.pendencia.arquivadaRevisao is bool)))
+        && (!('aulao' in request.resource.data) || (request.resource.data.aulao is map
+          && request.resource.data.aulao.keys().hasOnly(['inscrito','data','dataTexto'])
+          && (!('inscrito' in request.resource.data.aulao) || request.resource.data.aulao.inscrito is bool)
+          && (!('data' in request.resource.data.aulao) || request.resource.data.aulao.data == null || request.resource.data.aulao.data is string)
+          && (!('dataTexto' in request.resource.data.aulao) || request.resource.data.aulao.dataTexto is string))
         && (!('telefoneRevisar' in request.resource.data) || request.resource.data.telefoneRevisar is bool);
+    }
+    function validOrderRoot() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId','posicao','nome','nomeBusca','pessoaId','origem','updatedAt','migrationVersion',
+          'pastor','observacao','fichasRetiradas','presente','batizado','presenteEm','batizadoEm'
+        ])
+        && request.resource.data.turmaId is string
+        && request.resource.data.turmaId.size() <= 64
+        && (!('posicao' in request.resource.data) || request.resource.data.posicao is int || request.resource.data.posicao is string)
+        && (!('nome' in request.resource.data) || (request.resource.data.nome is string && request.resource.data.nome.size() <= 120))
+        && (!('nomeBusca' in request.resource.data) || (request.resource.data.nomeBusca is string && request.resource.data.nomeBusca.size() <= 160))
+        && (!('pessoaId' in request.resource.data) || request.resource.data.pessoaId == null || request.resource.data.pessoaId is string)
+        && (!('observacao' in request.resource.data) || request.resource.data.observacao == null || (request.resource.data.observacao is string && request.resource.data.observacao.size() <= 1000))
+        && (!('fichasRetiradas' in request.resource.data) || request.resource.data.fichasRetiradas is bool)
+        && (!('presente' in request.resource.data) || request.resource.data.presente is bool)
+        && (!('batizado' in request.resource.data) || request.resource.data.batizado is bool);
     }
     function validContact() {
       return request.resource.data.keys().hasOnly(['telefone','responsavelNome','responsavelTelefone','updatedAt','updatedBy'])
         && (!('telefone' in request.resource.data) || request.resource.data.telefone == null || request.resource.data.telefone is string)
-        && (!('responsavelNome' in request.resource.data) || request.resource.data.responsavelNome == null || request.resource.data.responsavelNome is string)
-        && (!('responsavelTelefone' in request.resource.data) || request.resource.data.responsavelTelefone == null || request.resource.data.responsavelTelefone is string)
+        && (!('responsavelNome' in request.resource.data) || request.resource.data.responsavelNome == null || (request.resource.data.responsavelNome is string && request.resource.data.responsavelNome.size() <= 120))
+        && (!('responsavelTelefone' in request.resource.data) || request.resource.data.responsavelTelefone == null || (request.resource.data.responsavelTelefone is string && request.resource.data.responsavelTelefone.size() <= 20))
         && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid);
     }
     function validPrivateProfile() {
       return request.resource.data.keys().hasOnly(['verificacaoPerfil','observacoesRestritas','observacoes','updatedAt','updatedBy'])
         && (!('verificacaoPerfil' in request.resource.data) || request.resource.data.verificacaoPerfil == null || request.resource.data.verificacaoPerfil is string)
-        && (!('observacoesRestritas' in request.resource.data) || request.resource.data.observacoesRestritas == null || request.resource.data.observacoesRestritas is string)
-        && (!('observacoes' in request.resource.data) || request.resource.data.observacoes == null || request.resource.data.observacoes is string)
+        && (!('observacoesRestritas' in request.resource.data) || request.resource.data.observacoesRestritas == null || (request.resource.data.observacoesRestritas is string && request.resource.data.observacoesRestritas.size() <= 3000))
+        && (!('observacoes' in request.resource.data) || request.resource.data.observacoes == null || (request.resource.data.observacoes is string && request.resource.data.observacoes.size() <= 3000))
         && (!('updatedBy' in request.resource.data) || request.resource.data.updatedBy == request.auth.uid);
     }
     function validPrivateOrigin() {
@@ -114,14 +144,19 @@ service cloud.firestore {
               'documentosIgnorados','origemVersionId','camposNovos','criadoEm'
             ])
             && request.resource.data.documentosCriados is list
-            && request.resource.data.documentosIgnorados is int)
+            && request.resource.data.documentosCriados.size() <= 150
+            && request.resource.data.documentosIgnorados is int
+            && request.resource.data.camposNovos is list)
           ||
           (request.resource.data.keys().hasOnly([
             'acao','documento','uid','porNome','quando','alteracoes',
             'migrationId','email','criadoEm'
           ])
             && request.resource.data.documento is string
-            && request.resource.data.alteracoes is list)
+            && request.resource.data.documento.size() <= 512
+            && request.resource.data.alteracoes is list
+            && request.resource.data.alteracoes.size() <= 100
+            && (!('porNome' in request.resource.data) || (request.resource.data.porNome is string && request.resource.data.porNome.size() <= 120)))
         );
     }
 
@@ -201,7 +236,9 @@ service cloud.firestore {
         || (voluntario()
           && resource.data.turmaId == 'turma_36'
           && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa');
-      allow create, update: if staffWrite() || leaderOwnsTurma(request.resource.data.turmaId);
+      allow create: if validOrderRoot() && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId));
+      allow update: if validOrderRoot() && (staffWrite()
+        || (leaderOwnsTurma(resource.data.turmaId) && leaderOwnsTurma(request.resource.data.turmaId)));
       allow delete: if false;
       match /privado/origem {
         allow read, write: if pastor();
