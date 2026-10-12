@@ -497,8 +497,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var root = document.documentElement;
     var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     var currentTheme = root.dataset.theme || systemTheme;
-    root.dataset.theme = currentTheme === 'dark' ? 'light' : 'dark';
-  });
+    root.dataset.theme = currentTheme === 'dark' ? 'light' : 'dark';  });
 
   document.querySelectorAll('[data-demo-action="true"]').forEach(function (button) {
     button.disabled = true;
@@ -997,8 +996,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (first) first.focus();
   }
 
-  function cloneWorkspaceForEdit() {
-    var rawSheets = {};
+  function cloneWorkspaceForEdit() {    var rawSheets = {};
     Object.keys(appData.rawSheets || {}).forEach(function (name) {
       rawSheets[name] = (appData.rawSheets[name] || []).map(function (row) { return Array.isArray(row) ? row.slice() : []; });
     });
@@ -1139,7 +1137,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function dayBadges(row,p){var b='';if(normal(row.note||'').includes('prioridade'))b+=chip('Prioridade','t-er');if(p&&Number(p.age)>0&&Number(p.age)<18)b+=chip('Menor','t-pe');if(p&&hasPendingSignal(p))b+=chip('Pendência','t-pe');return b;}
   function buildDay(){
     var sec=document.getElementById('dia');
-    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Dia do batismo</h2><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button><button type="button" class="btn o" id="day-json-backup" hidden>Exportar backup JSON agora</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
+    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Dia do batismo · Turma 36</h2><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button><button type="button" class="btn o" id="day-json-backup" hidden>Exportar backup JSON agora</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
     sec.querySelector('#day-search').oninput=function(){dayState.query=this.value;dayState.page=1;drawDayResults();};
     sec.querySelectorAll('[data-day-filter]').forEach(function(b){b.onclick=function(){dayFilter=b.dataset.dayFilter;dayState.page=1;drawDayResults();};});
     sec.querySelector('[data-day-print]').onclick=function(){window.print();};
@@ -1162,7 +1160,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('day-sync').textContent=!dayStatus.online?'Offline · '+dayStatus.pending+' alterações pendentes':(!dayStatus.ready||dayStatus.pending?'Sincronizando…':'Online · sincronizado');
     document.getElementById('day-summary').innerHTML='<div class="day-count"><b>Presentes '+pres+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?pres*100/total:0)+'%"></i></div></div><div class="day-count"><b>Batizados '+bat+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?bat*100/total:0)+'%"></i></div></div>';
     document.querySelectorAll('[data-day-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.dayFilter===dayFilter);});
-    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s;var when=function(v){return v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';};return '<div class="data-item day-row '+(next===i?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+(x.p&&hasPendingSignal(x.p)?'<div class="day-warning">Há pendência no cadastro; confirme com a equipe.</div>':'')+(s.porNome?'<div class="item-meta">Marcado por '+esc(s.porNome)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
+    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s;var when=function(v){return v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';};return '<div class="data-item day-row '+(next===start+i?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+(x.p&&hasPendingSignal(x.p)?'<div class="day-warning">Há pendência no cadastro; confirme com a equipe.</div>':'')+(s.porNome?'<div class="item-meta">Marcado por '+esc(s.porNome)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
     document.getElementById('day-pager').innerHTML='<button class="btn o" data-page="day:-1" '+(dayState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+dayState.page+' de '+pages+'</span><button class="btn o" data-page="day:1" '+(dayState.page>=pages?'disabled':'')+'>Próxima →</button>';
     document.getElementById('day-print-list').innerHTML='<h1>Lista de apoio · Dia do Batismo</h1><table><thead><tr><th>Nº</th><th>Nome</th><th>Ficha</th><th>Presente</th><th>Batizado</th><th>Observação</th></tr></thead><tbody>'+all.map(function(r){var st=dayMarks[dayId(r)]||{};return '<tr><td>'+esc(display(r.number))+'</td><td>'+esc(display(r.name))+'</td><td>'+(asBoolean(r.removed)===true?'☒':'☐')+'</td><td>'+(st.presente?'☒':'☐')+'</td><td>'+(st.batizado?'☒':'☐')+'</td><td>'+esc(display(r.note))+'</td></tr>';}).join('')+'</tbody></table>';
   }
@@ -1497,7 +1495,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       }
       return;
     }
-
     var historyButton = event.target.closest('[data-history-tab]');
     if (historyButton) {
       historyState.source = historyButton.dataset.historyTab;
