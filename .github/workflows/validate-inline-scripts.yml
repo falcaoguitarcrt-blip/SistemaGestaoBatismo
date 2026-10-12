@@ -22,3 +22,5 @@ jobs:
         run: node scripts/check-inline-scripts.mjs
       - name: Verificar contratos de integração multi-turma
         run: node scripts/check-multiturma-contract.mjs
+      - name: Verificar importação das duas abas da Turma 36
+        run: node scripts/check-two-sheet-import-contract.mjs
