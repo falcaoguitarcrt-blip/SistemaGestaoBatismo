@@ -642,6 +642,85 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     node.textContent = message;
     node.className = 'import-status' + (type ? ' ' + type : '');
   }
+  var cloudVersionBanner = null;
+  var cloudVersionBannerMessage = null;
+  function showCloudVersionBanner(event) {
+    if (!cloudVersionBanner) {
+      cloudVersionBanner = document.createElement('div');
+      cloudVersionBanner.id = 'cloud-version-conflict-banner';
+      cloudVersionBanner.style.cssText = 'position:sticky;top:0;z-index:10000;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:#fff1d6;color:#754400;border-bottom:1px solid #e7bd66;font-weight:700;text-align:center';
+      cloudVersionBannerMessage = document.createElement('span');
+      var button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Atualizar agora';
+      button.style.cssText = 'min-height:42px;padding:8px 16px;border:0;border-radius:8px;background:#754400;color:white;font:inherit;cursor:pointer';
+      button.addEventListener('click', async function () {
+        button.disabled = true;
+        button.textContent = 'Atualizando…';
+        try {
+          if (typeof window.firebaseRefreshWorkspace !== 'function') throw new Error('Atualização da base indisponível. Recarregue a página.');
+          await window.firebaseRefreshWorkspace();
+        } catch (error) {
+          button.disabled = false;
+          button.textContent = 'Tentar novamente';
+          var note = cloudVersionBanner.querySelector('[data-refresh-error]');
+          if (!note) {
+            note = document.createElement('span');
+            note.dataset.refreshError = 'true';
+            note.style.cssText = 'width:100%;font-weight:500';
+            cloudVersionBanner.appendChild(note);
+          }
+          note.textContent = error.message || 'Não foi possível atualizar os dados.';
+        }
+      });
+      cloudVersionBanner.appendChild(cloudVersionBannerMessage);
+      cloudVersionBanner.appendChild(button);
+    }
+    cloudVersionBannerMessage.textContent = (event && event.detail && event.detail.message) || 'Outra pessoa salvou alterações. Atualize os dados antes de continuar';
+    if (!cloudVersionBanner.isConnected) document.body.prepend(cloudVersionBanner);
+  }
+  function hideCloudVersionBanner() {
+    if (cloudVersionBanner && cloudVersionBanner.parentNode) cloudVersionBanner.parentNode.removeChild(cloudVersionBanner);
+  }
+  function captureTypedFields() {
+    return Array.prototype.slice.call(document.querySelectorAll('input[id], textarea[id], select[id]')).filter(function (node) {
+      return node.id && !node.closest('#auth-shell') && !node.closest('#cloud-version-conflict-banner');
+    }).map(function (node) {
+      return { id: node.id, value: node.value, checked: 'checked' in node ? node.checked : undefined, type: node.type || '' };
+    });
+  }
+  function restoreTypedFields(fields) {
+    fields.forEach(function (field) {
+      var node = document.getElementById(field.id);
+      if (!node || node.closest('#auth-shell')) return;
+      if (field.type === 'checkbox' || field.type === 'radio') node.checked = !!field.checked;
+      else node.value = field.value;
+    });
+  }
+  window.addEventListener('cloud-version-conflict', showCloudVersionBanner);
+  window.addEventListener('cloud-version-offline', showCloudVersionBanner);
+  window.addEventListener('cloud-version-current', hideCloudVersionBanner);
+  window.addEventListener('cloud-version-late-save-settled', function () {
+    setImportMessage('O Firebase confirmou o salvamento após o tempo limite. A base foi atualizada; confira os dados antes de continuar.', 'success');
+  });
+  window.addEventListener('firebase-workspace-refresh', function (event) {
+    var typedFields = captureTypedFields();
+    var workspace = event.detail && event.detail.workspace;
+    if (!workspace) {
+      showCloudVersionBanner();
+      setImportMessage('Não foi encontrada uma versão principal para atualizar. Seus dados locais foram mantidos.', 'error');
+      return;
+    }
+    appData = Object.assign({}, workspace, { id: 'current' });
+    buildAll();
+    restoreTypedFields(typedFields);
+    var editorReview = document.getElementById('manual-person-status');
+    if (editorReview) {
+      editorReview.className = 'import-status success';
+      editorReview.textContent = 'Dados atualizados, revise antes de salvar.';
+    }
+    setImportMessage('Dados atualizados, revise antes de salvar.', 'success');
+  });
   function goTo(sectionId) {
     var button = document.querySelector('#nav [data-s="' + sectionId + '"]');
     if (button) button.click();
@@ -1990,6 +2069,65 @@ async function writeInBatches(actions) {
     await batch.commit();
   }
 }
+let baseWorkspaceVersionId = null;
+let workspaceVersionConflict = false;
+let savingWorkspaceVersionId = null;
+let workspaceVersionUnsubscribe = null;
+
+function workspaceConflictError() {
+  const error = new Error('Outra pessoa salvou alterações. Atualize os dados antes de continuar');
+  error.code = 'failed-precondition';
+  error.workspaceVersionConflict = true;
+  return error;
+}
+function workspaceNetworkError(error) {
+  return !!(error && ['unavailable', 'deadline-exceeded', 'network-request-failed'].includes(error.code)) || !navigator.onLine;
+}
+function workspaceOfflineError() {
+  const error = new Error('Sem conexão com o Firebase. A versão não foi ativada. Reconecte-se e tente novamente.');
+  error.code = 'unavailable';
+  error.workspaceNetworkError = true;
+  return error;
+}
+function withWorkspaceTimeout(promise, milliseconds) {
+  let timer;
+  const timeout = new Promise(function (_, reject) {
+    timer = setTimeout(function () {
+      const error = new Error('Sem conexão ou tempo limite aguardando o Firebase.');
+      error.code = 'deadline-exceeded';
+      error.workspaceTransactionPending = true;
+      reject(error);
+    }, milliseconds);
+  });
+  return Promise.race([promise, timeout]).finally(function () { clearTimeout(timer); });
+}
+function startWorkspaceVersionListener(user) {
+  if (workspaceVersionUnsubscribe) workspaceVersionUnsubscribe();
+  workspaceVersionUnsubscribe = onSnapshot(rootRef(), function (snap) {
+    const currentVersion = snap.exists() ? (snap.data().currentVersion || null) : null;
+    if (savingWorkspaceVersionId && currentVersion === savingWorkspaceVersionId) {
+      baseWorkspaceVersionId = currentVersion;
+      workspaceVersionConflict = false;
+      window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: currentVersion } }));
+      return;
+    }
+    if (currentVersion !== baseWorkspaceVersionId) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: currentVersion } }));
+    }
+  }, function (error) {
+    console.error('Falha ao acompanhar a versão principal do espaço de trabalho', error);
+  });
+}
+function versionPointerValue(snap) {
+  return snap.exists() ? (snap.data().currentVersion || null) : null;
+}
+function assertWorkspaceVersion(tx, metaRef, expectedVersionId) {
+  return tx.get(metaRef).then(function (snap) {
+    if (versionPointerValue(snap) !== expectedVersionId) throw workspaceConflictError();
+    return snap;
+  });
+}
 function rootRef() { return doc(firestore, 'appData', 'primary'); }
 function versionRef(versionId) { return doc(firestore, 'appData', 'primary', 'versions', versionId); }
 function versionChunksRef(versionId) { return collection(firestore, 'appData', 'primary', 'versions', versionId, 'chunks'); }
@@ -1998,63 +2136,155 @@ function liveRef() { return doc(firestore, 'appData', 'primary', 'live', 'state'
 async function saveCloudWorkspace(payload, createVersion) {
   if (!auth.currentUser) throw new Error('Faça login antes de salvar dados no Firebase.');
   const metaRef = rootRef();
-  const metaSnap = await getDoc(metaRef);
   if (!createVersion) {
+    const metaSnap = await getDoc(metaRef);
     if (!metaSnap.exists() || !metaSnap.data().currentVersion) throw new Error('Ainda não existe uma planilha principal no Firebase. Importe o Excel e confirme a importação primeiro.');
     await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
     return true;
   }
-  const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
-  const chunks = [];
-  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
-    chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
-  });
-  const rawNames = Object.keys(payload.rawSheets || {});
-  rawNames.forEach(function (sheetName, sheetIndex) {
-    const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
-    // Firestore rejects nested arrays. Store each worksheet row as an object with one flat cell array.
-    const firestoreRows = rows.map(function (row, rowIndex) {
-      const cells = Array.isArray(row) ? row : [];
-      return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
-    });
-    chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
-  });
-  const chunksRef = versionChunksRef(versionId);
-  await writeInBatches(chunks.map(function (item) {
-    return { type: 'set', ref: doc(chunksRef, item.id), data: item };
-  }));
-  const versionMeta = {
-    schemaVersion: 1,
-    versionId: versionId,
-    sourceFileName: payload.sourceFileName || 'Cadastro iniciado no sistema',
-    sourceFileSize: Number(payload.sourceFileSize || 0),
-    importedAt: payload.importedAt || new Date().toISOString(),
-    sheetStats: safeValue(payload.sheetStats || []),
-    sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
-    turmaPadrao: String(payload.turmaPadrao || '36'),
-    skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
-    checkin: safeValue(payload.checkin || {}),
-    createdAt: new Date().toISOString(),
-    createdBy: auth.currentUser.uid,
-    counts: {
-      participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
-      people: Array.isArray(payload.people) ? payload.people.length : 0,
-      order: Array.isArray(payload.order) ? payload.order.length : 0,
-      order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
-      general: Array.isArray(payload.general) ? payload.general.length : 0,
-      rawSheets: rawNames.length,
-      chunks: chunks.length
+  if (workspaceVersionConflict) throw workspaceConflictError();
+  if (!navigator.onLine) throw workspaceOfflineError();
+
+  const expectedBaseVersionId = baseWorkspaceVersionId;
+  // Confirma conectividade e a versão-base no servidor antes de criar blocos.
+  try {
+    await withWorkspaceTimeout(runTransaction(firestore, async function (tx) {
+      await assertWorkspaceVersion(tx, metaRef, expectedBaseVersionId);
+    }, { maxAttempts: 3 }), 12000);
+  } catch (error) {
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
     }
-  };
-  await setDoc(versionRef(versionId), versionMeta);
-  await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
-  await setDoc(metaRef, { schemaVersion: 1, currentVersion: versionId, updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid }, { merge: true });
-  return true;
+    if (workspaceNetworkError(error)) throw workspaceOfflineError();
+    throw error;
+  }
+
+  const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
+  savingWorkspaceVersionId = versionId;
+  const chunks = [];
+  let pointerTransactionStarted = false;
+  let chunksRef = null;
+  try {
+    ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
+      chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
+    });
+    const rawNames = Object.keys(payload.rawSheets || {});
+    rawNames.forEach(function (sheetName, sheetIndex) {
+      const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
+      // Preserve the existing row-object format to avoid nested arrays in Firestore.
+      const firestoreRows = rows.map(function (row, rowIndex) {
+        const cells = Array.isArray(row) ? row : [];
+        return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
+      });
+      chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
+    });
+    chunksRef = versionChunksRef(versionId);
+    await writeInBatches(chunks.map(function (item) {
+      return { type: 'set', ref: doc(chunksRef, item.id), data: item };
+    }));
+    const versionMeta = {
+      schemaVersion: 1,
+      versionId: versionId,
+      sourceFileName: payload.sourceFileName || 'Cadastro iniciado no sistema',
+      sourceFileSize: Number(payload.sourceFileSize || 0),
+      importedAt: payload.importedAt || new Date().toISOString(),
+      sheetStats: safeValue(payload.sheetStats || []),
+      sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
+      turmaPadrao: String(payload.turmaPadrao || '36'),
+      skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
+      checkin: safeValue(payload.checkin || {}),
+      createdAt: new Date().toISOString(),
+      createdBy: auth.currentUser.uid,
+      counts: {
+        participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
+        people: Array.isArray(payload.people) ? payload.people.length : 0,
+        order: Array.isArray(payload.order) ? payload.order.length : 0,
+        order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
+        general: Array.isArray(payload.general) ? payload.general.length : 0,
+        rawSheets: rawNames.length,
+        chunks: chunks.length
+      }
+    };
+    await setDoc(versionRef(versionId), versionMeta);
+
+    // Compare-and-swap do ponteiro: só publica a nova versão se a base ainda for a mesma.
+    pointerTransactionStarted = true;
+    const pointerPromise = runTransaction(firestore, async function (tx) {
+      const snap = await tx.get(metaRef);
+      if (versionPointerValue(snap) !== expectedBaseVersionId) throw workspaceConflictError();
+      tx.set(metaRef, {
+        schemaVersion: 1,
+        currentVersion: versionId,
+        updatedAt: new Date().toISOString(),
+        updatedBy: auth.currentUser.uid
+      }, { merge: true });
+      tx.set(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+    }, { maxAttempts: 3 });
+    try {
+      await withWorkspaceTimeout(pointerPromise, 12000);
+    } catch (transactionError) {
+      if (transactionError && transactionError.workspaceTransactionPending) {
+        workspaceVersionConflict = true;
+        window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+          detail: { message: 'Sem conexão com o Firebase. A confirmação do salvamento ainda pode chegar. Atualize o estado antes de repetir.' }
+        }));
+        pointerPromise.then(async function () {
+          const refreshedWorkspace = await loadCloudWorkspace();
+          if (refreshedWorkspace) window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: refreshedWorkspace } }));
+          savingWorkspaceVersionId = null;
+          window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+          window.dispatchEvent(new CustomEvent('cloud-version-late-save-settled', { detail: { success: true } }));
+        }).catch(function (lateError) {
+          savingWorkspaceVersionId = null;
+          workspaceVersionConflict = true;
+          console.warn('[workspace] versão possivelmente órfã preservada após confirmação tardia rejeitada:', versionId, lateError);
+          if (lateError && lateError.workspaceVersionConflict) {
+            window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+          } else {
+            window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+              detail: { message: 'O Firebase não confirmou o salvamento. Atualize o estado antes de tentar novamente.' }
+            }));
+          }
+        });
+      }
+      throw transactionError;
+    }
+
+    baseWorkspaceVersionId = versionId;
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+    window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: versionId } }));
+    return true;
+  } catch (error) {
+    if (!(error && error.workspaceTransactionPending)) savingWorkspaceVersionId = null;
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      console.warn('[workspace] versão órfã preservada após conflito:', versionId);
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
+    }
+    if (workspaceNetworkError(error)) {
+      // Nunca apagar versões em falha de rede: a confirmação pode estar indeterminada.
+      if (!(error && error.workspaceTransactionPending)) {
+        console.warn('[workspace] versão possivelmente órfã preservada após falha:', versionId);
+      }
+      const offlineError = workspaceOfflineError();
+      if (error && error.workspaceTransactionPending) offlineError.workspaceTransactionPending = true;
+      throw offlineError;
+    }
+    console.warn('[workspace] versão órfã preservada após falha:', versionId);
+    throw error;
+  }
 }
 async function loadCloudWorkspace() {
   const rootSnap = await getDoc(rootRef());
-  if (!rootSnap.exists() || !rootSnap.data().currentVersion) return null;
-  const versionId = rootSnap.data().currentVersion;
+  const versionId = versionPointerValue(rootSnap);
+  baseWorkspaceVersionId = versionId;
+  workspaceVersionConflict = false;
+  savingWorkspaceVersionId = null;
+  if (!versionId) return null;
   const versionSnap = await getDoc(versionRef(versionId));
   if (!versionSnap.exists()) throw new Error('A versão atual da planilha não foi encontrada no Firestore.');
   const meta = versionSnap.data();
@@ -2093,6 +2323,16 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
+window.firebaseRefreshWorkspace = async function () {
+  const workspace = await loadCloudWorkspace();
+  if (!workspace) {
+    workspaceVersionConflict = true;
+    throw new Error('Não foi encontrada uma versão principal para atualizar. A linha de base permanece bloqueada.');
+  }
+  window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: workspace } }));
+  window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+  return workspace;
+};
 let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine, dayServerConnected=null, daySyncError=false;
 window.firebaseIsAdmin=false;
 function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:!!ready,error:daySyncError}}));}
@@ -2236,6 +2476,9 @@ logoutButton.addEventListener('click', async function () {
 });
 onAuthStateChanged(auth, async function (user) {
   if (!user) {
+    if (workspaceVersionUnsubscribe) { workspaceVersionUnsubscribe(); workspaceVersionUnsubscribe = null; }
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
     handlingUser = false;
     document.body.classList.add('auth-pending');
     loginShell.hidden = false;
@@ -2250,6 +2493,7 @@ onAuthStateChanged(auth, async function (user) {
   setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
   try {
     const workspace = await loadCloudWorkspace();
+    startWorkspaceVersionListener(user);
     startDayListener(user);
     await new Promise(function (resolve) {
       const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
