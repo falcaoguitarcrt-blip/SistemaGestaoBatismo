@@ -1919,7 +1919,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     var message = 'Importar a ordem para a Turma ' + targetTurmaId + ' e enviar os dados conferidos das duas primeiras abas (Batismo e Ordem) para o Firebase?';
     if (hasExistingMarks) message += '\n\nVocê confirmou digitando o número da turma. As marcações existentes permanecerão intactas, mas podem ficar associadas às novas pessoas/posições.';
     if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
-    message += '\n\nA checagem de marcações é repetida imediatamente antes de salvar. Ainda existe uma janela curta entre essa leitura e a gravação; marcações simultâneas nesse intervalo residual podem não ser detectadas pela pré-checagem.';
+    message += '\n\nA checagem de marcações é repetida imediatamente antes de salvar. Ainda existe uma janela residual entre essa leitura e a conclusão do salvamento da versão, incluindo gravação dos blocos e atualização do ponteiro; marcações simultâneas nesse intervalo podem não ser detectadas pela pré-checagem.';
     message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
     if (!window.confirm(message)) return;
     // Segunda checagem após a janela do diálogo de confirmação. Resta uma janela residual até o salvamento.
