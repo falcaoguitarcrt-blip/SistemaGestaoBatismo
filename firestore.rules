@@ -426,7 +426,7 @@ service cloud.firestore {
     function validWorkConfig() {
       return request.resource.data.keys().hasOnly([
           'valorCamiseta','tamanhosCamiseta','tiposPendencia','mensagemPendencia',
-          'mensagemReposicao','mensagemCamiseta','revision','updatedAt','updatedBy'
+          'mensagemReposicao','mensagemCamiseta','mensagemPerguntaCamiseta','revision','updatedAt','updatedBy'
         ])
         && request.resource.data.valorCamiseta is number
         && request.resource.data.valorCamiseta >= 0
@@ -441,6 +441,8 @@ service cloud.firestore {
         && request.resource.data.mensagemReposicao.size() <= 500
         && request.resource.data.mensagemCamiseta is string
         && request.resource.data.mensagemCamiseta.size() <= 500
+        && request.resource.data.mensagemPerguntaCamiseta is string
+        && request.resource.data.mensagemPerguntaCamiseta.size() <= 500
         && request.resource.data.revision is int
         && request.resource.data.revision >= 1
         && request.resource.data.updatedAt is string
