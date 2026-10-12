@@ -1,0 +1,138 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function userPath() {
+      return /databases/$(database)/documents/usuarios/$(request.auth.uid);
+    }
+    function activeUser() {
+      return signedIn()
+        && exists(userPath())
+        && get(userPath()).data.ativo == true
+        && get(userPath()).data.email == request.auth.token.email;
+    }
+    function roleIs(role) {
+      return activeUser() && get(userPath()).data.perfil == role;
+    }
+    function admin() { return roleIs('admin'); }
+    function pastor() { return roleIs('pastor') || admin(); }
+    function secretaria() { return roleIs('secretaria'); }
+    function lider() { return roleIs('lider'); }
+    function voluntario() { return roleIs('voluntario'); }
+    function staffRead() { return admin() || secretaria() || lider(); }
+    function staffWrite() { return admin() || secretaria(); }
+    function leaderOwnsTurma(turmaId) {
+      return lider() && get(userPath()).data.turmaId == turmaId;
+    }
+    function validMark() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId', 'posicaoOuPessoaId', 'presente', 'presenteEm',
+          'batizado', 'batizadoEm', 'porUid', 'porNome'
+        ])
+        && request.resource.data.turmaId is string
+        && request.resource.data.posicaoOuPessoaId is string
+        && request.resource.data.presente is bool
+        && request.resource.data.batizado is bool
+        && request.resource.data.porUid == request.auth.uid
+        && request.resource.data.porNome is string;
+    }
+
+    // O primeiro admin deve ser cadastrado manualmente no Console do Firebase.
+    // Usuários sem documento ativo em usuarios/{uid} não acessam o banco.
+    match /usuarios/{uid} {
+      allow read: if activeUser() && (request.auth.uid == uid || admin());
+      allow create, update: if admin()
+        && request.resource.data.keys().hasOnly(['email','perfil','ativo','turmaId','nome','criadoEm','atualizadoEm'])
+        && request.resource.data.email is string
+        && request.resource.data.perfil in ['admin','secretaria','lider','voluntario','pastor']
+        && request.resource.data.ativo is bool;
+      allow delete: if false;
+    }
+
+    // A base antiga contém dados de todas as pessoas em blocos monolíticos.
+    // Somente admin/pastor até as telas serem migradas para coleções separadas.
+    match /appData/primary {
+      allow read: if pastor();
+      allow write: if admin();
+    }
+    match /appData/primary/{nested=**} {
+      allow read: if pastor();
+      allow write: if admin();
+    }
+
+    match /turmas/{turmaId} {
+      allow read: if staffRead() || (voluntario() && resource.data.status == 'ativa');
+      allow create, update: if staffWrite()
+        && request.resource.data.keys().hasOnly([
+          'numero','dataBatismo','local','status','capacidade','quantidadeNaPlanilha',
+          'camposAConfirmar','migrationVersion','updatedAt'
+        ])
+        && request.resource.data.numero is int
+        && request.resource.data.status in ['planejada','ativa','encerrada']
+        && (request.resource.data.capacidade == null || request.resource.data.capacidade is int);
+      allow delete: if false;
+    }
+
+    match /pessoas/{pessoaId} {
+      allow read: if staffRead() || leaderOwnsTurma(resource.data.turmaId);
+      allow create, update: if staffWrite() || leaderOwnsTurma(request.resource.data.turmaId);
+      allow delete: if false;
+
+      match /privado/{tipo} {
+        allow read: if tipo == 'contato' ? (staffRead() || leaderOwnsTurma(get(/databases/$(database)/documents/pessoas/$(pessoaId)).data.turmaId))
+          : pastor();
+        allow create, update: if tipo == 'contato' ? staffWrite() : pastor();
+        allow delete: if false;
+      }
+    }
+
+    match /ordem/{posicaoId} {
+      allow read: if staffRead()
+        || leaderOwnsTurma(resource.data.turmaId)
+        || (voluntario()
+          && resource.data.turmaId == get(/databases/$(database)/documents/turmas/turma_36).data.id
+          && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa');
+      allow create, update: if staffWrite() || leaderOwnsTurma(request.resource.data.turmaId);
+      allow delete: if false;
+    }
+
+    match /marcacoesBatismo/{marcacaoId} {
+      allow read: if staffRead()
+        || (voluntario()
+          && resource.data.turmaId == '36'
+          && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa');
+      allow create, update: if activeUser()
+        && (admin() || secretaria() || lider() || voluntario())
+        && validMark()
+        && request.resource.data.turmaId == '36'
+        && get(/databases/$(database)/documents/turmas/turma_36).data.status == 'ativa';
+      allow delete: if admin();
+    }
+
+    match /regrasInterpretacao/{id} {
+      allow read, create, update: if admin();
+      allow delete: if false;
+    }
+    match /gruposDuplicados/{id} {
+      allow read, create, update: if admin();
+      allow delete: if false;
+    }
+
+    // Auditoria é append-only. O conteúdo da origem pessoal fica fora do log.
+    match /auditoria/{id} {
+      allow read: if pastor();
+      allow create: if admin()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.acao is string
+        && request.resource.data.quando is string;
+      allow update, delete: if false;
+    }
+
+    // Sem regra explícita: acesso negado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
