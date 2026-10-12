@@ -3,7 +3,7 @@
 ## Coleções
 
 - `turmas/{turmaId}`: `numero`, `dataBatismo`, `local`, `status` (`planejada | ativa | encerrada`), `capacidade`, `quantidadeNaPlanilha`, `camposAConfirmar`.
-- `pessoas/{pessoaId}`: dados normalizados de nome, telefone, idade, faixa etária, menor, status, jornada, aulas, aulão, camiseta, pendência e referência `origem` (aba/linha/versão). O telefone está neste documento, que não é acessível ao perfil voluntário.
+- `pessoas/{pessoaId}`: dados normalizados de nome, telefone, idade, faixa etária, menor, status, jornada, aulas, aulão (inscrito/data/dataTexto), camiseta, pendência e referência `origem` (aba/linha/versão). O telefone está neste documento, que não é acessível ao perfil voluntário.
 - `pessoas/{pessoaId}/privado/origem`: cópia exata da linha original, acessível só a admin/pastor; a origem não é substituída pela normalização.
 - `ordem/{posicaoId}`: turma, posição, nome de origem, nome de busca, `pessoaId` e campos originais. Uma posição sem nome também vira documento.
 - `gruposDuplicados/{id}`: decisão confirmada (`mesclar | manter | ignorar`), IDs envolvidos e pessoa canônica quando houver.
@@ -19,7 +19,7 @@
 - Telefone é normalizado para `+55DDDNÚMERO` quando há 10 ou 11 dígitos nacionais. Formatação suspeita ou dígito inválido é listada para revisão, sem corrigir silenciosamente.
 - Camiseta preenchida vira `quer`; “já tem” vira `ja_tem`; vazio vira `nao_respondeu`. Apenas `PG CAMISETA = true` vira pago. Valor e entrega ficam nulos se não existem na planilha.
 - Texto livre é agrupado e sugerido. A sugestão não altera os campos estruturados até o admin aprová-la. O texto original fica preservado em `privado/origem`.
-- Duplicados não são apagados. “Mesclar” exige escolher o documento principal e confirmação explícita; a migração mantém os documentos e grava a relação canônica. “Manter ambos” e “Ignorar” também mantêm cada pessoa.
+- Duplicados não são apagados. “Mesclar” exige escolher o documento principal e confirmação explícita; copia somente campos estruturados vazios para o principal, registra conflitos sem escolher valores e mantém todos os documentos e origens ligados pela relação canônica. “Manter ambos” e “Ignorar” também mantêm cada pessoa.
 - Ordem associa automaticamente apenas nome normalizado com correspondência única. Repetidos exigem escolha na revisão; sem correspondência ficam sem `pessoaId` para revisão posterior.
 
 ## Segurança e publicação
