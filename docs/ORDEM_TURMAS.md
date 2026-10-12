@@ -23,6 +23,8 @@ SortableJS 1.15.7 permite arrastar pela alça. A gravação atualiza todos os n�
 
 O botão só habilita no dia seguinte à data do batismo. Admin/secretaria inicia o encerramento, que congela a Ordem e bloqueia novas alterações da turma. As pendências abertas são arquivadas em grupos pequenos, cada uma com auditoria. Depois, uma transação confirma que não restam pendências abertas, cria os documentos de batismo para quem foi marcado como batizado e muda a turma para encerrada.
 
+**Limite de segurança:** a checagem da data está hoje na interface. Como `dataBatismo` é guardada como texto, as regras atuais não comprovam o prazo em gravações diretas de contas privilegiadas. Antes de produção, a data precisa ser validada no backend ou em um campo tipado que as regras consigam comparar.
+
 Se a conexão cair durante o arquivamento, a turma continua bloqueada com o estado de encerramento em andamento. Quando a conexão voltar, use **Continuar encerramento**. As pendências já arquivadas são ignoradas, então a retomada não duplica os registros. O histórico original dos cadastros não é apagado.
 
 ## Publicar com segurança
