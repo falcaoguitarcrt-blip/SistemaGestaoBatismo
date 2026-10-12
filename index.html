@@ -2327,7 +2327,7 @@ window.firebasePeopleApi={
    if(Object.keys(patch.contato||{}).length)tx.set(contactRef,Object.assign({},safeValue(patch.contato),{updatedAt:now,updatedBy:auth.currentUser.uid}),{merge:true});
    if(Object.keys(patch.perfil||{}).length)tx.set(profileRef,Object.assign({},safeValue(patch.perfil),{updatedAt:now,updatedBy:auth.currentUser.uid}),{merge:true});
    const actor=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
-   tx.set(auditRef,{acao:options.criar?'cadastro_criado':'cadastro_atualizado',documento:'pessoas/'+personId,uid:auth.currentUser.uid,porNome:actor,quando:now,alteracoes:changes});
+   tx.set(auditRef,{acao:options.criar?'cadastro_criado':'cadastro_atualizado',documento:'pessoas/'+personId,pessoaId:personId,revision:nextRevision,uid:auth.currentUser.uid,porNome:actor,quando:now,alteracoes:changes});
    return {revision:nextRevision};
   });
  }
