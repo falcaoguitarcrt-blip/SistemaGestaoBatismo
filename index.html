@@ -21,6 +21,7 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 nav{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding:2px 1px 5px;scrollbar-width:thin}
 nav button{flex:none;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;padding:8px 14px;font:inherit;font-size:13px;min-height:40px}
 nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+nav .nav-secondary{display:none}nav .nav-more-label{align-self:center;font-size:12px;color:var(--mut);padding-left:4px}nav select{flex:none;min-height:40px;max-width:170px;border:1px solid var(--ln);border-radius:99px;padding:7px 12px;background:var(--card);color:var(--tx);font:inherit;font-size:13px}
 main{max-width:980px;margin:0 auto;padding:14px}
 section{display:none}section.on{display:block}
 .card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
@@ -184,7 +185,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 <header>
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
-<button class="on" data-s="home">▦ Visão geral</button><button data-s="tur">♙ Turmas</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button><button data-s="pen">⚑ Pendências</button><button data-s="cam">👕 Camisetas</button><button data-s="rep">📅 Reposição</button><button data-s="his">📜 Histórico</button><button data-s="imp">⬆ Importar</button><button data-s="cfg">⚙ Config</button>
+<button class="on" data-s="home">▦ Painel</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button>
+<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
+<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="cam" tabindex="-1" aria-hidden="true">Camisetas</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
 </nav>
 </header>
 <main>
@@ -368,6 +371,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if (button) button.click();
   }
 
+  var navMore = document.getElementById('nav-more');
+  if (navMore) navMore.addEventListener('change', function () {
+    if (!this.value) return;
+    var target = document.querySelector('#nav button[data-s="' + this.value + '"]');
+    if (target) target.click();
+  });
+
   nav.addEventListener('click', function (event) {
     var button = event.target.closest('button[data-s]');
     if (!button) return;
@@ -375,6 +385,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       item.classList.remove('on');
     });
     button.classList.add('on');
+    if (navMore && button.dataset.s !== 'tur' && button.dataset.s !== 'pen' && button.dataset.s !== 'cam' && button.dataset.s !== 'rep' && button.dataset.s !== 'his' && button.dataset.s !== 'imp' && button.dataset.s !== 'cfg') navMore.value = '';
+    if (navMore && button.classList.contains('nav-secondary')) navMore.value = button.dataset.s;
     button.setAttribute('aria-current', 'page');
     document.querySelectorAll('#nav button').forEach(function (item) {
       if (item !== button) item.removeAttribute('aria-current');
@@ -520,7 +532,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var appData = null;
   var pendingImport = null;
   var selectedPersonRow = null;
-  var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
+  var peopleState = { query: '', turma: '36', filter: 'all', page: 1 };
   var orderState = { query: '', filter: 'all', page: 1, turmaId: '' };
   var manualOrderEditingId = '';
   var dayState = { query: '' , page: 1, turmaId: '' };
@@ -927,9 +939,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function buildPeople() {
     var section = document.getElementById('pes');
     var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
-    // Não presumir que a turma de maior número seja a atual.
-    // Até existir uma configuração explícita de turma vigente, mostrar todas.
-    if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
+    // Fluxo operacional atual: abrir Pessoas já filtrado para a Turma 36.
+    // Se a turma não existir no conjunto de dados, manter Todas as turmas sem inventar registros.
+    if (turmas.indexOf('36') >= 0) { if (!peopleState.turma || peopleState.turma === '') peopleState.turma = '36'; }
+    else if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
     section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
       '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa da planilha</button></div>' +
       '<div class="card"><h3 style="margin-top:0">Cadastro direto no sistema</h3><p class="section-sub">Cadastro com identificador próprio, independente das linhas do Excel.</p><form id="manual-person-form"><div class="record-editor-fields"><label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="name"></label><label class="record-editor-field">Telefone<input id="manual-person-phone" maxlength="50" autocomplete="tel"></label><label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label><label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('') + '</select></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite"></div></form><div id="manual-person-results" class="data-list"></div></div>' +
