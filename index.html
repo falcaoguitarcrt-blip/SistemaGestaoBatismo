@@ -874,40 +874,54 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function buildHome() {
     if (!appData) return;
     var home = document.getElementById('home');
-    // A tela principal representa somente o batismo atual: turma 36.
-    // As demais turmas continuam disponíveis nas respectivas telas de gestão.
     var turmaAtual = '36';
-    var people = appData.people.filter(function (p) { return matchesTurmaFilter(p, turmaAtual); });
-    var peopleNamed = people.filter(function (p) { return !!p.name; });
-    var withoutName = people.length - peopleNamed.length;
-    var noPhone = people.filter(function (p) { return isBlank(p.phone); }).length;
-    var done = people.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
-    var makeups = people.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
+    var people = (appData.people || []).filter(function (p) { return matchesTurmaFilter(p, turmaAtual); });
+    var namedPeople = people.filter(function (p) { return !!p.name; });
+    var pendingPeople = people.filter(hasPendingSignal);
+    var journeyDone = namedPeople.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
+    var journeyKnown = namedPeople.filter(function (p) { return !isBlank(p.journey); }).length;
     var shirts = shirtSummary(turmaAtual);
-    var order = Array.isArray(appData.order) ? appData.order : [];
-    var namedOrder = order.filter(function (p) { return !!p.name; }).length;
-    var duplicateGroups = duplicateNameGroups(peopleNamed, function (p) { return p.name; });
-    var percentDone = Math.round((done / Math.max(people.length, 1)) * 100);
-    home.innerHTML = '<div class="card hero"><small>BATISMO ATUAL · TURMA 36</small><h2>Visão geral do batismo</h2><small>Indicadores restritos aos cadastros da turma 36. As outras turmas permanecem nas telas de gestão.</small><div class="bar" style="margin:12px 0"><b style="width:' + percentDone + '%"></b></div><button type="button" class="btn" data-go="ord">Abrir ordem da turma 36 →</button></div>' +
+    var orderRows = (appData.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: '36' }); });
+    var manualRows = (appData.ordensTurma || []).filter(function (r) { return String(r.turmaId) === turmaAtual; }).map(function (r) {
+      return Object.assign({}, r, { sourceRow: r.id, number: r.number, name: r.name, note: r.note, removed: r.removed, participantId: r.participantId, __turmaId: turmaAtual, __manual: true });
+    });
+    var orderRows36 = orderRows.concat(manualRows);
+    var namedOrder = orderRows36.filter(function (r) { return !!r.name; });
+    var presentCount = 0, baptizedCount = 0;
+    namedOrder.forEach(function (r) {
+      var id = dayId(r), mark = dayMarks[id] || {};
+      if (mark.presente) presentCount++;
+      if (mark.batizado) baptizedCount++;
+    });
+    var journeyPercent = namedPeople.length ? Math.round(journeyDone * 100 / namedPeople.length) : 0;
+    var journeyKnownLabel = namedPeople.length ? journeyKnown + ' de ' + namedPeople.length + ' com jornada informada' : 'Nenhum cadastro da turma com nome';
+    var presencePercent = namedOrder.length ? Math.round(presentCount * 100 / namedOrder.length) : 0;
+    var shirtsText = shirts.shirts.length ? (shirts.unpaid.length + ' não pagas · ' + shirts.paid.length + ' pagas') : 'Nenhum tamanho informado';
+    home.innerHTML =
+      '<div class="card hero"><small>BATISMO ATUAL · TURMA 36</small><h2>Resumo do batismo</h2><p style="margin:6px 0 0;opacity:.9">Acompanhamento exclusivo da turma 36. Os indicadores usam os registros disponíveis, sem estimar dados ausentes.</p><div class="bb"><button type="button" class="btn" data-go="dia">Acompanhar presenças →</button><button type="button" class="btn o" data-go="ord">Ver ordem</button></div></div>' +
       '<div class="data-metrics">' +
-      metric('Pessoas da turma 36', people.length, 'Somente registros identificados como turma 36') +
-      metric('Pessoas com nome', peopleNamed.length, 'Cadastros da turma atual') +
-      metric('Registros sem nome', withoutName, 'Preservados para conferência') +
-      metric('Posições preenchidas na ordem', namedOrder, numberLabel(order.length) + ' posições da ordem da turma 36') +
+      metric('Participantes cadastrados', namedPeople.length, 'Cadastros identificados como turma 36') +
+      metric('Com pendências', pendingPeople.length, 'Pessoas com ao menos um sinal registrado') +
+      metric('Jornada concluída', journeyDone, journeyKnownLabel) +
+      metric('Presentes no dia', presentCount, namedOrder.length + ' pessoas nomeadas na ordem') +
       '</div>' +
-      '<div class="card"><h2 class="t">Preparação da turma 36</h2>' +
-      '<div class="grid">' +
-      '<div class="data-metric"><span>Jornada concluída</span><strong>' + numberLabel(done) + '</strong><span class="item-meta">' + percentDone + '% dos registros desta turma</span></div>' +
-      '<div class="data-metric"><span>Com indicação de reposição</span><strong>' + numberLabel(makeups) + '</strong><span class="item-meta">Jornada ou aula para repor</span></div>' +
-      '<div class="data-metric"><span>Sem telefone preenchido</span><strong>' + numberLabel(noPhone) + '</strong><span class="item-meta">Dados da turma 36</span></div>' +
-      '<div class="data-metric"><span>Camisetas não pagas</span><strong>' + numberLabel(shirts.unpaid.length) + '</strong><span class="item-meta">Somente tamanhos informados</span></div>' +
-      '</div></div>' +
-      '<div class="card"><h2 class="t">Conferências da turma 36</h2><div class="security-list">' +
-      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(duplicateGroups) + '</strong> grupos de nomes repetidos nesta turma. Nenhum registro foi mesclado.</span></div>' +
-      '<div class="security-row"><span class="status-dot"></span><span><strong>' + numberLabel(withoutName) + '</strong> registros sem nome, mantidos para revisão.</span></div>' +
-      '<div class="security-row"><span class="status-dot"></span><span>Os indicadores desta tela não somam participantes de outras turmas.</span></div>' +
-      '</div><div class="bb"><button type="button" class="btn o" data-go="pen">Ver pendências</button><button type="button" class="btn o" data-go="dia">Abrir dia do batismo</button></div></div>' +
-      '<p class="note">Esta visão geral é exclusiva da turma 36. As telas de cadastro e gestão de outras turmas continuam disponíveis separadamente.</p>';
+      '<div class="card"><h2 class="t">Andamento da preparação</h2>' +
+      '<div class="data-bar-row"><span>Jornada</span><div class="data-bar"><i style="width:' + journeyPercent + '%"></i></div><em>' + journeyDone + '/' + namedPeople.length + '</em></div>' +
+      '<p class="section-sub">A conclusão considera apenas o status “concluída” registrado na jornada. Cadastros sem informação não são considerados concluídos.</p>' +
+      '<div class="bb"><button type="button" class="btn o" data-go="pes">Ver participantes</button><button type="button" class="btn o" data-go="pen">Resolver pendências</button></div></div>' +
+      '<div class="card"><h2 class="t">Dia do batismo · Turma 36</h2>' +
+      '<div class="data-metrics">' +
+      metric('Presentes', presentCount, 'De ' + namedOrder.length + ' pessoas nomeadas na ordem') +
+      metric('Batizados', baptizedCount, 'Marcações registradas no sistema') +
+      '</div>' +
+      '<div class="data-bar-row"><span>Presença</span><div class="data-bar"><i style="width:' + presencePercent + '%"></i></div><em>' + presentCount + '/' + namedOrder.length + '</em></div>' +
+      '<p class="section-sub">As marcações são as sincronizadas pelo sistema. Posições sem nome não entram no total de pessoas.</p>' +
+      '<button type="button" class="btn o" data-go="dia">Abrir acompanhamento do dia</button></div>' +
+      '<div class="card"><h2 class="t">Camisetas</h2><div class="data-metrics">' +
+      metric('Com tamanho informado', shirts.shirts.length, 'Não inclui “Já tem”') +
+      metric('Pagamentos pendentes', shirts.unpaid.length, shirtsText) +
+      '</div><button type="button" class="btn o" data-go="cam">Ver camisetas da turma</button></div>' +
+      '<p class="note">Todos os números desta visão geral são calculados a partir dos dados disponíveis para a turma 36. Registros sem turma identificada não são atribuídos automaticamente.</p>';
   }
 
   function buildPeople() {
