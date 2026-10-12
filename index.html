@@ -522,7 +522,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var selectedPersonRow = null;
   var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
   var orderState = { query: '', filter: 'all', page: 1 };
-  var dayState = { query: '' , page: 1 };
+  var dayState = { query: '' , page: 1, turmaId: '' };
   var pendingState = { query: '', page: 1 };
   var shirtState = { query: '', page: 1 };
   var returnState = { query: '', page: 1 };
@@ -789,6 +789,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       skippedDuplicateHeaders: skippedDuplicateHeaders,
       checkin: {},
       turmas: (appData && Array.isArray(appData.turmas) ? appData.turmas : []),
+      ordensTurma: (appData && Array.isArray(appData.ordensTurma) ? appData.ordensTurma : []),
       turmaPadrao: appData && appData.turmaPadrao ? appData.turmaPadrao : '',
       participantes: (appData && Array.isArray(appData.participantes) ? appData.participantes : []),
       sourceSheetNames: selectedSheetNames.slice()
@@ -1038,6 +1039,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       people: (appData.people || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
       order: (appData.order || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
       turmas: (appData.turmas || []).map(function (item) { return Object.assign({}, item); }),
+      ordensTurma: (appData.ordensTurma || []).map(function(item){return Object.assign({},item);}),
       participantes: (appData.participantes || []).map(function (item) { return Object.assign({}, item, { historicoTurmas: (item.historicoTurmas || []).map(function(h){return Object.assign({},h);}), participacoes: (item.participacoes || []).map(function(h){return Object.assign({},h);}) }); }),
       checkin: Object.assign({}, appData.checkin || {})
     });
@@ -1166,13 +1168,16 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   var dayMarks = {}, dayFilter='todos', dayStatus={online:navigator.onLine,pending:0,ready:false}, undoTimer=null;
   function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
-  function personForDay(row){var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)==='36';})||(appData.people||[]).find(function(p){return normal(p.name)===n;})||null;}
-  function dayId(row){return '36_'+String(clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');}
+  function personForDay(row){if(row&&row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
+  function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
+  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);});if(manual.length||String(t.id)!=='36')return manual.map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});});}
+  function dayId(row){var t=String(row.__turmaId||'36'),pos=String(clean(row.id)||clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');return t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos;}
   function dayBadges(row,p){var b='';if(normal(row.note||'').includes('prioridade'))b+=chip('Prioridade','t-er');if(p&&Number(p.age)>0&&Number(p.age)<18)b+=chip('Menor','t-pe');if(p&&hasPendingSignal(p))b+=chip('Pendência','t-pe');return b;}
   function buildDay(){
     var sec=document.getElementById('dia');
-    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Dia do batismo</h2><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button><button type="button" class="btn o" id="day-json-backup" hidden>Exportar backup JSON agora</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
+    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Dia do batismo</h2><div class="card"><label for="day-turma-select"><b>Turma do evento</b></label><select id="day-turma-select" class="day-turma-select" aria-label="Selecionar turma">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(dayState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'> '+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select><p class="section-sub">Cada turma possui sua própria ordem e marcações.</p></div><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button><button type="button" class="btn o" id="day-json-backup" hidden>Exportar backup JSON agora</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
     sec.querySelector('#day-search').oninput=function(){dayState.query=this.value;dayState.page=1;drawDayResults();};
+    sec.querySelector('#day-turma-select').onchange=function(){dayState.turmaId=this.value;dayState.page=1;dayState.query='';sec.querySelector('#day-search').value='';drawDayResults();};
     sec.querySelectorAll('[data-day-filter]').forEach(function(b){b.onclick=function(){dayFilter=b.dataset.dayFilter;dayState.page=1;drawDayResults();};});
     sec.querySelector('[data-day-print]').onclick=function(){window.print();};
     var jb=sec.querySelector('#day-json-backup');jb.hidden=!window.firebaseIsAdmin;jb.onclick=function(){if(window.firebaseIsAdmin&&appData)downloadJson(Object.assign({},appData,{marcacoesBatismo:dayMarks}));};
@@ -1185,7 +1190,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
   function drawDayResults(){
     var host=document.getElementById('day-results');if(!appData||!host)return;
-    var all=(appData.order||[]).slice().sort(function(a,b){return Number(a.number||a.sourceRow)-Number(b.number||b.sourceRow);});
+    var all=orderForTurma().slice().sort(function(a,b){return Number(a.number||a.sourceRow)-Number(b.number||b.sourceRow);});
     var rows=all.filter(function(r){return !!r.name;}).map(function(r){return {row:r,id:dayId(r),s:dayMarks[dayId(r)]||{},p:personForDay(r)};});
     var total=rows.length,pres=rows.filter(function(x){return x.s.presente;}).length,bat=rows.filter(function(x){return x.s.batizado;}).length;
     rows=rows.filter(function(x){if(dayFilter==='aguardando'&&(x.s.presente||x.s.batizado))return false;if(dayFilter==='presentes'&&!x.s.presente)return false;if(dayFilter==='batizados'&&!x.s.batizado)return false;return !dayState.query||normal([x.row.name,x.row.number,x.row.note].join(' ')).includes(normal(dayState.query));});
@@ -1705,7 +1710,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         buildAll();
         goTo('home');
       } else {
-        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Cadastro iniciado no sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], generalAll: [], generalUnmapped: [], checkin: {}, turmas: [], turmaPadrao: '', participantes: [] };
+        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Cadastro iniciado no sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], generalAll: [], generalUnmapped: [], checkin: {}, turmas: [], ordensTurma: [], turmaPadrao: '', participantes: [] };
         renderEmptyWorkspace();
         buildAll();
         setImportMessage('Firebase conectado. Ainda não há uma planilha principal. Você pode criar uma turma vazia e cadastrar os participantes diretamente no sistema.', 'success');
@@ -1822,7 +1827,7 @@ async function saveCloudWorkspace(payload, createVersion) {
   }
   const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
   const chunks = [];
-  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'participantes'].forEach(function (section) {
+  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
     chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
   });
   const rawNames = Object.keys(payload.rawSheets || {});
@@ -1878,7 +1883,7 @@ async function loadCloudWorkspace() {
     id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
     sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
-    general: [], generalAll: [], generalUnmapped: [], turmas: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
   };
   const chunkSnap = await getDocs(versionChunksRef(versionId));
   const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
@@ -1905,6 +1910,7 @@ async function loadCloudWorkspace() {
   if (liveSnap.exists() && liveSnap.data().checkin) workspace.checkin = liveSnap.data().checkin;
   if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
   if (!Array.isArray(workspace.participantes)) workspace.participantes = [];
+  if (!Array.isArray(workspace.ordensTurma)) workspace.ordensTurma = [];
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
@@ -1916,7 +1922,7 @@ window.addEventListener('offline',function(){dayOnline=false;emitDayStatus(!!day
 window.firebaseToggleDayMark=async function(id,fields,row){
  if(!auth.currentUser)throw new Error('Faça login para marcar.');
  const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
- const data=Object.assign({turmaId:'36',posicaoOuPessoaId:String(row&&(row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields);
+ const turmaId=String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36'));const data=Object.assign({turmaId:turmaId,posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields);
  dayPending.add(id);emitDayStatus(!!dayUnsub);setDoc(ref,data,{merge:true}).catch(function(error){dayPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message}}));});return true;
 };
 window.addEventListener('day-legacy-marks',async function(event){
@@ -1937,9 +1943,9 @@ window.addEventListener('day-legacy-marks',async function(event){
 });
 function startDayListener(user){
  if(dayUnsub)dayUnsub();
- const q=query(collection(firestore,'marcacoesBatismo'),where('turmaId','==','36'));
+ const q=query(collection(firestore,'marcacoesBatismo'));
  dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
-  const marks={};dayPending.clear();snap.forEach(function(d){marks[d.id]=d.data();if(d.metadata.hasPendingWrites)dayPending.add(d.id);});
+  const marks={};dayPending.clear();const activeTurma=String(dayState.turmaId||appData&&appData.turmaPadrao||'36');snap.forEach(function(d){const data=d.data();if(String(data.turmaId||'36')===activeTurma){marks[d.id]=data;if(d.metadata.hasPendingWrites)dayPending.add(d.id);}});
   dayOnline=navigator.onLine;
   window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,pending:dayPending.size,ready:true}}}));
  },function(e){console.error(e);});
