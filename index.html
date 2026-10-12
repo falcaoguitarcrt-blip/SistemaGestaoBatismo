@@ -1311,6 +1311,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawDayResults();});
     window.addEventListener('day-checkin-error',function(e){var d=e.detail||{};if(d.id)return;dayToast(d.conflict?'Outra pessoa alterou esta posição. O desfazer foi cancelado.':(d.network||String(d.message||'').indexOf('Sem conexão')>=0)?(d.message||'Sem conexão com a internet.'):('Não foi possível salvar: '+(d.message||'verifique a conexão e as permissões.')));});
     window.addEventListener('day-audit-warning',function(e){var message=(e.detail&&e.detail.message)||'A marcação foi salva, mas a auditoria não foi confirmada. Avise o administrador.';var toast=document.getElementById('day-toast');if(toast&&toast.querySelector('#day-undo')){var note=document.createElement('div');note.textContent=message;note.style.marginBottom='8px';toast.insertBefore(note,toast.querySelector('#day-undo'));toast.classList.add('show');}else dayToast(message);});
+    window.addEventListener('day-undo-settled',function(e){var d=e.detail||{};if(!d.id)return;if(d.success){dayWriteState[d.id]={state:'saved'};dayToast('Desfazer confirmado pelo servidor.');}else{dayWriteState[d.id]={state:'error',message:d.code==='unavailable'||d.code==='deadline-exceeded'?'Sem conexão com o servidor.':(d.message||'Não foi possível desfazer.')};dayToast(dayWriteState[d.id].message);}drawDayResults();});
     function settleConnectivity(isOnline){clearTimeout(dayConnectivityTimer);var eventAt=performance.now();dayConnectivityTimer=setTimeout(function(){dayStatus.online=isOnline;if(!isOnline){Object.keys(dayWriteState).forEach(function(id){if(dayWriteState[id].state==='saving')dayWriteState[id]={state:'pending-sync'};});}drawDayResults();requestAnimationFrame(function(){console.info('[Dia do Batismo] conectividade refletida em '+((performance.now()-eventAt)/1000).toFixed(3)+' s após estabilização de 350 ms.');});},350);}
     window.addEventListener('online',function(){settleConnectivity(true);});window.addEventListener('offline',function(){settleConnectivity(false);});
     drawDayResults();
@@ -1796,7 +1797,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
        if(result.auditError){dayToast('Marcação salva no servidor, mas a auditoria não foi registrada. Avise o administrador.');}
        else dayToast(on?'Marcação salva no servidor'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação atualizada no servidor',async function(){
         try { var undoResult=await window.firebaseUndoDayMark(id,restore,row,result.after);dayWriteState[id]=undoResult.auditError?{state:'audit-error'}:{state:'saved'};drawDayResults();dayToast(undoResult.auditError?'Desfazer concluído no servidor, mas a auditoria não foi registrada. Avise o administrador.':'Desfazer confirmado no servidor.'); }
-        catch(undoError){dayWriteState[id]={state:'error',message:undoError.message||'não foi possível desfazer'};drawDayResults();dayToast(undoError.message||'Não foi possível desfazer.');}
+        catch(undoError){var networkError=['unavailable','deadline-exceeded','network-request-failed'].includes(undoError.code)||String(undoError.message||'').indexOf('Sem conexão')>=0;dayWriteState[id]={state:networkError?'pending-sync':'error',message:undoError.message||'não foi possível desfazer'};drawDayResults();dayToast(undoError.message||'Não foi possível desfazer.');}
        });
       } catch(saveError) {dayWriteState[id]={state:'error',message:saveError.message||'verifique a conexão e tente novamente'};drawDayResults();dayToast('Não foi possível salvar no servidor: '+(saveError.message||'verifique a conexão.'));}
       return;
@@ -2092,8 +2093,10 @@ window.addEventListener('online',function(){settleServerConnectivity(true);});
 window.addEventListener('offline',function(){settleServerConnectivity(false);});
 function makeOperationId(){return (typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():String(Date.now())+'_'+Math.random().toString(36).slice(2);}
 function auditRef(){return doc(collection(firestore,'marcacoesBatismoAuditoria'));}
-function auditRecord(action,id,row,before,after,uid,nome,operationId){return {acao:action,marcacaoId:id,turmaId:String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36')),posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),quemUid:uid,quemNome:nome,quando:serverTimestamp(),antes:before||{},depois:after||{},operacaoId:operationId};}
-function warnAuditOnce(message){try{if(sessionStorage.getItem('dayAuditWarningShown')==='1')return;sessionStorage.setItem('dayAuditWarningShown','1');}catch(e){}window.dispatchEvent(new CustomEvent('day-audit-warning',{detail:{message:message}}));}
+function auditSnapshot(value){const out=Object.assign({},value||{});delete out.atualizadoEm;return out;}
+function auditRecord(action,id,row,before,after,uid,nome,operationId){return {acao:action,marcacaoId:id,turmaId:String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36')),posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,quemUid:uid,quemNome:nome,quando:serverTimestamp(),atualizadoEm:serverTimestamp(),antes:auditSnapshot(before),depois:auditSnapshot(after),operacaoId:operationId};}
+let auditWarningAlreadyShown=false;
+function warnAuditOnce(message){if(auditWarningAlreadyShown)return;auditWarningAlreadyShown=true;try{if(sessionStorage.getItem('dayAuditWarningShown')==='1')return;sessionStorage.setItem('dayAuditWarningShown','1');}catch(e){}window.dispatchEvent(new CustomEvent('day-audit-warning',{detail:{message:message}}));}
 window.firebaseToggleDayMark=async function(id,fields,row,before){
  if(!auth.currentUser)throw new Error('Faça login para marcar.');
  const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe',operationId=makeOperationId();
@@ -2102,12 +2105,13 @@ window.firebaseToggleDayMark=async function(id,fields,row,before){
  if(Object.prototype.hasOwnProperty.call(fields,'presenteEm')&&fields.presenteEm!==null)data.presenteEm=serverTimestamp();
  if(Object.prototype.hasOwnProperty.call(fields,'batizadoEm')&&fields.batizadoEm!==null)data.batizadoEm=serverTimestamp();
  dayPending.add(id);daySyncError=false;emitDayStatus(!!dayUnsub);
+ const auditPromise=setDoc(auditRef(),auditRecord('marcacao',id,row,before,Object.assign({},data,{atualizadoEm:null}),uid,nome,operationId)).catch(function(auditError){console.error('Falha real na auditoria da marcação',auditError);warnAuditOnce('A marcação foi processada, mas a auditoria falhou ('+(auditError.code||'erro')+'). Avise o administrador.');throw auditError;});
+ const savePromise=setDoc(ref,data,{merge:true});
+ auditPromise.catch(function(){});
  try {
-  await setDoc(ref,data,{merge:true});
+  await savePromise;
   const after=data;
   dayPending.delete(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);
-  if(!navigator.onLine){warnAuditOnce('Marcação salva, mas a auditoria não foi enviada porque o dispositivo está sem conexão.');return {saved:true,auditError:false,after:after};}
-  setDoc(auditRef(),auditRecord('marcacao',id,row,before,after,uid,nome,operationId)).catch(function(auditError){console.error('Marcação salva, mas falhou a auditoria',auditError);warnAuditOnce('Marcação salva, mas a auditoria não foi confirmada. Avise o administrador.');});
   return {saved:true,auditError:false,after:after};
  } catch(error) {
   dayPending.delete(id);daySyncError=true;emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message}}));throw error;
@@ -2119,19 +2123,29 @@ window.firebaseUndoDayMark=async function(id,prior,row,expected){
  const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe',operationId=makeOperationId();
  dayPending.add(id);daySyncError=false;emitDayStatus(!!dayUnsub);
  try {
-  const result=await runTransaction(firestore,async function(tx){
-   const snap=await tx.get(ref);if(!snap.exists())throw new Error('Outra pessoa alterou esta posição. O desfazer foi cancelado.');
+  const transactionPromise=runTransaction(firestore,async function(tx){
+   const snap=await tx.get(ref);
+   if(!snap.exists())throw new Error('A marcação não existe mais. Atualize a tela antes de tentar novamente.');
    const current=snap.data();
-   if(!expected||current.porUid!==expected.porUid||current.porUid!==uid||current.operacaoId!==expected.operacaoId)throw new Error('Outra pessoa alterou esta posição. O desfazer foi cancelado.');
-   const after=Object.assign({},current,prior,{porUid:uid,porNome:nome,atualizadoEm:serverTimestamp(),operacaoId:operationId});
+   if(!expected)throw new Error('Não há estado anterior confirmado para comparar. Atualize a tela antes de desfazer.');
+   if(current.operacaoId!==expected.operacaoId)throw new Error('Outra pessoa alterou esta posição. O desfazer foi cancelado.');
+   if(current.porUid!==expected.porUid||current.porUid!==uid)throw new Error('A marcação pertence a outra conta. O desfazer não foi aplicado.');
+   const hasPrior=prior&&Object.keys(prior).length>0;
+   const restoreFields=hasPrior?prior:{presente:false,batizado:false,presenteEm:null,batizadoEm:null};
+   const after=Object.assign({},current,restoreFields,{porUid:uid,porNome:nome,atualizadoEm:serverTimestamp(),operacaoId:operationId});
    tx.set(ref,after,{merge:true});return {before:current,after:after};
-  });
+  },{maxAttempts:3});
+  let timeoutId;
+  const timeoutPromise=new Promise(function(_,reject){timeoutId=setTimeout(function(){const e=new Error('Sem conexão ou tempo limite aguardando o Firestore. A confirmação do desfazer ainda pode chegar; verifique o estado antes de repetir.');e.code='deadline-exceeded';e.transactionPending=true;reject(e);},12000);});
+  let result;
+  try { result=await Promise.race([transactionPromise,timeoutPromise]); }
+  catch(timeoutError){if(timeoutError.transactionPending){transactionPromise.then(function(lateResult){dayPending.delete(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);window.dispatchEvent(new CustomEvent('day-undo-settled',{detail:{id:id,success:true}}));}).catch(function(lateError){dayPending.delete(id);emitDayStatus(!!dayUnsub);window.dispatchEvent(new CustomEvent('day-undo-settled',{detail:{id:id,success:false,message:lateError.message,code:lateError.code}}));});}throw timeoutError;}
+  finally {clearTimeout(timeoutId);}
   dayPending.delete(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);
-  if(!navigator.onLine){warnAuditOnce('Desfazer concluído, mas a auditoria não foi enviada porque o dispositivo está sem conexão.');return {saved:true,auditError:false,after:result.after};}
-  setDoc(auditRef(),auditRecord('desfazer',id,row,result.before,result.after,uid,nome,operationId)).catch(function(auditError){console.error('Desfazer concluído, mas falhou a auditoria',auditError);warnAuditOnce('Desfazer concluído, mas a auditoria não foi confirmada. Avise o administrador.');});
+  const auditPromise=setDoc(auditRef(),auditRecord('desfazer',id,row,result.before,result.after,uid,nome,operationId)).catch(function(auditError){console.error('Falha real na auditoria do desfazer',auditError);warnAuditOnce('O desfazer foi processado, mas a auditoria falhou ('+(auditError.code||'erro')+'). Avise o administrador.');throw auditError;});auditPromise.catch(function(){});
   return {saved:true,auditError:false,after:result.after};
  } catch(error) {
-  dayPending.delete(id);const conflict=(error.message||'').indexOf('Outra pessoa alterou esta posição')>=0;const network=!navigator.onLine||['unavailable','deadline-exceeded','network-request-failed'].includes(error.code);const message=conflict?'Outra pessoa alterou esta posição. O desfazer foi cancelado.':network?'Sem conexão com a internet. O desfazer exige conexão; nenhuma alteração foi revertida.':(error.message||'Não foi possível desfazer.');
+  dayPending.delete(id);const conflict=(error.message||'').indexOf('Outra pessoa alterou esta posição')>=0;const network=['unavailable','deadline-exceeded','network-request-failed'].includes(error.code)||!navigator.onLine;const message=conflict?'Outra pessoa alterou esta posição. O desfazer foi cancelado.':network?'Sem conexão com o Firestore ou tempo limite. A confirmação pode chegar depois; confira o estado antes de repetir.':(error.message||'Não foi possível desfazer.');
   if(conflict||network)window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:message,conflict:conflict,network:network}}));else{daySyncError=true;window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:message}}));}emitDayStatus(!!dayUnsub);throw new Error(message);
  }
 };
