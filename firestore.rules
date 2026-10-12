@@ -1,9 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
-      return request.auth != null;
-    }
+    function signedIn() { return request.auth != null; }
     function userPath() {
       return /databases/$(database)/documents/usuarios/$(request.auth.uid);
     }
@@ -21,7 +19,7 @@ service cloud.firestore {
     function secretaria() { return roleIs('secretaria'); }
     function lider() { return roleIs('lider'); }
     function voluntario() { return roleIs('voluntario'); }
-    function staffRead() { return admin() || secretaria() || lider(); }
+    function staffRead() { return admin() || secretaria() || lider() || pastor(); }
     function staffWrite() { return admin() || secretaria(); }
     function leaderOwnsTurma(turmaId) {
       return lider() && get(userPath()).data.turmaId == turmaId;
@@ -41,9 +39,90 @@ service cloud.firestore {
         && request.resource.data.porUid == request.auth.uid
         && request.resource.data.porNome is string;
     }
+    function validPersonRoot() {
+      return request.resource.data.keys().hasOnly([
+          'turmaId','nomeExibicao','nomeBusca','telefone','telefoneValido','telefoneRevisar',
+          'responsavelInformado','idade','faixaEtaria','menor','jornada','aulas','aulao',
+          'camiseta','pendencia','origem','pessoaCanonicaId','mergeFonteIds',
+          'camposConflitantes','ordemNumero','pastor','batizado','batizadoEm',
+          'revision','updatedAt','updatedBy','migrationVersion'
+        ])
+        && (!('nomeExibicao' in request.resource.data) || request.resource.data.nomeExibicao is string)
+        && (!('nomeBusca' in request.resource.data) || request.resource.data.nomeBusca is string)
+        && (!('turmaId' in request.resource.data) || request.resource.data.turmaId == null || request.resource.data.turmaId is string)
+        && (!('telefone' in request.resource.data) || request.resource.data.telefone == null || request.resource.data.telefone is string)
+        && (!('telefoneValido' in request.resource.data) || request.resource.data.telefoneValido == null || request.resource.data.telefoneValido is bool)
+        && (!('telefoneRevisar' in request.resource.data) || request.resource.data.telefoneRevisar is bool)
+        && (!('faixaEtaria' in request.resource.data) || request.resource.data.faixaEtaria is string)
+        && (!('responsavelInformado' in request.resource.data) || request.resource.data.responsavelInformado == null || request.resource.data.responsavelInformado is bool)
+        && (!('idade' in request.resource.data) || request.resource.data.idade == null || request.resource.data.idade is int)
+        && (!('menor' in request.resource.data) || request.resource.data.menor == null || request.resource.data.menor is bool)
+        && (!('revision' in request.resource.data) || request.resource.data.revision is int)
+        && (!('jornada' in request.resource.data) || (request.resource.data.jornada is map
+          && request.resource.data.jornada.keys().hasOnly(['status','arquivadaRevisao'])
+          && request.resource.data.jornada.status is string))
+        && (!('aulas' in request.resource.data) || (request.resource.data.aulas is map
+          && request.resource.data.aulas.keys().hasOnly(['1','2','3','4'])
+          && (!('1' in request.resource.data.aulas) || request.resource.data.aulas['1'] == null || request.resource.data.aulas['1'] is bool)
+          && (!('2' in request.resource.data.aulas) || request.resource.data.aulas['2'] == null || request.resource.data.aulas['2'] is bool)
+          && (!('3' in request.resource.data.aulas) || request.resource.data.aulas['3'] == null || request.resource.data.aulas['3'] is bool)
+          && (!('4' in request.resource.data.aulas) || request.resource.data.aulas['4'] == null || request.resource.data.aulas['4'] is bool)))
+        && (!('camiseta' in request.resource.data) || (request.resource.data.camiseta is map
+          && request.resource.data.camiseta.keys().hasOnly(['opcao','tamanho','pago','valor','data','entregue','arquivadaRevisao'])
+          && request.resource.data.camiseta.opcao in ['', 'quer', 'nao_quer', 'ja_tem']
+          && (!('tamanho' in request.resource.data.camiseta) || request.resource.data.camiseta.tamanho == null || request.resource.data.camiseta.tamanho is string)
+          && (!('data' in request.resource.data.camiseta) || request.resource.data.camiseta.data == null || request.resource.data.camiseta.data is string)
+          && (!('pago' in request.resource.data.camiseta) || request.resource.data.camiseta.pago == null || request.resource.data.camiseta.pago is bool)
+          && (!('entregue' in request.resource.data.camiseta) || request.resource.data.camiseta.entregue == null || request.resource.data.camiseta.entregue is bool)
+          && (!('valor' in request.resource.data.camiseta) || request.resource.data.camiseta.valor == null || request.resource.data.camiseta.valor is number)))
+        && (!('pendencia' in request.resource.data) || (request.resource.data.pendencia is map
+          && request.resource.data.pendencia.keys().hasOnly(['texto','arquivadaRevisao','tipo'])
+          && (!('texto' in request.resource.data.pendencia) || request.resource.data.pendencia.texto is string)))
+        && (!('aulao' in request.resource.data) || request.resource.data.aulao is map)
+        && (!('telefoneRevisar' in request.resource.data) || request.resource.data.telefoneRevisar is bool);
+    }
+    function validContact() {
+      return request.resource.data.keys().hasOnly(['telefone','responsavelNome','responsavelTelefone','updatedAt','updatedBy'])
+        && (!('telefone' in request.resource.data) || request.resource.data.telefone == null || request.resource.data.telefone is string)
+        && (!('responsavelNome' in request.resource.data) || request.resource.data.responsavelNome == null || request.resource.data.responsavelNome is string)
+        && (!('responsavelTelefone' in request.resource.data) || request.resource.data.responsavelTelefone == null || request.resource.data.responsavelTelefone is string);
+    }
+    function validPrivateProfile() {
+      return request.resource.data.keys().hasOnly(['verificacaoPerfil','observacoesRestritas','observacoes','updatedAt','updatedBy'])
+        && (!('verificacaoPerfil' in request.resource.data) || request.resource.data.verificacaoPerfil == null || request.resource.data.verificacaoPerfil is string)
+        && (!('observacoesRestritas' in request.resource.data) || request.resource.data.observacoesRestritas == null || request.resource.data.observacoesRestritas is string)
+        && (!('observacoes' in request.resource.data) || request.resource.data.observacoes == null || request.resource.data.observacoes is string);
+    }
+    function validPrivateOrigin() {
+      return request.resource.data.keys().hasOnly([
+        'origem','idadeOriginal','dataOriginal','camposOriginais','updatedAt','migrationVersion'
+      ]);
+    }
+    function validAudit() {
+      return request.resource.data.uid == request.auth.uid
+        && request.resource.data.acao is string
+        && request.resource.data.quando is string
+        && (
+          (request.resource.data.acao == 'migracao_estruturada'
+            && admin()
+            && request.resource.data.keys().hasOnly([
+              'acao','uid','email','quando','migrationId','documentosCriados',
+              'documentosIgnorados','origemVersionId','camposNovos','criadoEm'
+            ])
+            && request.resource.data.documentosCriados is list
+            && request.resource.data.documentosIgnorados is int)
+          ||
+          (request.resource.data.keys().hasOnly([
+            'acao','documento','uid','porNome','quando','alteracoes',
+            'migrationId','email','criadoEm'
+          ])
+            && request.resource.data.documento is string
+            && request.resource.data.alteracoes is list)
+        );
+    }
 
     // O primeiro admin deve ser cadastrado manualmente no Console do Firebase.
-    // Usuários sem documento ativo em usuarios/{uid} não acessam o banco.
+    // Usuários sem documento ativo e e-mail correspondente não passam nas demais regras.
     match /usuarios/{uid} {
       allow read: if activeUser() && (request.auth.uid == uid || admin());
       allow create, update: if admin()
@@ -54,8 +133,8 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // A base antiga contém dados de todas as pessoas em blocos monolíticos.
-    // Somente admin/pastor até as telas serem migradas para coleções separadas.
+    // O bloco antigo da planilha permanece acessível só para admin/pastor.
+    // As telas novas usam as coleções estruturadas abaixo.
     match /appData/primary {
       allow read: if pastor();
       allow write: if admin();
@@ -79,14 +158,30 @@ service cloud.firestore {
     }
 
     match /pessoas/{pessoaId} {
+      // Voluntários não consultam Pessoas. Líderes recebem só sua turma no app.
       allow read: if staffRead() || leaderOwnsTurma(resource.data.turmaId);
-      allow create, update: if staffWrite() || leaderOwnsTurma(request.resource.data.turmaId);
+      allow create: if validPersonRoot()
+        && (staffWrite() || leaderOwnsTurma(request.resource.data.turmaId));
+      allow update: if validPersonRoot()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'turmaId','nomeExibicao','nomeBusca','telefone','telefoneValido','telefoneRevisar',
+          'responsavelInformado','idade','faixaEtaria','menor','jornada','aulas','aulao',
+          'camiseta','pendencia','ordemNumero','pastor','batizado','batizadoEm',
+          'revision','updatedAt','updatedBy'
+        ])
+        && (staffWrite() || (leaderOwnsTurma(resource.data.turmaId) && leaderOwnsTurma(request.resource.data.turmaId)));
       allow delete: if false;
 
       match /privado/{tipo} {
-        allow read: if tipo == 'contato' ? (staffRead() || leaderOwnsTurma(get(/databases/$(database)/documents/pessoas/$(pessoaId)).data.turmaId))
+        // Telefones e responsáveis ficam em subdocumento; origem não é editável pela tela.
+        allow read: if tipo == 'contato'
+          ? (staffRead() || leaderOwnsTurma(get(/databases/$(database)/documents/pessoas/$(pessoaId)).data.turmaId))
           : pastor();
-        allow create, update: if tipo == 'contato' ? staffWrite() : pastor();
+        allow create, update: if tipo == 'contato'
+          ? ((staffWrite() || leaderOwnsTurma(get(/databases/$(database)/documents/pessoas/$(pessoaId)).data.turmaId)) && validContact())
+          : tipo == 'perfil'
+            ? pastor() && validPrivateProfile()
+            : tipo == 'origem' && pastor() && validPrivateOrigin();
         allow delete: if false;
       }
     }
@@ -127,17 +222,14 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Auditoria é append-only. O conteúdo da origem pessoal fica fora do log.
+    // Auditoria só recebe documentos novos. A leitura do histórico é reservada.
     match /auditoria/{id} {
       allow read: if pastor();
-      allow create: if admin()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.acao is string
-        && request.resource.data.quando is string;
+      allow create: if activeUser() && (staffWrite() || lider() || pastor()) && validAudit();
       allow update, delete: if false;
     }
 
-    // Sem regra explícita: acesso negado.
+    // Sem regra explícita: o acesso permanece negado.
     match /{document=**} {
       allow read, write: if false;
     }
