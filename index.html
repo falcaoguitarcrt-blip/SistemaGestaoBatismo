@@ -2046,6 +2046,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       section.innerHTML = '<h2 class="t">' + item.title + '</h2><div class="card"><b>Nenhum dado carregado</b><p class="section-sub">' + item.message + '</p><button type="button" class="btn" data-go="imp">Selecionar planilha Excel →</button></div>';
     });
     buildOrder();
+    window.dispatchEvent(new Event('workflow-render'));
   }
 
   function buildAll() {
@@ -2071,6 +2072,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     setImportMessage('Dados carregados do Firebase. ' + numberLabel(appData.people.length) + ' registros na aba Batismo, ' + numberLabel(appData.order.length) + ' posições na Ordem, ' + numberLabel(appData.order35.length) + ' registros na Ordem Batismo 35 e ' + numberLabel(appData.general.length) + ' pessoas no GERAL.', 'success');
     document.getElementById('import-preview').innerHTML = '<div class="card"><b>Dados atualmente carregados</b><p class="section-sub">' + esc(appData.sourceFileName) + ' · ' + numberLabel(appData.sourceFileSize) + ' bytes · ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '</p><p class="section-sub">Os registros estão no Firestore, não no repositório público. Para inserir uma versão atualizada, selecione outro Excel e confirme a importação. A versão anterior continua preservada no Firebase.</p></div>';
     refreshBackups();
+    window.dispatchEvent(new Event('workflow-render'));
   }
 
   function downloadBlob(blob, filename) {
@@ -3017,6 +3019,7 @@ function workflowAudit(tx,acao,documento,turmaId,pessoaId,aulaoId,revision,alter
 }
 function workflowError(message,code){const e=new Error(message);if(code)e.code=code;return e;}
 function workflowStopWatchers(){
+ workflowGeneration++;
  ['class','people','pending','auloes','registrations'].forEach(function(k){if(workflowUnsubs[k])workflowUnsubs[k]();workflowUnsubs[k]=null;});
  workflowClassId='';workflowState=null;
 }
@@ -3106,8 +3109,7 @@ window.firebaseWorkApi={
   workflowStop();workflowProfile=profile||null;
   const role=workflowRole();
   if(!['admin','secretaria','lider','pastor'].includes(role))return;
-  let classQuery=collection(firestore,'turmas');
-  if(role==='lider'&&profile.turmaId)classQuery=query(collection(firestore,'turmas'),where('__name__','==',String(profile.turmaId)));
+  const classQuery=collection(firestore,'turmas');
   workflowUnsubs.classes=onSnapshot(classQuery,function(snap){
    let classes=snap.docs.map(function(d){return Object.assign({},d.data(),{id:d.id});});
    if(role==='lider')classes=classes.filter(function(c){return c.id===String(profile.turmaId||'');});
@@ -3195,8 +3197,8 @@ window.firebaseWorkApi={
    const lessons=Array.from(new Set((input.reporAulas||[]).map(Number))).filter(function(n){return [1,2,3,4].includes(n);});
    if(!String(input.data||'')||!String(input.hora||'')||!String(input.local||'').trim()||!(Number(input.vagas)>0)||!lessons.length)throw workflowError('Informe data, hora, local, vagas e pelo menos uma aula.');
    if(id&&Number(input.vagas)<Number(old.inscritosCount||0))throw workflowError('As vagas não podem ficar abaixo das inscrições existentes.');
-   const now=new Date().toISOString(),rev=id?workflowRevision(old)+1:1,record={turmaId:turmaId,data:String(input.data),hora:String(input.hora),local:String(input.local).trim(),vagas:Math.floor(Number(input.vagas)),reporAulas:lessons,inscritosCount:id?Number(old.inscritosCount||0):0,status:id?(old.status||'agendado'):'agendado',revision:rev,createdAt:id?old.createdAt:now,createdBy:id?old.createdBy:auth.currentUser.uid,updatedAt:now,updatedBy:auth.currentUser.uid};
-   if(id)tx.set(ref,record);else tx.create(ref,record);
+   const now=new Date().toISOString(),rev=id?workflowRevision(old)+1:1,record={turmaId:turmaId,data:String(input.data),hora:String(input.hora),local:String(input.local).trim(),vagas:Math.floor(Number(input.vagas)),reporAulas:lessons,inscritosCount:id?Number(old.inscritosCount||0):0,status:id?(old.status||'agendado'):'agendado',lastRegistrationPessoaId:id?(old.lastRegistrationPessoaId||null):null,revision:rev,createdAt:id?old.createdAt:now,createdBy:id?old.createdBy:auth.currentUser.uid,updatedAt:now,updatedBy:auth.currentUser.uid};
+   tx.set(ref,record);
    workflowAudit(tx,id?'aulao_atualizado':'aulao_criado','auloes/'+ref.id,turmaId,null,ref.id,rev,[{campo:'data',valorAntigo:old.data||null,valorNovo:record.data},{campo:'vagas',valorAntigo:old.vagas||null,valorNovo:record.vagas},{campo:'reporAulas',valorAntigo:old.reporAulas||null,valorNovo:lessons}]);return {id:ref.id,revision:rev};
   });
  },
@@ -3211,7 +3213,7 @@ window.firebaseWorkApi={
    const count=Number(aula.inscritosCount||0);if(count>=Number(aula.vagas||0))throw workflowError('Não há vagas disponíveis.');
    const now=new Date().toISOString(),rev=old?workflowRevision(old)+1:1;
    const reg={turmaId:turmaId,pessoaId:pessoaId,status:'inscrito',inscritoEm:now,inscritoPorUid:auth.currentUser.uid,inscritoPorNome:workflowActor(),presenteEm:null,presentePorUid:null,presentePorNome:null,revision:rev,updatedAt:now,updatedBy:auth.currentUser.uid};
-   tx.set(rRef,reg);tx.update(aRef,{inscritosCount:count+1,revision:workflowRevision(aula)+1,updatedAt:now,updatedBy:auth.currentUser.uid});
+   tx.set(rRef,reg);tx.update(aRef,{inscritosCount:count+1,lastRegistrationPessoaId:pessoaId,revision:workflowRevision(aula)+1,updatedAt:now,updatedBy:auth.currentUser.uid});
    workflowAudit(tx,'inscricao_aulao_criada','auloes/'+aulaoId+'/inscricoes/'+pessoaId,turmaId,pessoaId,aulaoId,rev,[{campo:'status',valorAntigo:old&&old.status||null,valorNovo:'inscrito'},{campo:'inscritosCount',valorAntigo:count,valorNovo:count+1}]);return {revision:rev};
   });
  },
@@ -3338,6 +3340,8 @@ onAuthStateChanged(auth, async function (user) {
     handlingUser = false;
     if(peopleUnsub){peopleUnsub();peopleUnsub=null;}
     stopOrderApi();
+    if(window.firebaseWorkApi)window.firebaseWorkApi.stop();
+    window.dispatchEvent(new Event('firebase-signed-out'));
     window.firebaseUserProfile=null;
     window.firebaseCurrentUser=null;
     document.body.classList.add('auth-pending');
@@ -3395,5 +3399,6 @@ onAuthStateChanged(auth, async function (user) {
   updateMigrationLink();
 })();
 </script>
+<script src="./work-modules.js"></script>
 </body>
 </html>
