@@ -22,3 +22,7 @@ Adicionar uma verificação repetível para detectar erros de sintaxe nos script
 ## Critério de aceite
 - A verificação deve concluir sem erros no GitHub Actions.
 - Em seguida, ainda é necessária a validação funcional manual com contas autorizadas e dados de teste, sem expor permissões públicas nem alterar os registros reais sem backup.
+
+
+## Ampliação da Etapa 7
+O teste estrutural também verifica que o backup JSON inclui `marcacoesBatismo`, ou seja, as marcações sincronizadas de presença e batismo do dia do evento. A exportação da tela de backup já passava esse mapa para `downloadJson`, mas o arquivo não o incluía; esta correção fecha essa lacuna.
