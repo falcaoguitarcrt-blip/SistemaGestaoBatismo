@@ -1141,6 +1141,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     window.addEventListener('firebase-admin-status',function(){jb.hidden=!window.firebaseIsAdmin;});
     window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawDayResults();});
     window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawDayResults();});
+    window.addEventListener('day-checkin-error',function(e){dayToast('Não foi possível salvar: '+((e.detail&&e.detail.message)||'verifique a conexão e as permissões.'));});
     window.addEventListener('online',function(){dayStatus.online=true;drawDayResults();});window.addEventListener('offline',function(){dayStatus.online=false;drawDayResults();});
     drawDayResults();
   }
@@ -1801,7 +1802,7 @@ window.addEventListener('day-legacy-marks',async function(event){
   await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
  }
  if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
-});
+}).catch(function(error){console.error('Falha na migração de marcações antigas',error);});
 function startDayListener(user){
  if(dayUnsub)dayUnsub();
  const q=query(collection(firestore,'marcacoesBatismo'),where('turmaId','==','36'));
