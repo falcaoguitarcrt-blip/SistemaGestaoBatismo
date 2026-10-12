@@ -1046,7 +1046,10 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         var diffs = [];
         ['name','age','phone','turma','date','journey','lesson','group','shirt','shirtPaid','status','pending','baptized','profile'].forEach(function (field) {
           var val = person[field];
-          if (val != null && String(val).trim() !== '' && String(old[field] == null ? '' : old[field]) !== String(val)) diffs.push({ field: field, before: old[field] == null ? '' : old[field], after: val });
+          if (val == null || String(val).trim() === '') return;
+          if (String(old[field] == null ? '' : old[field]) !== String(val)) {
+            diffs.push({ field: field, before: old[field] == null ? '' : old[field], after: val });
+          }
         });
         if (diffs.length) changed.push({ key: key, before: old, after: person, diffs: diffs });
       }
