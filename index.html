@@ -2258,6 +2258,10 @@ async function loadCloudWorkspace() {
 window.firebaseSaveWorkspace = saveCloudWorkspace;
 window.firebaseRefreshWorkspace = async function () {
   const workspace = await loadCloudWorkspace();
+  if (!workspace) {
+    workspaceVersionConflict = true;
+    throw new Error('Não foi encontrada uma versão principal para atualizar. A linha de base permanece bloqueada.');
+  }
   window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: workspace } }));
   window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
   return workspace;
