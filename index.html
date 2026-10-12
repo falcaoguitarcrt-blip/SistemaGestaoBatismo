@@ -2071,9 +2071,9 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
-let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine, dayServerConnected=null, daySyncError=false;
+let dayUnsub=null, dayPending=new Set(), dayAuditPending=new Set(), dayOnline=navigator.onLine, dayServerConnected=null, daySyncError=false;
 window.firebaseIsAdmin=false;
-function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:!!ready,error:daySyncError}}));}
+function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,serverConnected:dayServerConnected,pending:new Set([...dayPending,...dayAuditPending]).size,ready:!!ready,error:daySyncError}}));}
 window.addEventListener('online',function(){dayOnline=true;emitDayStatus(!!dayUnsub);});
 window.addEventListener('offline',function(){dayOnline=false;dayServerConnected=false;emitDayStatus(!!dayUnsub);});
 function makeOperationId(){return (typeof crypto!=='undefined'&&crypto.randomUUID)?crypto.randomUUID():String(Date.now())+'_'+Math.random().toString(36).slice(2);}
@@ -2090,10 +2090,10 @@ window.firebaseToggleDayMark=async function(id,fields,row,before){
  try {
   await setDoc(ref,data,{merge:true});
   const saved=await getDoc(ref),after=saved.exists()?saved.data():data;
-  dayPending.delete(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);
+  dayPending.delete(id);dayAuditPending.add(id);dayServerConnected=true;emitDayStatus(!!dayUnsub);
   try { await setDoc(auditRef(),auditRecord('marcacao',id,row,before,after,uid,nome,operationId)); }
-  catch(auditError){console.error('Marcação salva, mas falhou a auditoria',auditError);return {saved:true,auditError:true,after:after};}
-  return {saved:true,auditError:false,after:after};
+  catch(auditError){dayAuditPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Marcação salva, mas falhou a auditoria',auditError);return {saved:true,auditError:true,after:after};}
+  dayAuditPending.delete(id);emitDayStatus(!!dayUnsub);return {saved:true,auditError:false,after:after};
  } catch(error) {
   dayPending.delete(id);daySyncError=true;emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{id:id,message:error.message}}));throw error;
  }
@@ -2136,7 +2136,7 @@ function startDayListener(user){
  if(dayUnsub)dayUnsub();
  const q=query(collection(firestore,'marcacoesBatismo'));
  dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
-  const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites){dayPending.add(d.id);dayWriteState[d.id]={state:'saving'};}});
+  const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites){dayPending.add(d.id);}});
   dayOnline=navigator.onLine;dayServerConnected=!snap.metadata.fromCache;daySyncError=false;
   window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:true,error:false}}}));
  },function(e){console.error(e);dayServerConnected=false;daySyncError=true;emitDayStatus(!!dayUnsub);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:'Não foi possível conectar ao servidor: '+e.message}}));});
