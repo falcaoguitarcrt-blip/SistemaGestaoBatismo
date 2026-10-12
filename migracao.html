@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Migração estruturada · Gestão de Batismo</title>
+<style>
+:root{font-family:system-ui,Segoe UI,sans-serif;color:#14211d;background:#f4f7f5;--g:#123c32;--line:#dce6e1;--warn:#9a5b00;--bad:#a93226}
+*{box-sizing:border-box}body{margin:0}header{background:var(--g);color:white;padding:16px max(16px,calc((100vw - 1100px)/2));display:flex;align-items:center;justify-content:space-between;gap:12px}main{max-width:1100px;margin:auto;padding:18px}h1{font-size:1.4rem;margin:0}h2{font-size:1.1rem;margin:0 0 12px}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #173a2b0b}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.metric{background:#f2f6f4;border-radius:10px;padding:12px}.metric b{display:block;font-size:1.35rem}.tabs{display:flex;gap:8px;overflow-x:auto;padding:8px 0}.tabs button,.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px 14px;min-height:44px;color:#14211d;cursor:pointer}.tabs button.on,.btn.primary{background:var(--g);color:white}.btn:disabled{opacity:.45;cursor:not-allowed}.row{border-top:1px solid var(--line);padding:12px 0}.muted{color:#60736b;font-size:.92rem}.tag{display:inline-block;background:#eef3f0;border-radius:99px;padding:3px 8px;font-size:.82rem;margin:2px}.warn{color:var(--warn)}.bad{color:var(--bad)}.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pair>div{border:1px solid var(--line);border-radius:9px;padding:10px;min-width:0}.name{font-weight:650;overflow-wrap:anywhere}select,input{font:inherit;padding:9px;border:1px solid #a9b9b1;border-radius:8px;max-width:100%;min-height:42px}table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{text-align:left;border-bottom:1px solid var(--line);padding:8px;vertical-align:top}#status{white-space:pre-wrap}.hide{display:none!important}.scroll{overflow:auto}.notice{border-left:4px solid #d9951b;padding:10px;background:#fff9eb}
+@media(max-width:620px){main{padding:12px}.pair{grid-template-columns:1fr}table{min-width:620px}}
+</style>
+</head>
+<body>
+<header><h1>Gestão de Batismo · Migração estruturada</h1><a style="color:white" href="./">Voltar ao sistema</a></header>
+<main>
+<section id="login" class="card">
+<h2>Acesso de administrador</h2><p class="muted">Esta ferramenta lê a base atual do Firestore. Só um usuário ativo com perfil admin pode usar a migração. O arquivo de backup será baixado neste aparelho; não será enviado ao GitHub.</p>
+<div class="grid"><label>E-mail<br><input id="email" type="email" autocomplete="username"></label><label>Senha<br><input id="password" type="password" autocomplete="current-password"></label></div>
+<p><button id="emailLogin" class="btn primary">Entrar com e-mail</button> <button id="googleLogin" class="btn">Entrar com Google</button></p>
+<div id="loginStatus" class="muted"></div></section>
+<section id="app" class="hide">
+<div class="card"><div id="status">Carregando…</div><div class="notice muted">Simulação não grava alterações. Antes de aplicar, baixe o backup, revise interpretações, duplicados e vínculos da Ordem. A execução cria documentos ausentes e não sobrescreve documentos existentes.</div>
+<div id="metrics" class="grid"></div><p><button class="btn" id="simulate">Atualizar simulação</button> <button class="btn" id="backup" disabled>Baixar backup JSON privado</button> <button class="btn primary" id="apply" disabled>Aplicar migração</button></p></div>
+<nav class="tabs"><button data-tab="interpret">Textos</button><button data-tab="duplicates">Nomes repetidos</button><button data-tab="order">Ordem</button><button data-tab="suspicious">Revisar dados</button></nav>
+<div id="panel" class="card"></div></section>
+</main>
+<script type="module">
+import {initializeApp} from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
+import {getAuth,GoogleAuthProvider,signInWithPopup,signInWithEmailAndPassword,onAuthStateChanged} from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
+import {getFirestore,doc,getDoc,collection,getDocs,query,runTransaction,serverTimestamp} from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
+const app=initializeApp({apiKey:'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',authDomain:'batismo-8c5f8.firebaseapp.com',projectId:'batismo-8c5f8',storageBucket:'batismo-8c5f8.firebasestorage.app',messagingSenderId:'295480263009',appId:'1:295480263009:web:248a3e15c577eadbcac520'});
+const auth=getAuth(app),db=getFirestore(app),$=s=>document.querySelector(s);
+let user=null,profile=null,source=null,plan=null,tab='interpret',backupReady=false;
+const decisions={texts:new Map(),duplicates:new Map(),order:new Map()};
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=v=>String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+const blank=v=>v==null||String(v).trim()==='';
+function msg(t,isError=false){$('#status').textContent=t;$('#status').className=isError?'bad':''}
+function fieldIndex(headers,label){return headers.findIndex(x=>norm(x)===norm(label))}
+function rowsFromPeople(items){return items.filter(x=>x&&Array.isArray(x.fields)).map(x=>({sourceRow:Number(x.sourceRow)||0,fields:x.fields,person:x})).sort((a,b)=>a.sourceRow-b.sourceRow)}
+function rowsFromOrder(items){return items.filter(x=>x&&Array.isArray(x.fields)).map(x=>({sourceRow:Number(x.sourceRow)||0,fields:x.fields,record:x})).sort((a,b)=>a.sourceRow-b.sourceRow)}
+async function loadSource(){
+ const root=await getDoc(doc(db,'appData','primary'));if(!root.exists()||!root.data().currentVersion)throw Error('Não há versão atual em appData/primary.');
+ const versionId=root.data().currentVersion,meta=await getDoc(doc(db,'appData','primary','versions',versionId));if(!meta.exists())throw Error('Versão atual não encontrada.');
+ const ss=await getDocs(collection(db,'appData','primary','versions',versionId,'chunks'));
+ const pieces=ss.docs.map(d=>d.data());
+ const people=pieces.filter(x=>x.section==='people').flatMap(x=>x.items||[]);
+ const order=pieces.filter(x=>x.section==='order').flatMap(x=>x.items||[]);
+ const rawSheets={};
+ for(const p of pieces.filter(x=>x.section==='rawSheet').sort((a,b)=>(a.sheetIndex-b.sheetIndex)||(a.part-b.part))){
+  const nm=p.sheetName||'';
+  if(!rawSheets[nm])rawSheets[nm]=[];
+  for(const item of p.items||[])rawSheets[nm].push(Array.isArray(item)?item:(Array.isArray(item.cells)?item.cells:[]));
+ }
+ for(const nm of Object.keys(rawSheets))rawSheets[nm]=rawSheets[nm].sort((a,b)=>0);
+ if(!people.length)throw Error('A versão do Firestore não contém os registros da aba Batismo.');
+ source={versionId,importedAt:meta.data().importedAt,people:rowsFromPeople(people),order:rowsFromOrder(order),rawSheets};
+ return source;
+}
+function headerAndIndex(rows){
+ const headers=(rows[0]||[]).map(x=>String(x??''));
+ return {headers,index:Object.fromEntries(['NOME','IDADE','TELEFONE','TURMA','DATA','JORNADA','AULA P/ REPOR','CAMISETA','PG CAMISETA','STATUS','PENDENCIA','BATIZADO','INVESTIGAÇÃO PERFIL (FBI)'].map(k=>[k,fieldIndex(headers,k)]))};
+}
+function stableHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
+function propose(field,text){
+ const n=norm(text);
+ if(!n)return {type:'ignorar',value:null};
+ if(field==='AULA P/ REPOR'){
+  const nums=[...n.matchAll(/(?:aula\s*)?([1-4])/g)].map(m=>Number(m[1]));
+  const uniq=[...new Set(nums)];
+  if(/aul[aã]o|aulao/.test(n)&&/inscrit/.test(n))return {type:'aulao_inscrito',value:{status:'inscrito',data:null,dataTexto:(String(text).match(/\d{1,2}\/\d{1,2}/)||[])[0]||null}};
+  if(/repor/.test(n)&&uniq.length)return {type:'repor_aulas',value:{aulas:uniq}};
+  return {type:'revisao_manual',value:{texto:String(text)}};
+ }
+ if(/^(ok|concluida|concluido)$/.test(n))return {type:'jornada_concluida',value:{status:'concluida'}};
+ if(/pendencia|pendente|sem cadastro|verificar|repor/.test(n))return {type:'pendencia',value:{texto:String(text)}};
+ return {type:'observacao',value:{texto:String(text)}};
+}
+function textGroups(){
+ const groups=new Map(),{headers,index}=headerAndIndex(source.rawSheets[Object.keys(source.rawSheets).find(k=>norm(k)==='batismo')]||[]);
+ const cols=[['STATUS',index.STATUS],['PENDENCIA',index.PENDENCIA],['AULA P/ REPOR',index['AULA P/ REPOR']]];
+ for(const [field,col] of cols){
+  if(col==null||col<0)continue;
+  for(const row of source.people){const value=row.fields[col];if(blank(value))continue;const key=field+'|'+norm(value);if(!groups.has(key))groups.set(key,{key,field,text:String(value),count:0,suggestion:propose(field,value)});groups.get(key).count++;}
+ }
+ return [...groups.values()].sort((a,b)=>a.field.localeCompare(b.field)||b.count-a.count||a.text.localeCompare(b.text));
+}
+function personObject(row,index,approved,duplicateMap){
+ const f=row.fields,name=f[index.NOME]??'',ageRaw=f[index.IDADE],age=ageRaw==null||ageRaw===''?null:Number(ageRaw);
+ const turmaNum=Number(String(f[index.TURMA]??'').replace(',','.'));
+ const digits=String(f[index.TELEFONE]??'').replace(/\D/g,'');
+ let nat=digits;if(nat.startsWith('55')&&(nat.length===12||nat.length===13))nat=nat.slice(2);
+ const ddd=nat.length>=10?nat.slice(0,2):'',local=nat.length>=10?nat.slice(2):'';
+ const valid=nat.length===10||nat.length===11;
+ const shirtRaw=String(f[index.CAMISETA]??'').trim(),shirtN=norm(shirtRaw);
+ const shirtOpt=!shirtRaw?'nao_respondeu':shirtN==='ja tem'?'ja_tem':'quer';
+ const paid=String(f[index['PG CAMISETA']]??'').toLowerCase()==='true'||f[index['PG CAMISETA']]===true?true:blank(f[index['PG CAMISETA']])?null:false;
+ const dates=[];
+ const journeyText=String(f[index.JORNADA]??''),journeyNorm=norm(journeyText);
+ let journeyStatus=journeyNorm==='concluida'||journeyNorm==='concluido'?'concluida':journeyNorm.includes('repor')?'repor':'';
+ const lessons={1:null,2:null,3:null,4:null},pendingText=[];
+ const rules=approved.filter(x=>x.field==='AULA P/ REPOR'&&x.key==='AULA P/ REPOR|'+norm(f[index['AULA P/ REPOR']]));
+ const lessonRaw=f[index['AULA P/ REPOR']];
+ for(const rule of rules){
+  if(rule.approved&&rule.suggestion.type==='repor_aulas')for(const n of rule.suggestion.value.aulas)lessons[n]=false;
+  if(rule.approved&&rule.suggestion.type==='aulao_inscrito')dates.push(rule.suggestion.value);
+ }
+ const statusRules=approved.filter(x=>x.field==='STATUS'&&x.key==='STATUS|'+norm(f[index.STATUS]));
+ for(const r of statusRules)if(r.approved&&r.suggestion.type==='jornada_concluida')journeyStatus='concluida';
+ const pendRules=approved.filter(x=>x.field==='PENDENCIA'&&x.key==='PENDENCIA|'+norm(f[index.PENDENCIA]));
+ for(const r of pendRules)if(r.approved)pendingText.push(r.text);
+ const pendingOld=String(f[index.PENDENCIA]??'');
+ const courseNo=Number.isFinite(turmaNum)?Math.trunc(turmaNum):null;
+ const years=Number.isFinite(age)&&age>=0?Math.trunc(age):null;
+ const id='p_'+(courseNo??'sem_turma')+'_r'+row.sourceRow;
+ const canonical=duplicateMap[id]||id;
+ const oldDate=f[index.DATA]??null;
+ return {id,turmaId:courseNo?'turma_'+courseNo:null,nomeExibicao:titleCase(name),nomeBusca:norm(name),telefone:valid?'+55'+ddd+local:null,telefoneValido:valid,telefoneRevisar:!!digits&&!valid,idade:years,faixaEtaria:years==null?'desconhecida':years<18?'menor':years<30?'jovem_adulto':years<60?'adulto':'60_mais',menor:years==null?null:years<18,jornada:{status:journeyStatus,arquivadaRevisao:!!courseNo&&courseNo!==36},aulas:lessons,aulao:dates[0]||{status:'',data:null},camiseta:{opcao:shirtOpt,tamanho:shirtOpt==='quer'?shirtRaw.toUpperCase():null,pago:paid,valor:null,entregue:null,arquivadaRevisao:!!courseNo&&courseNo!==36},pendencia:{texto:pendingOld,arquivadaRevisao:!!courseNo&&courseNo!==36},origem:{aba:'Batismo',linha:row.sourceRow,versao:source.versionId},_privateOrigin:f,_canonical:canonical,_ageRaw:ageRaw,_dateOriginal:oldDate};
+}
+function titleCase(s){const words=String(s??'').trim().replace(/\s+/g,' ').toLocaleLowerCase('pt-BR').split(' ');return words.map((w,i)=>i>0&&/^(da|das|de|do|dos|e)$/.test(w)?w:w? w[0].toLocaleUpperCase('pt-BR')+w.slice(1):w).join(' ')}
+function buildPlan(){
+ const sheet=Object.keys(source.rawSheets).find(k=>norm(k)==='batismo'),orderSheet=Object.keys(source.rawSheets).find(k=>norm(k)==='ordem');
+ const {headers,index}=headerAndIndex(source.rawSheets[sheet]||[]);
+ const groups=textGroups(),approved=groups.filter(g=>decisions.texts.get(g.key)?.approved).map(g=>({...g,approved:true}));
+ const people=source.people.map(r=>personObject(r,index,approved,{}));
+ const byName=new Map();for(const p of people)if(p.nomeBusca){if(!byName.has(p.nomeBusca))byName.set(p.nomeBusca,[]);byName.get(p.nomeBusca).push(p)}
+ const duplicateGroups=[...byName].filter(([,arr])=>arr.length>1).map(([key,arr])=>({key,id:'dup_'+stableHash(key),people:arr}));
+ const canonicalMap={};
+ for(const g of duplicateGroups){const d=decisions.duplicates.get(g.id);if(d&&d.choice==='mesclar'&&d.canonical){for(const p of g.people)canonicalMap[p.id]=d.canonical;}}
+ const orderedPeople=people.map(p=>({...p,pessoaCanonicaId:canonicalMap[p.id]||p.id}));
+ const positions=source.order.map(x=>{
+  const fields=x.fields,name=x.record.name||fields[2]||'',search=norm(name),candidates=search?(byName.get(search)||[]):[];
+  const saved=decisions.order.get(String(x.sourceRow));
+  const pessoaId=saved|| (candidates.length===1?candidates[0].id:null);
+  return {id:'ord_turma36_pos_'+String(x.record.number??fields[1]??x.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_'),turmaId:'turma_36',posicao:x.record.number??fields[1]??x.sourceRow,nome:String(name||''),nomeBusca:search,pessoaId,ambiguidade:candidates.length>1,opcoes:candidates.map(p=>({id:p.id,nome:p.nomeExibicao,linha:p.origem.linha})),vazio:blank(name),origem:{aba:'Ordem',linha:x.sourceRow,versao:source.versionId},camposOriginais:fields};
+ });
+ const cohortCounts=new Map();for(const p of people){const n=Number(p._privateOrigin[index.TURMA]);if(Number.isInteger(n))cohortCounts.set(n,(cohortCounts.get(n)||0)+1);}
+ const turmas=Array.from({length:19},(_,i)=>i+19).map(numero=>({id:'turma_'+numero,numero,dataBatismo:numero===36?'2026-10-12':null,local:null,status:numero===36?'ativa':numero<36?'encerrada':'planejada',capacidade:null,quantidadeNaPlanilha:cohortCounts.get(numero)||0,camposAConfirmar:['local','capacidade'].concat(numero===36?[]:['dataBatismo'])}));
+ const suspicious=orderedPeople.filter(p=>!p.nomeBusca||/\b(teste|test|exemplo|xxx|xxxx)\b/.test(p.nomeBusca)||p.telefoneRevisar||p.idade==null||p.nomeExibicao!==String(p._privateOrigin[index.NOME]??'').trim());
+ return {versionId:source.versionId,headers,people:orderedPeople,turmas,positions,groups,duplicateGroups,suspicious,sourceCounts:{people:people.length,named:people.filter(p=>p.nomeBusca).length,order:positions.length,orderNamed:positions.filter(x=>!x.vazio).length,emptyPositions:positions.filter(x=>x.vazio).length,duplicates:duplicateGroups.length},approved};
+}
+function metrics(){
+ if(!plan)return;
+ const existing={pessoas:0,turmas:0,ordem:0};
+ $('#metrics').innerHTML=[['Pessoas da fonte',plan.sourceCounts.people],['Turmas propostas',plan.turmas.length],['Posições da Ordem',plan.positions.length],['Grupos repetidos',plan.duplicateGroups.length],['Para revisar',plan.suspicious.length]].map(([a,b])=>'<div class="metric"><span>'+esc(a)+'</span><b>'+b+'</b></div>').join('');
+}
+function render(){
+ if(!plan)return;metrics();$('#backup').disabled=false;$('#apply').disabled=true;
+ const p=$('#panel');
+ if(tab==='interpret'){
+  p.innerHTML='<h2>Textos livres · aprovar antes de interpretar</h2><p class="muted">A sugestão só entra na migração quando aprovada. Campos de pendência antigos continuam preservados na origem.</p>'+plan.groups.map(g=>{const d=decisions.texts.get(g.key)||{};return '<div class="row"><b>'+esc(g.field)+'</b> · '+g.count+' ocorrência(s)<p>'+esc(g.text)+'</p><span class="tag">Sugestão: '+esc(g.suggestion.type)+(g.suggestion.value?.aulas?' · aulas '+esc(g.suggestion.value.aulas.join(', ')):'')+'</span> <button class="btn" data-text="'+esc(g.key)+'">'+(d.approved?'Aprovado ✓':'Aprovar sugestão')+'</button> <button class="btn" data-ignore="'+esc(g.key)+'">Deixar para revisão manual</button></div>'}).join('')||'<p>Nenhum texto livre preenchido.</p>';
+  p.querySelectorAll('[data-text]').forEach(b=>b.onclick=()=>{const g=plan.groups.find(x=>x.key===b.dataset.text);decisions.texts.set(g.key,{approved:true});buildPlan();render()});
+  p.querySelectorAll('[data-ignore]').forEach(b=>b.onclick=()=>{decisions.texts.set(b.dataset.ignore,{approved:false});buildPlan();render()});
+ } else if(tab==='duplicates'){
+  p.innerHTML='<h2>Grupos de nomes repetidos</h2><p class="muted">Nenhum registro é apagado. “Mesclar” cria uma referência canônica após confirmação; “Manter ambos” preserva vínculos separados; “Ignorar” mantém o grupo sem tratamento.</p>'+plan.duplicateGroups.map(g=>{const d=decisions.duplicates.get(g.id)||{};return '<div class="row"><b>'+esc(g.key)+'</b>'+g.people.map(x=>'<div class="pair"><div><span class="muted">Registro da linha '+x.origem.linha+'</span><div class="name">'+esc(x.nomeExibicao||'(sem nome)')+'</div><div>Turma '+esc(x.turmaId||'sem turma')+' · idade '+esc(x.idade??'não informada')+' · telefone '+(x.telefone?esc(x.telefone):'não informado')+'</div><div class="muted">Jornada: '+esc(x.jornada.status||'sem classificação')+' · camiseta: '+esc(x.camiseta.opcao)+'</div></div><div><b>Origem preservada</b><div class="muted">Aba Batismo · linha '+x.origem.linha+'</div></div></div>').join('')+'<p><select data-dup="'+g.id+'"><option value="">Escolha uma decisão</option><option value="mesclar">Mesclar (escolher registro principal)</option><option value="manter">Manter ambos</option><option value="ignorar">Ignorar grupo</option></select> <select data-canon="'+g.id+'"><option value="">Registro principal</option>'+g.people.map(x=>'<option value="'+x.id+'">'+esc(x.nomeExibicao)+' · linha '+x.origem.linha+'</option>').join('')+'</select> <button class="btn" data-save-dup="'+g.id+'">Confirmar decisão</button> <span class="muted">'+esc(d.choice||'aguardando decisão')+'</span></p></div>'}).join('')||'<p>Nenhum grupo repetido.</p>';
+  p.querySelectorAll('[data-save-dup]').forEach(b=>b.onclick=()=>{const g=plan.duplicateGroups.find(x=>x.id===b.dataset.saveDup),choice=p.querySelector('[data-dup="'+g.id+'"]').value,canonical=p.querySelector('[data-canon="'+g.id+'"]').value;if(!choice){alert('Escolha uma decisão.');return}if(choice==='mesclar'&&(!canonical||!confirm('Confirmar a mesclagem deste grupo? Os registros originais serão mantidos e ligados ao registro principal.')))return;decisions.duplicates.set(g.id,{choice,canonical:choice==='mesclar'?canonical:null,confirmed:true});buildPlan();render()});
+ } else if(tab==='order'){
+  p.innerHTML='<h2>Vínculos da Ordem · turma ativa 36</h2><p class="muted">Posições vazias serão mantidas. Correspondência pelo nome sem acentos; nomes repetidos exigem escolha manual.</p>'+plan.positions.map(x=>'<div class="row"><b>Posição '+esc(x.posicao)+'</b> · '+(x.vazio?'<span class="tag">Vazia, será preservada</span>':'<span>'+esc(x.nome)+'</span>')+(x.vazio?'':'<p>'+ (x.opcoes.length?'<select data-order="'+esc(x.origem.linha)+'"><option value="">'+(x.pessoaId?'Vínculo sugerido: '+esc(x.opcoes.find(o=>o.id===x.pessoaId)?.nome||x.pessoaId):'Escolha a pessoa')+'</option>'+x.opcoes.map(o=>'<option value="'+o.id+'">'+esc(o.nome)+' · linha '+o.linha+'</option>').join('')+'</select>':'<span class="warn">Sem correspondência exata — ficará sem pessoaId</span>')+' '+(x.ambiguidade?'<span class="warn">Ambíguo</span>':'')+'</p>')+'</div>').join('');
+  p.querySelectorAll('[data-order]').forEach(s=>s.onchange=()=>{if(s.value)decisions.order.set(s.dataset.order,s.value);else decisions.order.delete(s.dataset.order);buildPlan();render()});
+ } else {
+  p.innerHTML='<h2>Revisar dados suspeitos ou incompletos</h2><p class="muted">Exibe somente na área autenticada. “João silva”, por exemplo, deve ser revisado como capitalização; não é tratado automaticamente como dado de teste.</p><div class="scroll"><table><thead><tr><th>Nome</th><th>Turma</th><th>Motivo</th><th>Origem</th></tr></thead><tbody>'+plan.suspicious.map(x=>'<tr><td>'+esc(x.nomeExibicao||'(sem nome)')+'</td><td>'+esc(x.turmaId||'—')+'</td><td>'+(x.telefoneRevisar?'Telefone fora do padrão; conferir. ':'')+(x.idade==null?'Idade ausente. ':'')+(x.nomeExibicao!==String(x._privateOrigin[0]??'').trim()?'Capitalização sugerida. ':'')+(!x.nomeBusca?'Sem nome. ':'')+'</td><td>Batismo, linha '+x.origem.linha+'</td></tr>').join('')+'</tbody></table></div>';
+ }
+}
+function dateValue(v){if(v instanceof Date)return v.toISOString().slice(0,10);if(typeof v==='number'&&v>20000&&v<80000)return new Date(Date.UTC(1899,11,30)+v*86400000).toISOString().slice(0,10);const s=String(v??'').trim();if(/^\d{4}-\d{2}-\d{2}/.test(s))return s.slice(0,10);const m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);return m?m[3]+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'):null}
+function backupObject(){
+ return {exportadoEm:new Date().toISOString(),aviso:'Contém dados pessoais. Guarde em local privado e não publique.',versionId:source.versionId,source,decisoes:{textos:[...decisions.texts],duplicados:[...decisions.duplicates],ordem:[...decisions.order]},simulacao:{contagens:plan.sourceCounts,novasTurmas:plan.turmas,novasPessoas:plan.people,novasPosicoes:plan.positions}};
+}
+function downloadBackup(){
+ const blob=new Blob([JSON.stringify(backupObject())],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='backup-privado-migracao-batismo-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);backupReady=true;$('#apply').disabled=false;msg('Backup gerado e baixado. Guarde-o em local privado; confirme que o download foi concluído antes de aplicar.');
+}
+function buildWrites(){
+ const writes=[];
+ for(const t of plan.turmas)writes.push({path:'turmas/'+t.id,data:{...t,updatedAt:serverTimestamp(),migrationVersion:1}});
+ for(const p of plan.people){
+  const {id,_privateOrigin,_ageRaw,_dateOriginal,_canonical,...safe}=p;
+  writes.push({path:'pessoas/'+id,data:{...safe,menor:safe.menor,nomeExibicao:safe.nomeExibicao,nomeBusca:safe.nomeBusca,updatedAt:serverTimestamp(),migrationVersion:1}});
+  writes.push({path:'pessoas/'+id+'/privado/origem',data:{origem:_privateOrigin,idadeOriginal:_ageRaw,dataOriginal:_dateOriginal,updatedAt:serverTimestamp(),migrationVersion:1}});
+ }
+ for(const x of plan.positions){const {opcoes,ambiguidade,vazio,...safe}=x;writes.push({path:'ordem/'+x.id,data:{...safe,updatedAt:serverTimestamp(),migrationVersion:1}})}
+ for(const g of plan.duplicateGroups){const d=decisions.duplicates.get(g.id);if(d?.confirmed)writes.push({path:'gruposDuplicados/'+g.id,data:{nomeBusca:g.key,pessoaIds:g.people.map(x=>x.id),decisao:d.choice,pessoaCanonicaId:d.canonical||null,confirmadoEm:new Date().toISOString(),migrationVersion:1}})}
+ for(const g of plan.groups){const d=decisions.texts.get(g.key);if(d)writes.push({path:'regrasInterpretacao/'+stableHash(g.key),data:{campo:g.field,texto:g.text,normalizado:norm(g.text),ocorrencias:g.count,sugestao:g.suggestion,aprovado:!!d.approved,aprovadoPor:user.uid,updatedAt:serverTimestamp(),migrationVersion:1}})}
+ return writes;
+}
+async function applyMigration(){
+ if(!backupReady){alert('Baixe o backup antes de migrar.');return}
+ if(!confirm('Antes de continuar, confirme que revisou a simulação e baixou o backup. Digite MIGRAR na próxima janela.'))return;
+ if(prompt('Digite MIGRAR para confirmar a criação dos documentos:')!=='MIGRAR')return;
+ const writes=buildWrites(),runId='migracao_'+Date.now()+'_'+user.uid.slice(0,8);
+ $('#apply').disabled=true;let created=0,skipped=0;msg('Aplicando de forma idempotente e sem sobrescrever documentos existentes…');
+ try{
+  const size=150;
+  for(let i=0;i<writes.length;i+=size){
+   const chunk=writes.slice(i,i+size);
+   await runTransaction(db,async tx=>{
+    const refs=chunk.map(w=>({w,ref:doc(db,w.path)}));
+    const snaps=await Promise.all(refs.map(x=>tx.get(x.ref)));
+    const fresh=[];
+    snaps.forEach((s,n)=>{if(!s.exists())fresh.push(refs[n]);else skipped++});
+    fresh.forEach(({w,ref})=>tx.set(ref,w.data));
+    const auditRef=doc(db,'auditoria',runId+'_lote_'+String(i/size).padStart(4,'0'));
+    tx.set(auditRef,{acao:'migracao_estruturada',migrationId:runId,uid:user.uid,email:user.email||'',quando:new Date().toISOString(),documentosCriados:fresh.map(x=>x.w.path),documentosIgnorados:snaps.length-fresh.length,origemVersionId:source.versionId,camposNovos:['turmas','pessoas','ordem','gruposDuplicados','regrasInterpretacao'],valoresPessoais:'não replicados na auditoria',criadoEm:serverTimestamp()});
+   });
+   created+=chunk.length;
+  }
+  msg('Migração concluída. '+created+' operações processadas; '+skipped+' documentos já existentes foram preservados. Atualize a página e confira as contagens no Firestore.',false);
+ }catch(e){msg('Migração interrompida. Lotes já confirmados permanecem e podem ser retomados sem sobrescrever dados. Erro: '+e.message,true);$('#apply').disabled=false}
+}
+function report(){
+ plan=buildPlan();
+ const mapped=plan.positions.filter(x=>x.pessoaId).length;
+ $('#metrics').innerHTML=[['Pessoas fonte',plan.sourceCounts.people],['Turmas propostas',plan.turmas.length],['Posições na Ordem',plan.sourceCounts.order],['Grupos repetidos',plan.sourceCounts.duplicates],['Ordem vinculada',mapped],['Dados a revisar',plan.suspicious.length]].map(([a,b])=>'<div class="metric"><span>'+esc(a)+'</span><b>'+b+'</b></div>').join('');
+ render();
+}
+$('#simulate').onclick=()=>{try{report();msg('Simulação atualizada. Nenhuma escrita foi feita.')}catch(e){msg(e.message,true)}};
+$('#backup').onclick=downloadBackup;$('#apply').onclick=applyMigration;
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('on',x===b));render()});
+$('#emailLogin').onclick=async()=>{try{await signInWithEmailAndPassword(auth,$('#email').value.trim(),$('#password').value)}catch(e){$('#loginStatus').textContent='Falha de acesso ao Firebase: '+e.message}};
+$('#googleLogin').onclick=async()=>{try{await signInWithPopup(auth,new GoogleAuthProvider())}catch(e){$('#loginStatus').textContent='Falha de acesso ao Firebase: '+e.message}};
+onAuthStateChanged(auth,async u=>{
+ user=u;if(!u){$('#app').classList.add('hide');$('#login').classList.remove('hide');return}
+ try{
+  const us=await getDoc(doc(db,'usuarios',u.uid));profile=us.exists()?us.data():null;
+  if(!profile||profile.ativo!==true||profile.perfil!=='admin')throw Error('Usuário sem cadastro ativo de administrador em usuarios/{uid}. Solicite a ativação ao responsável do Firebase.');
+  $('#login').classList.add('hide');$('#app').classList.remove('hide');msg('Sessão admin validada. Lendo a versão atual…');
+  source=await loadSource();report();msg('Simulação pronta. Nenhum dado foi alterado.');
+ }catch(e){$('#login').classList.remove('hide');$('#app').classList.add('hide');$('#loginStatus').textContent=e.message}
+});
+</script></body></html>
