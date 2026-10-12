@@ -2831,6 +2831,7 @@ async function saveCloudWorkspace(payload, createVersion) {
       checkin: safeValue(payload.checkin || {}),
       createdAt: new Date().toISOString(),
       createdBy: auth.currentUser.uid,
+      createdByName: auth.currentUser.displayName || auth.currentUser.email || auth.currentUser.uid,
       counts: {
         participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
         people: Array.isArray(payload.people) ? payload.people.length : 0,
@@ -2974,7 +2975,7 @@ window.firebaseListVersions = async function () {
     const data = item.data() || {};
     return {
       id: item.id, versionId: data.versionId || item.id, createdAt: data.createdAt || data.importedAt || '',
-      createdBy: data.createdBy || '', sourceFileName: data.sourceFileName || 'Arquivo não informado',
+      createdBy: data.createdByName || data.createdBy || '', sourceFileName: data.sourceFileName || 'Arquivo não informado',
       counts: data.counts || {}, isCurrent: item.id === baseWorkspaceVersionId
     };
   }).sort(function (a, b) { return String(b.createdAt).localeCompare(String(a.createdAt)); });
