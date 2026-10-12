@@ -545,6 +545,45 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var suggestedImportOrderTurmaId = '';
   var confirmedImportOrderTurmaId = '';
 
+  function formatClosureTimestamp(value) {
+    if (value == null || value === '') return '';
+    var date = null;
+    if (value instanceof Date) date = value;
+    else if (value && typeof value.toDate === 'function') {
+      try { date = value.toDate(); } catch (_) { return ''; }
+    } else if (typeof value === 'string') {
+      var parsed = new Date(value);
+      if (!isNaN(parsed.getTime())) date = parsed;
+      else return value;
+    } else if (typeof value === 'number') date = new Date(value);
+    if (!(date instanceof Date) || isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    }).format(date);
+  }
+
+  function safeClosureCsvCell(value) {
+    var text = value == null ? '' : String(value);
+    // Neutraliza fórmulas em planilhas; também protege quando há espaços iniciais.
+    if (/^\\s*[=+@-]/.test(text)) text = "'" + text;
+    return '"' + text.replace(/"/g, '""').replace(/\r\n|\r|\n/g, '\r\n') + '"';
+  }
+
+  function buildClosureCsv(headers, rows) {
+    return '\\uFEFF' + [headers].concat(rows.map(function (row) {
+      return headers.map(function (key) {
+        var value = row[key];
+        return key === 'presenteEm' || key === 'batizadoEm'
+          ? formatClosureTimestamp(value)
+          : value;
+      });
+    })).map(function (values) {
+      return values.map(safeClosureCsvCell).join(';');
+    }).join('\\r\\n');
+  }
+
   function workspaceOrderTurmaId(workspace) {
     return String(workspace && workspace.ordemTurmaId || '36');
   }
@@ -1630,11 +1669,25 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       '<p id="import-order-turma-confirmed" class="section-sub" role="status" aria-live="polite">A turma só será aplicada à importação após confirmação explícita.</p>' +
       '<div id="import-marks-confirm-wrap" hidden><p class="note">Já existem marcações de presença/batismo nesta turma. Importar uma nova ordem pode associar essas marcações às novas pessoas. Para prosseguir, digite exatamente o número da turma.</p><label for="import-marks-confirmation">Digite o número da turma para confirmar<input id="import-marks-confirmation" type="text" inputmode="numeric" autocomplete="off"></label></div>' +
       '</div>' +
-      (appData && (appData.order || []).length ? '<div class="card"><b>Proteção da ordem anterior</b><p class="note">A importação substitui a ordem ativa em <code>appData.order</code>. As marcações antigas, como <code>36_n</code>, não são apagadas, mas a ordem/nome que permite interpretá-las deixa de ser a ordem ativa. Antes de confirmar a nova turma, baixe o fechamento da ordem atualmente carregada com posição, nome, presente, batizado e horários.</p><button type="button" class="btn o" id="download-prior-order-closure">Baixar fechamento da ordem anterior (CSV)</button><p id="prior-order-closure-status" class="section-sub" role="status">O download não migra nem apaga dados.</p></div>' : '') +
+      (appData && (appData.order || []).length ? '<div class="card"><b>Proteção da ordem anterior</b><p class="note">A importação substitui a ordem ativa em <code>appData.order</code>. As marcações antigas, como <code>36_n</code>, não são apagadas, mas a ordem/nome que permite interpretá-las deixa de ser a ordem ativa. Antes de confirmar a nova turma, baixe o fechamento da ordem atualmente carregada ou marque que já guardou o fechamento. A importação fica bloqueada até cumprir uma das duas opções.</p><button type="button" class="btn o" id="download-prior-order-closure">Baixar fechamento da ordem anterior (CSV)</button><label class="check-row"><input type="checkbox" id="prior-order-closure-already-saved"> Já guardei o fechamento da turma anterior</label><p id="prior-order-closure-status" class="section-sub" role="status">O download não migra nem apaga dados.</p></div>' : '') +
       '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped +
       '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
 
     var closureButton = document.getElementById('download-prior-order-closure');
+    var closureAlreadySaved = document.getElementById('prior-order-closure-already-saved');
+    var closureDownloaded = false;
+    var hasPriorOrder = !!(appData && (appData.order || []).length);
+    var importButton = document.getElementById('confirm-import');
+    if (hasPriorOrder && importButton) importButton.disabled = true;
+    function refreshImportGate() {
+      var closureSatisfied = !hasPriorOrder || closureDownloaded || !!(closureAlreadySaved && closureAlreadySaved.checked);
+      if (importButton) importButton.disabled = !confirmedImportOrderTurmaId || !closureSatisfied;
+      if (hasPriorOrder && !closureSatisfied) {
+        var status = document.getElementById('prior-order-closure-status');
+        if (status) status.textContent = 'Obrigatório: baixe o CSV ou marque que já guardou o fechamento antes de importar.';
+      }
+    }
+    if (closureAlreadySaved) closureAlreadySaved.addEventListener('change', refreshImportGate);
     if (closureButton) closureButton.addEventListener('click', function () {
       var oldTurmaId = workspaceOrderTurmaId(appData);
       var rows = (appData.order || []).map(function (row) {
@@ -1644,11 +1697,11 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
           presente: mark.presente ? 'Sim' : 'Não', presenteEm: mark.presenteEm || '',
           batizado: mark.batizado ? 'Sim' : 'Não', batizadoEm: mark.batizadoEm || '', observacao: row.note || '' };
       });
-      function csvCell(value) { return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"'; }
       var headers = ['turma','posicao','nome','presente','presenteEm','batizado','batizadoEm','observacao'];
-      var csv = '\uFEFF' + [headers].concat(rows.map(function (row) { return headers.map(function (key) { return row[key]; }); }))
-        .map(function (values) { return values.map(csvCell).join(';'); }).join('\r\n');
+      var csv = buildClosureCsv(headers, rows);
       downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'fechamento-turma-' + oldTurmaId + '-' + new Date().toISOString().slice(0,10) + '.csv');
+      closureDownloaded = true;
+      refreshImportGate();
       var status = document.getElementById('prior-order-closure-status');
       if (status) status.textContent = 'Fechamento baixado: ' + rows.length + ' posições. A ordem e as marcações originais permanecem intactas.';
     });
@@ -1681,7 +1734,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       confirmButton.disabled = true;
       confirmButton.textContent = 'Turma confirmada: ' + turmaId;
       document.getElementById('import-order-turma-confirmed').textContent = 'Turma escolhida e confirmada: ' + turmaId + '. Confira a prévia antes de importar.';
-      importButton.disabled = false;
+      refreshImportGate();
       setImportMessage('Turma ' + turmaId + ' confirmada para esta ordem. A importação ainda não foi executada.', 'success');
     });
   }
