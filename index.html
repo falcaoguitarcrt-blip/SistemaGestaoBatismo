@@ -1476,7 +1476,8 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       var person = appData.people.find(function (p) { return Number(p.sourceRow) === selectedPersonRow; });
       buildFiche(person);
       document.getElementById('fic').hidden = false;
-      goTo('fic');
+      goTo('pes');
+      document.getElementById('fic').classList.add('on');
       return;
     }
 
