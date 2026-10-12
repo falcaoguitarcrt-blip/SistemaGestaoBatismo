@@ -1051,6 +1051,16 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       checkin: Object.assign({}, base.checkin || {}), importReport: { read: (incoming.people || []).length, imported: imported, ignored: ignored, corrected: corrected }
     }), report: { read: (incoming.people || []).length, imported: imported, ignored: ignored, corrected: corrected } };
   }
+  async function restoreVersionAsNewVersion(versionId, loadVersion, saveVersion, now) {
+    if (typeof loadVersion !== 'function' || typeof saveVersion !== 'function') throw new Error('Serviço de versões indisponível.');
+    var payload = await loadVersion(versionId);
+    if (!payload || typeof payload !== 'object') throw new Error('A versão escolhida não foi encontrada.');
+    var restored = Object.assign({}, payload);
+    delete restored.sourceWorkbook;
+    restored.importedAt = (now || new Date()).toISOString();
+    await saveVersion(restored, true);
+    return restored;
+  }
   function normalizeWorkbook(file, buffer) {
     if (!window.XLSX) throw new Error('A biblioteca para ler Excel ainda não carregou. Confira a conexão e recarregue a página.');
     var workbook = XLSX.read(buffer, { type: 'array', cellDates: false, raw: true });
@@ -2359,10 +2369,11 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       if (!(await accessibleConfirm('Restaurar esta versão como uma NOVA versão ativa? A versão atual e todas as versões anteriores serão preservadas. Digite CONFIRMAR para continuar.', { typedPhrase: 'CONFIRMAR', acceptLabel: 'Restaurar como nova versão' }))) return;
       versionRestoreButton.disabled = true;
       try {
-        var restoredPayload = await window.firebaseLoadVersion(versionRestoreButton.dataset.versionRestore);
-        delete restoredPayload.sourceWorkbook;
-        restoredPayload.importedAt = new Date().toISOString();
-        await window.firebaseSaveWorkspace(restoredPayload, true);
+        var restoredPayload = await restoreVersionAsNewVersion(
+          versionRestoreButton.dataset.versionRestore,
+          window.firebaseLoadVersion,
+          window.firebaseSaveWorkspace
+        );
         appData = Object.assign({}, restoredPayload, { id: 'current' });
         try { await saveWorkspace(appData, true); } catch (localBackupError) { console.warn('Versão restaurada no Firebase; cópia local não atualizada.', localBackupError); }
         buildAll();
