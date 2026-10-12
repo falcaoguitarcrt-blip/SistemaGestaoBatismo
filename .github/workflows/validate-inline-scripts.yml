@@ -26,3 +26,5 @@ jobs:
         run: node scripts/check-two-sheet-import-contract.mjs
       - name: Verificar contratos de preservação de dados
         run: node scripts/check-data-preservation-contract.mjs
+      - name: Testar comportamento de check-in e desfazer com mocks
+        run: node scripts/test-day-checkin-behavior.mjs
