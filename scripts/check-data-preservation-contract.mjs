@@ -20,7 +20,7 @@ assert.ok(!/if\s*\(!\s*clean\(fields\[0\]\)\s*\)\s*continue/.test(importCode),
   'Não filtrar linhas importadas apenas porque o campo Nome está vazio.');
 
 // Contrato de compatibilidade: não trocar o namespace das marcações históricas da turma 36.
-const dayIdCode = section('function dayId(row)', 'function dayBadges(row, p)');
+const dayIdCode = section('function dayId(row)', 'function dayBadges(row,p)');
 assert.ok(dayIdCode.includes("t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos"),
   'O formato de ID legado da turma 36 precisa permanecer estável até uma migração validada.');
 
