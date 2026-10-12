@@ -336,7 +336,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   <div id="backup-items" class="backup-list"><span class="note">Carregando backups locais…</span></div>
 </div>
 </section>
-<section id="cfg"><h2 class="t">Configurações</h2>
+<section id="cfg"><h2 class="t">Configurações</h2><div class="card" id="migration-admin-card" hidden><b>Dados estruturados</b><p class="section-sub">Revisão e migração inicial da base para as coleções do Firestore.</p><a class="btn o" href="./migracao.html">Abrir migração estruturada</a></div>
 <div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
 <div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
 <div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
@@ -1897,5 +1897,16 @@ onAuthStateChanged(auth, async function (user) {
 });
 </script>
 
+<script>
+(function(){
+  function updateMigrationLink(){
+    var card=document.getElementById('migration-admin-card');
+    if(card)card.hidden=window.firebaseIsAdmin!==true;
+  }
+  window.addEventListener('firebase-admin-status',updateMigrationLink);
+  document.addEventListener('DOMContentLoaded',updateMigrationLink);
+  updateMigrationLink();
+})();
+</script>
 </body>
 </html>
