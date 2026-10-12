@@ -1292,7 +1292,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   var dayMarks = {}, dayWriteState = {}, dayFilter='todos', dayStatus={online:navigator.onLine,serverConnected:null,pending:0,ready:false,error:false}, undoTimer=null, dayConnectivityTimer=null;
   function formatDayTime(v){var d=v&&typeof v.toDate==='function'?v.toDate():new Date(v);return v&&!isNaN(d.getTime())?d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';}
-  function auditWarningOnce(message){try{if(sessionStorage.getItem('dayAuditWarningShown')==='1')return;sessionStorage.setItem('dayAuditWarningShown','1');}catch(e){}dayToast(message);}
   function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
   function personForDay(row){if(!row)return null;if(row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
   function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
@@ -2084,7 +2083,7 @@ async function loadCloudWorkspace() {
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
-let dayUnsub=null, dayPending=new Set(), dayAuditPending=new Set(), dayOnline=navigator.onLine, dayServerConnected=null, daySyncError=false;
+let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine, dayServerConnected=null, daySyncError=false;
 window.firebaseIsAdmin=false;
 function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:!!ready,error:daySyncError}}));}
 let dayConnectivityTimer=null;
@@ -2158,7 +2157,7 @@ function startDayListener(user){
  dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
   const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites){dayPending.add(d.id);}});
   dayOnline=navigator.onLine;dayServerConnected=!snap.metadata.fromCache;daySyncError=false;
-  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,serverConnected:dayServerConnected,pending:new Set([...dayPending,...dayAuditPending]).size,ready:true,error:false}}}));
+  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,serverConnected:dayServerConnected,pending:dayPending.size,ready:true,error:false}}}));
  },function(e){console.error(e);dayServerConnected=false;daySyncError=true;emitDayStatus(!!dayUnsub);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:'Não foi possível conectar ao servidor: '+e.message}}));});
  user.getIdTokenResult().then(function(t){window.firebaseIsAdmin=t.claims.admin===true;window.dispatchEvent(new Event('firebase-admin-status'));}).catch(function(){});
 }
