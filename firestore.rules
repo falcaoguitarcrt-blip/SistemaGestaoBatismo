@@ -836,6 +836,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /configuracoes/certificado {
+      allow read: if staffRead();
+      allow create, update: if admin()
+        && request.resource.data.keys().hasOnly(['texto','updatedAt','updatedBy'])
+        && request.resource.data.texto is string
+        && request.resource.data.texto.size() > 0
+        && request.resource.data.texto.size() <= 2000
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedBy == request.auth.uid;
+      allow delete: if false;
+    }
+
     match /configuracoes/ferramentas {
       allow read: if staffRead();
       allow create: if (admin() || secretaria()) && validWorkConfig() && request.resource.data.revision == 1;
@@ -851,7 +863,7 @@ service cloud.firestore {
 
     // Auditoria só recebe documentos novos. A leitura do histórico é reservada.
     match /auditoria/{id} {
-      allow read: if pastor();
+      allow read: if admin();
       allow create: if activeUser() && (staffWrite() || lider() || pastor()) && validAudit();
       allow update, delete: if false;
     }
