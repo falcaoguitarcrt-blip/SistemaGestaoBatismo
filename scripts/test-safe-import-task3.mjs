@@ -80,6 +80,8 @@ assert.ok(html.includes('accessible-confirm-dialog') && html.includes("addEventL
 assert.ok(!html.includes('window.confirm('), 'não deve restar confirm() nativo');
 assert.ok(!html.includes('window.alert('), 'não deve restar alert() nativo');
 assert.ok(html.includes('xlsx-0.20.3/package/dist/xlsx.full.min.js'), 'SheetJS deve estar fixado na versão corrigida');
+assert.ok(html.includes('integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"'), 'SheetJS deve ter SRI fixo');
+assert.ok(html.includes('createdByName'), 'histórico deve identificar o responsável em formato legível');
 
 console.log('OK: cabeçalho trocado é bloqueado antes de ler colunas por posição.');
 console.log('OK: importação duplicada é idempotente; modo aditivo nunca apaga ausentes.');
