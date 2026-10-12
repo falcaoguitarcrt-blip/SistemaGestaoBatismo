@@ -1794,16 +1794,21 @@ window.firebaseToggleDayMark=async function(id,fields,row){
  dayPending.add(id);emitDayStatus(!!dayUnsub);setDoc(ref,data,{merge:true}).catch(function(error){dayPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message}}));});return true;
 };
 window.addEventListener('day-legacy-marks',async function(event){
- const workspace=event.detail&&event.detail.workspace||{},legacy=workspace.checkin||{},order=workspace.order||[];let imported=0;
- for(const key of Object.keys(legacy)){
-  const row=order.find(function(r){return String(r.sourceRow)===String(key);}),old=legacy[key]||{};
-  if(!row||(!old.present&&!old.baptized))continue;
-  const id='36_'+String(row.number||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_'),ref=doc(firestore,'marcacoesBatismo',id);
-  const data={turmaId:'36',posicaoOuPessoaId:String(row.number||row.sourceRow),presente:!!old.present,presenteEm:old.present?(old.presenteEm||old.presentAt||null):null,batizado:!!old.baptized,batizadoEm:old.baptized?(old.batizadoEm||old.baptizedAt||null):null,porUid:auth.currentUser.uid,porNome:auth.currentUser.displayName||auth.currentUser.email||'Equipe'};
-  await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
+ try {
+  const workspace=event.detail&&event.detail.workspace||{},legacy=workspace.checkin||{},order=workspace.order||[];let imported=0;
+  for(const key of Object.keys(legacy)){
+   const row=order.find(function(r){return String(r.sourceRow)===String(key);}),old=legacy[key]||{};
+   if(!row||(!old.present&&!old.baptized))continue;
+   const id='36_'+String(row.number||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_'),ref=doc(firestore,'marcacoesBatismo',id);
+   const data={turmaId:'36',posicaoOuPessoaId:String(row.number||row.sourceRow),presente:!!old.present,presenteEm:old.present?(old.presenteEm||old.presentAt||null):null,batizado:!!old.baptized,batizadoEm:old.baptized?(old.batizadoEm||old.baptizedAt||null):null,porUid:auth.currentUser.uid,porNome:auth.currentUser.displayName||auth.currentUser.email||'Equipe'};
+   await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
+  }
+  if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
+ } catch(error) {
+  console.error('Falha na migração de marcações antigas',error);
+  window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message||'Falha na migração das marcações antigas.'}}));
  }
- if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
-}).catch(function(error){console.error('Falha na migração de marcações antigas',error);});
+});
 function startDayListener(user){
  if(dayUnsub)dayUnsub();
  const q=query(collection(firestore,'marcacoesBatismo'),where('turmaId','==','36'));
