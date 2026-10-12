@@ -22,7 +22,7 @@ jobs:
         run: node scripts/check-inline-scripts.mjs
       - name: Verificar contratos de integração multi-turma
         run: node scripts/check-multiturma-contract.mjs
-      - name: Verificar importação das duas abas da Turma 36
+      - name: Verificar importação das duas abas
         run: node scripts/check-two-sheet-import-contract.mjs
       - name: Verificar contratos de preservação de dados
         run: node scripts/check-data-preservation-contract.mjs
@@ -30,3 +30,5 @@ jobs:
         run: node scripts/test-day-checkin-behavior.mjs
       - name: Testar concorrência de salvamento do workspace com mocks
         run: node scripts/test-workspace-concurrency.mjs
+      - name: Testar importação e isolamento de ordens multi-turma com mocks
+        run: node scripts/test-multiturma-order-import.mjs
