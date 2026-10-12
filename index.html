@@ -527,6 +527,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   var shirtState = { query: '', page: 1 };
   var returnState = { query: '', page: 1 };
   var historyState = { query: '', source: 'geral', page: 1 };
+  var manualPersonEditingId = '';
 
   var importSection = document.getElementById('imp');
   var configSection = document.getElementById('cfg');
@@ -894,12 +895,13 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 
   function buildPeople() {
     var section = document.getElementById('pes');
-    var turmas = Array.from(new Set(appData.people.map(function (p) { return clean(p.turma); }).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
+    var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
     // Não presumir que a turma de maior número seja a atual.
     // Até existir uma configuração explícita de turma vigente, mostrar todas.
     if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
     section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
-      '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
+      '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa da planilha</button></div>' +
+      '<div class="card"><h3 style="margin-top:0">Cadastro direto no sistema</h3><p class="section-sub">Cadastro com identificador próprio, independente das linhas do Excel.</p><form id="manual-person-form"><div class="record-editor-fields"><label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="name"></label><label class="record-editor-field">Telefone<input id="manual-person-phone" maxlength="50" autocomplete="tel"></label><label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label><label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('') + '</select></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite"></div></form><div id="manual-person-results" class="data-list"></div></div>' +
       '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
       '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>' +
       '<p class="note">Os registros repetidos permanecem separados. Toque em um registro para abrir a ficha completa com os campos da planilha.</p>';
@@ -907,7 +909,30 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
     drawPeopleResults();
+    drawManualPeople();
+    document.getElementById('manual-person-form').addEventListener('submit', saveManualPerson);
+    document.getElementById('manual-person-cancel').addEventListener('click', resetManualPersonForm);
   }
+  function drawManualPeople(){
+    var host=document.getElementById('manual-person-results'); if(!host||!appData)return;
+    var list=(appData.participantes||[]).slice().sort(function(a,b){return String(a.nome).localeCompare(String(b.nome),'pt-BR');});
+    host.innerHTML=list.map(function(p){return '<div class="data-item"><div class="item-main"><strong>'+esc(p.nome)+'</strong><div class="item-meta">Turma '+esc(p.turma)+' · Idade: '+esc(display(p.idade))+' · Telefone: '+esc(display(p.telefone))+'</div>'+(p.historicoTurmas&&p.historicoTurmas.length?'<div class="item-meta">Histórico de turmas: '+esc(p.historicoTurmas.map(function(h){return h.turma;}).join(' → '))+'</div>':'')+'</div><div class="item-actions"><button type="button" class="btn o" data-edit-manual-person="'+esc(p.id)+'">Editar / transferir</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa cadastrada diretamente ainda.</div>';
+  }
+  function resetManualPersonForm(){manualPersonEditingId='';var form=document.getElementById('manual-person-form');if(!form)return;form.reset();document.getElementById('manual-person-save').textContent='Cadastrar pessoa';document.getElementById('manual-person-cancel').hidden=true;document.getElementById('manual-person-status').textContent='';}
+  async function saveManualPerson(event){
+    event.preventDefault();if(!appData)return;
+    var nome=document.getElementById('manual-person-name').value.trim(),telefone=document.getElementById('manual-person-phone').value.trim(),idade=document.getElementById('manual-person-age').value.trim(),turma=document.getElementById('manual-person-turma').value;
+    var status=document.getElementById('manual-person-status');if(!nome||!turma){status.className='import-status error';status.textContent='Preencha o nome e selecione a turma.';return;}
+    var draft=cloneWorkspaceForEdit();if(!Array.isArray(draft.participantes))draft.participantes=[];
+    var existing=draft.participantes.find(function(p){return p.id===manualPersonEditingId;});var now=new Date().toISOString();
+    if(existing){var oldTurma=String(existing.turma);if(oldTurma!==String(turma)){if(!Array.isArray(existing.historicoTurmas))existing.historicoTurmas=[];existing.historicoTurmas.push({turma:oldTurma,desde:existing.atualizadoEm||existing.criadoEm||now,ate:now});existing.turma=turma;existing.transferencias=(existing.transferencias||0)+1;}existing.nome=nome;existing.telefone=telefone;existing.idade=idade;existing.atualizadoEm=now;}
+    else draft.participantes.push({id:'p_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),nome:nome,telefone:telefone,idade:idade,turma:turma,criadoEm:now,atualizadoEm:now,historicoTurmas:[],participacoes:[]});
+    var save=document.getElementById('manual-person-save');save.disabled=true;status.className='import-status';status.textContent='Salvando cadastro e histórico no Firebase…';
+    try{if(typeof window.firebaseSaveWorkspace!=='function')throw new Error('Firebase não está disponível.');await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(localError){}appData=draft;resetManualPersonForm();buildAll();goTo('pes');setImportMessage(existing?'Cadastro atualizado. Histórico de transferência preservado.':'Pessoa cadastrada no sistema.', 'success');}
+    catch(error){status.className='import-status error';status.textContent='Não foi possível salvar: '+(error.message||'erro desconhecido');}
+    finally{save.disabled=false;}
+  }
+  function editManualPerson(id){var p=(appData.participantes||[]).find(function(item){return item.id===id;});if(!p)return;manualPersonEditingId=p.id;document.getElementById('manual-person-name').value=p.nome||'';document.getElementById('manual-person-phone').value=p.telefone||'';document.getElementById('manual-person-age').value=p.idade||'';document.getElementById('manual-person-turma').value=p.turma||'';document.getElementById('manual-person-save').textContent='Salvar alterações';document.getElementById('manual-person-cancel').hidden=false;document.getElementById('manual-person-status').textContent='Ao mudar a turma, a turma anterior será registrada no histórico.';document.getElementById('manual-person-name').focus();}
   function drawPeopleResults() {
     if (!appData || !document.getElementById('people-results')) return;
     var query = normal(peopleState.query);
@@ -1010,6 +1035,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       people: (appData.people || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
       order: (appData.order || []).map(function (item) { return Object.assign({}, item, { fields: (item.fields || []).slice() }); }),
       turmas: (appData.turmas || []).map(function (item) { return Object.assign({}, item); }),
+      participantes: (appData.participantes || []).map(function (item) { return Object.assign({}, item, { historicoTurmas: (item.historicoTurmas || []).map(function(h){return Object.assign({},h);}), participacoes: (item.participacoes || []).map(function(h){return Object.assign({},h);}) }); }),
       checkin: Object.assign({}, appData.checkin || {})
     });
   }
@@ -1526,6 +1552,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       return;
     }
 
+    var editManualButton = event.target.closest('[data-edit-manual-person]');
+    if(editManualButton){editManualPerson(editManualButton.dataset.editManualPerson);return;}
+
     var createTurmaButton = event.target.closest('[data-create-turma]');
     if (createTurmaButton && appData) {
       var input = document.getElementById('turma-new-number');
@@ -1673,7 +1702,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         buildAll();
         goTo('home');
       } else {
-        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Cadastro iniciado no sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], generalAll: [], generalUnmapped: [], checkin: {}, turmas: [], turmaPadrao: '' };
+        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Cadastro iniciado no sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], generalAll: [], generalUnmapped: [], checkin: {}, turmas: [], turmaPadrao: '', participantes: [] };
         renderEmptyWorkspace();
         buildAll();
         setImportMessage('Firebase conectado. Ainda não há uma planilha principal. Você pode criar uma turma vazia e cadastrar os participantes diretamente no sistema.', 'success');
@@ -1790,7 +1819,7 @@ async function saveCloudWorkspace(payload, createVersion) {
   }
   const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
   const chunks = [];
-  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas'].forEach(function (section) {
+  ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'participantes'].forEach(function (section) {
     chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
   });
   const rawNames = Object.keys(payload.rawSheets || {});
@@ -1821,6 +1850,7 @@ async function saveCloudWorkspace(payload, createVersion) {
     createdAt: new Date().toISOString(),
     createdBy: auth.currentUser.uid,
     counts: {
+      participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
       people: Array.isArray(payload.people) ? payload.people.length : 0,
       order: Array.isArray(payload.order) ? payload.order.length : 0,
       order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
@@ -1845,7 +1875,7 @@ async function loadCloudWorkspace() {
     id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
     sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
-    general: [], generalAll: [], generalUnmapped: [], turmas: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
   };
   const chunkSnap = await getDocs(versionChunksRef(versionId));
   const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
@@ -1871,6 +1901,7 @@ async function loadCloudWorkspace() {
   const liveSnap = await getDoc(liveRef());
   if (liveSnap.exists() && liveSnap.data().checkin) workspace.checkin = liveSnap.data().checkin;
   if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
+  if (!Array.isArray(workspace.participantes)) workspace.participantes = [];
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
