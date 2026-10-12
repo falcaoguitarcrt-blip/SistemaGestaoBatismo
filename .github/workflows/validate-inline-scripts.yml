@@ -22,3 +22,5 @@ jobs:
         run: node scripts/check-inline-scripts.mjs
       - name: Verificar contratos de integração multi-turma
         run: node scripts/check-multiturma-contract.mjs
+      - name: Verificar contratos de preservação de dados
+        run: node scripts/check-data-preservation-contract.mjs
