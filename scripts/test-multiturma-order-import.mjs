@@ -13,12 +13,15 @@ function extractSection(startText, endText) {
 }
 
 const helperSource = [
+  extractSection('function formatClosureTimestamp(', '\n  function workspaceOrderTurmaId('),
+  extractSection('function safeClosureCsvCell(', '\n  function buildClosureCsv('),
+  extractSection('function buildClosureCsv(', '\n  function workspaceOrderTurmaId('),
   extractSection('function workspaceOrderTurmaId(', '\n  function dayMarkIdForRow('),
   extractSection('function dayMarkIdForRow(', '\n  function importMarksConfirmationValid('),
   extractSection('function importMarksConfirmationValid(', '\n  function matchPersonToOrder('),
   extractSection('function matchPersonToOrder(', '\n  function turmaDateSummary('),
   extractSection('function turmaDateSummary(', '\n  var importSection =')
-].join('\n') + '\nglobalThis.testHelpers = { workspaceOrderTurmaId, dayMarkIdForRow, importMarksConfirmationValid, matchPersonToOrder, turmaDateSummary };';
+].join('\n') + '\nglobalThis.testHelpers = { formatClosureTimestamp, safeClosureCsvCell, buildClosureCsv, workspaceOrderTurmaId, dayMarkIdForRow, importMarksConfirmationValid, matchPersonToOrder, turmaDateSummary };';
 
 const mainContext = {
   Date,
@@ -32,6 +35,24 @@ const mainContext = {
 };
 vm.runInNewContext(helperSource, mainContext, { filename: 'multiturma-helpers-extracted.js' });
 const h = mainContext.testHelpers;
+// Fechamento CSV: Timestamp do Firestore e ISO legado viram texto legível, sem [object Object].
+const mockTimestamp = { toDate: () => new Date('2026-10-12T18:45:00.000Z') };
+assert.equal(h.formatClosureTimestamp(mockTimestamp), '12/10/2026 15:45');
+assert.equal(h.formatClosureTimestamp('2026-10-12T18:45:00.000Z'), '12/10/2026 15:45');
+const closureCsv = h.buildClosureCsv(
+  ['turma', 'nome', 'presenteEm', 'batizadoEm', 'observacao'],
+  [{ turma: '37', nome: 'João Ávila', presenteEm: mockTimestamp, batizadoEm: '2026-10-12T18:45:00.000Z', observacao: 'linha 1\nlinha "2"' },
+   { turma: '37', nome: '=HYPERLINK("https://example.invalid","João")', presenteEm: '', batizadoEm: '', observacao: '+cmd' }]
+);
+assert.ok(closureCsv.charCodeAt(0) === 0xFEFF, 'CSV deve começar com BOM UTF-8');
+assert.ok(closureCsv.includes('"João Ávila"'), 'nome com acento deve ser preservado');
+assert.ok(closureCsv.includes('"12/10/2026 15:45"'), 'Timestamp deve ser legível e não virar objeto');
+assert.ok(!closureCsv.includes('[object Object]'), 'CSV nunca deve serializar Timestamp como [object Object]');
+assert.ok(closureCsv.includes("\"'=HYPERLINK(\"\"https://example.invalid\"\",\"\"João\"\")\""), 'nome iniciado por = deve receber apóstrofo e escapar aspas');
+assert.ok(closureCsv.includes("\"'+cmd\""), 'campos iniciados por + devem ser neutralizados');
+assert.ok(closureCsv.includes('"linha 1\r\nlinha ""2"""'), 'quebras de linha e aspas devem ser escapadas dentro do campo CSV');
+assert.ok(html.includes('prior-order-closure-already-saved'), 'deve haver opção de confirmar que o fechamento já foi guardado');
+assert.ok(html.includes('!confirmedImportOrderTurmaId || !closureSatisfied'), 'importação exige turma confirmada e fechamento baixado/confirmado');
 
 // (a) Workspace legado sem ordemTurmaId continua apontando a ordem para a turma histórica 36.
 assert.equal(h.workspaceOrderTurmaId({ order: [{ number: 7 }] }), '36');
