@@ -893,8 +893,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   function buildPeople() {
     var section = document.getElementById('pes');
     var turmas = Array.from(new Set(appData.people.map(function (p) { return clean(p.turma); }).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
-    var defaultTurma = turmas.length ? turmas[turmas.length - 1] : ''; 
-    if (!peopleState.turma && defaultTurma) peopleState.turma = defaultTurma;
+    // Não presumir que a turma de maior número seja a atual.
+    // Até existir uma configuração explícita de turma vigente, mostrar todas.
+    if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
     section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
       '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
       '<div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div>' +
