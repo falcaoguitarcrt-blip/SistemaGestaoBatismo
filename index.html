@@ -700,6 +700,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   window.addEventListener('cloud-version-conflict', showCloudVersionBanner);
   window.addEventListener('cloud-version-offline', showCloudVersionBanner);
   window.addEventListener('cloud-version-current', hideCloudVersionBanner);
+  window.addEventListener('cloud-version-late-save-settled', function () {
+    setImportMessage('O Firebase confirmou o salvamento após o tempo limite. A base foi atualizada; confira os dados antes de continuar.', 'success');
+  });
   window.addEventListener('firebase-workspace-refresh', function (event) {
     var typedFields = captureTypedFields();
     var workspace = event.detail && event.detail.workspace;
