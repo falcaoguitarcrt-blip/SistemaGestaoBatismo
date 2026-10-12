@@ -1021,7 +1021,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
       if (peopleState.filter === 'no-group' && asBoolean(p.group) !== false) return false;
       return true;
     });
-    drawPeopleOpsSummary(items);
+    drawPeopleOpsSummary((appData.people || []).filter(function (p) { return matchesTurmaFilter(p, peopleState.turma); }));
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
     peopleState.page = Math.min(Math.max(1, peopleState.page), pages);
     var start = (peopleState.page - 1) * PAGE_SIZE;
