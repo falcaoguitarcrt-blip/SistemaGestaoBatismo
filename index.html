@@ -1814,7 +1814,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     if(status){status.className='shirt-status wait';status.textContent='Salvando…';}
     if(button)button.disabled=true;
     try{
-      var saved=await window.firebaseSaveShirtRecord(old.id,patch,old.updatedAt,{actor:auth && auth.currentUser && auth.currentUser.email || ''});
+      var saved=await window.firebaseSaveShirtRecord(old.id,patch,old.updatedAt,{actor:window.firebaseShirtActor ? (window.firebaseShirtActor().email || window.firebaseShirtActor().uid) : ''});
       var ix=shirtRecordsCache.findIndex(function(r){return r.id===old.id;});
       if(ix>=0)shirtRecordsCache[ix]=Object.assign({},saved,{id:old.id});else shirtRecordsCache.push(Object.assign({},saved,{id:old.id}));
       if(status){status.className='shirt-status ok';status.textContent='Salvo';}
@@ -1858,7 +1858,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     document.getElementById('shirt-results').addEventListener('change',function(e){
       var el=e.target;if(!el.matches('[data-shirt-field]'))return;
       var id=el.getAttribute('data-person-id');var person=(appData.people||[]).find(function(p){return shirtIdFor(p)===id;});if(!person)return;
-      var patch={};patch[el.getAttribute('data-shirt-field')]=el.type==='checkbox'?el.checked:el.value;
+      var patch={};var field=el.getAttribute('data-shirt-field');patch[field]=field==='pago'?(el.value==='true'):(field==='valor'?Number(el.value||0):(el.type==='checkbox'?el.checked:el.value));
       if(patch.quer==='nao'||patch.quer==='ja_tem'||patch.quer===''){patch.quer=patch.quer;}
       saveShirtPatch(person,patch,null);
     });
@@ -1876,7 +1876,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
         var prior=b.getAttribute('data-prior')||'';saveShirtPatch(person,{quer:prior},null);
       } else if(b.getAttribute('data-shirt-action')==='deliver'){
         var delivered=prompt('Digite ENTREGAR para confirmar a entrega.');if(delivered!=='ENTREGAR')return;
-        saveShirtPatch(person,{entregue:true,entregueEm:new Date().toISOString(),entreguePor:(auth.currentUser&&auth.currentUser.email)||auth.currentUser.uid},null);
+        saveShirtPatch(person,{entregue:true,entregueEm:new Date().toISOString(),entreguePor:(window.firebaseShirtActor&&window.firebaseShirtActor().email)||'usuário autenticado'},null);
       }
     });
     document.getElementById('shirt-close-choice').addEventListener('click',async function(){
@@ -3160,6 +3160,7 @@ function shirtDocumentId(person) {
   const raw = String(person && (person.id || (String(person.turma || '') + '_' + String(person.sourceRow || person.row || ''))) || '');
   return raw.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 140) || 'pessoa_sem_id';
 }
+window.firebaseShirtActor = function () { return auth.currentUser ? { uid: auth.currentUser.uid, email: auth.currentUser.email || '' } : { uid: '', email: '' }; };
 window.firebaseLoadShirtRecords = async function () {
   if (!auth.currentUser) throw new Error('Faça login antes de consultar camisetas.');
   const snapshot = await getDocs(collection(firestore, 'camisetas'));
