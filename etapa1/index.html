@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123c32">
+  <meta name="description" content="Fundação segura do Sistema de Gestão de Batismo">
+  <title>Sistema de Gestão de Batismo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body>
+  <main class="page-shell">
+    <section class="brand-panel" aria-label="Apresentação">
+      <div class="brand-mark" aria-hidden="true">✦</div>
+      <p class="eyebrow">SECRETARIA • BATISMO</p>
+      <h1>Uma jornada organizada,<br>pessoa por pessoa.</h1>
+      <p class="brand-copy">Um espaço para acompanhar a preparação, cuidar dos detalhes e apoiar a equipe no dia do batismo.</p>
+      <div class="brand-foot">Sistema de Gestão de Batismo</div>
+    </section>
+    <section class="workspace">
+      <section id="loginView" class="auth-card" aria-labelledby="loginTitle">
+        <p class="eyebrow">ACESSO RESTRITO</p>
+        <h2 id="loginTitle">Bem-vindo(a)</h2>
+        <p class="muted">Entre com a conta autorizada pela administração da igreja.</p>
+        <form id="loginForm">
+          <label for="email">E-mail</label>
+          <input id="email" name="email" type="email" autocomplete="username" required placeholder="voce@exemplo.com">
+          <label for="password">Senha</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" autocomplete="current-password" required minlength="6" placeholder="Digite sua senha">
+            <button id="togglePassword" class="text-button" type="button" aria-pressed="false">Mostrar</button>
+          </div>
+          <button class="button primary full" id="loginButton" type="submit">Entrar com segurança</button>
+          <button class="text-button forgot" id="resetPassword" type="button">Esqueci minha senha</button>
+          <p id="authMessage" class="message" role="status" aria-live="polite"></p>
+        </form>
+        <p class="privacy-note"><span aria-hidden="true">🔒</span> O acesso aos dados depende de autenticação e permissões no Firebase.</p>
+      </section>
+      <section id="dashboardView" class="dashboard" hidden aria-labelledby="dashboardTitle">
+        <header class="dash-header">
+          <div><p class="eyebrow">VISÃO GERAL</p><h2 id="dashboardTitle">Bom trabalho!</h2><p id="userLine" class="muted"></p></div>
+          <button id="logoutButton" class="button secondary" type="button">Sair</button>
+        </header>
+        <div class="demo-banner"><strong>Modo de demonstração</strong><span>Os indicadores abaixo são fictícios. Nenhum dado real foi importado.</span></div>
+        <section class="next-event card">
+          <div><p class="eyebrow">PRÓXIMO BATISMO · EXEMPLO</p><h3>Turma demonstrativa 37</h3><p class="muted">Data ilustrativa · configure os eventos nas próximas etapas.</p></div>
+          <div class="event-stat"><strong>18</strong><span>dias (exemplo)</span></div>
+        </section>
+        <section class="kpi-grid" aria-label="Indicadores demonstrativos">
+          <article class="card kpi"><span>Pessoas ativas</span><strong>128</strong><small>Exemplo fictício</small></article>
+          <article class="card kpi"><span>Com pendências</span><strong>24</strong><small>Exemplo fictício</small></article>
+          <article class="card kpi"><span>Jornada concluída</span><strong>86</strong><small>Não significa batizado</small></article>
+          <article class="card kpi"><span>Camisetas pendentes</span><strong>17</strong><small>Exemplo fictício</small></article>
+        </section>
+        <section class="card preparation"><div class="section-head"><div><h3>Preparação da turma</h3><p class="muted">Visual demonstrativo, sem conexão com registros reais.</p></div><span class="tag">EXEMPLO</span></div>
+          <div class="funnel-row"><span>Inscrição</span><div class="track"><span style="width:92%"></span></div><strong>92%</strong></div>
+          <div class="funnel-row"><span>Aulas</span><div class="track"><span style="width:78%"></span></div><strong>78%</strong></div>
+          <div class="funnel-row"><span>Jornada</span><div class="track"><span style="width:67%"></span></div><strong>67%</strong></div>
+          <div class="funnel-row"><span>Pronto para o evento</span><div class="track"><span style="width:54%"></span></div><strong>54%</strong></div>
+        </section>
+        <p class="footer-note">Fundação da Etapa 1 · Os módulos operacionais serão liberados após validação.</p>
+      </section>
+      <p class="workspace-foot">Use somente uma conta autorizada. Nunca compartilhe sua senha ou códigos de verificação.</p>
+    </section>
+  </main>
+  <script type="module" src="./js/auth.js"></script>
+  <script type="module" src="./js/dashboard.js"></script>
+</body>
+</html>
