@@ -1775,6 +1775,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
 
   var shirtRecordsCache = [];
+  var shirtRecordsLoaded = false;
   var shirtUiFilter = 'todos';
   var shirtOrderSnapshot = null;
   var shirtSizes = ['PP','P','M','G','GG','G1','G2','G3','RN','P infantil','M infantil','G infantil','1','2','3','4','6','8','10','12','14','16'];
@@ -1806,7 +1807,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   }
   async function refreshShirtRecords() {
     if(typeof window.firebaseLoadShirtRecords!=='function') return;
-    try { shirtRecordsCache=await window.firebaseLoadShirtRecords(); }
+    try { shirtRecordsCache=await window.firebaseLoadShirtRecords(); shirtRecordsLoaded=true; }
     catch(error) { setImportMessage('Não foi possível carregar os registros complementares de camisetas. Os dados originais foram mantidos. '+(error.message||''),'error'); }
   }
   async function saveShirtPatch(person, patch, button) {
@@ -1837,6 +1838,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
     }).sort(function(a,b){return String(a.p.name||a.p.nome||'').localeCompare(String(b.p.name||b.p.nome||''),'pt-BR');});
   }
   function buildShirts() {
+    if (!shirtRecordsLoaded && typeof window.firebaseLoadShirtRecords==='function') { refreshShirtRecords().then(function(){ buildShirts(); }); shirtRecordsLoaded=true; }
     var people=(appData.people||[]).filter(function(p){return matchesTurmaFilter(p,shirtState.turma || appData.turmaPadrao || '36');});
     var rows=people.map(function(p){return {p:p,r:shirtRecordFor(p)};});
     var yes=rows.filter(function(x){return x.r.quer==='sim';});
