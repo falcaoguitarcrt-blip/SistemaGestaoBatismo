@@ -9,6 +9,8 @@ assert.ok(shirtBlock.includes('Sim sem tamanho'), 'Alerta de sim sem tamanho pre
 assert.ok(html.includes("collection(firestore, 'camisetas')"), 'Coleção aditiva camisetas presente');
 assert.ok(html.includes('shirt/version-conflict'), 'Atualização condicional por versão presente');
 assert.ok(html.includes('before: { quer:'), 'Auditoria antes/depois presente');
+assert.ok(html.includes("catch(error) { shirtRecordsLoaded=false; setImportMessage('Não foi possível carregar os registros complementares de camisetas."), 'Falha de leitura permite tentar carregar novamente');
+assert.ok(html.includes("refreshShirtRecords().then(function(){ if (shirtRecordsLoaded) buildShirts(); });"), 'A tela não reinicia em ciclo infinito quando a leitura falha');
 assert.ok(html.includes('ENCERRAR CAMISETAS'), 'Encerramento protegido por confirmação digitada');
 assert.ok(html.includes('Reverter encerramento'), 'Reversão individual presente');
 assert.ok(html.includes('function shirtCell(value)'), 'Sanitização CSV presente');
