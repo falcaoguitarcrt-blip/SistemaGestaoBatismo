@@ -26,6 +26,8 @@ jobs:
         run: node scripts/check-two-sheet-import-contract.mjs
       - name: Verificar contratos de preservação de dados
         run: node scripts/check-data-preservation-contract.mjs
+      - name: Verificar regras e mocks da gestão de camisetas
+        run: node scripts/check-shirts-contract.mjs
       - name: Testar comportamento de check-in e desfazer com mocks
         run: node scripts/test-day-checkin-behavior.mjs
       - name: Testar concorrência de salvamento do workspace com mocks
