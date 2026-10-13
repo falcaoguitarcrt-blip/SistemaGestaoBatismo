@@ -1472,7 +1472,7 @@ section{display:none}section.on{display:block}
   function buildHome() {
     if (!appData) return;
     var home = document.getElementById('home');
-    var turmaAtual = String(appData.turmaPadrao || '');
+    var turmaAtual = String(appData.turmaPadrao || '36');
     var turmaSelecionada = (appData.turmas || []).find(function (t) {
       return String(t.id) === turmaAtual || String(t.number) === turmaAtual;
     }) || (turmaAtual ? { id: turmaAtual, number: turmaAtual, name: 'Turma ' + turmaAtual } : null);
