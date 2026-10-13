@@ -160,7 +160,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
 @media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
 #accessible-confirm-dialog{max-width:min(560px,calc(100vw - 28px));width:100%;border:1px solid var(--ln);border-radius:16px;padding:22px;background:var(--card);color:var(--tx)}#accessible-confirm-dialog::backdrop{background:rgba(0,0,0,.55)}#accessible-confirm-dialog form{display:grid;gap:12px}#accessible-confirm-dialog input{width:100%;min-height:42px;margin-top:6px;padding:8px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx)}
-.import-field-diff{border:1px solid #b7791f;border-radius:8px;background:rgba(183,121,31,.12);padding:6px 8px;font-weight:700}</style>
+.import-field-diff{border:1px solid #b7791f;border-radius:8px;background:rgba(183,121,31,.12);padding:6px 8px;font-weight:700}.shirt-manager{display:grid;gap:12px}.shirt-filters{display:flex;gap:8px;flex-wrap:wrap}.shirt-filters button{min-height:44px;padding:9px 13px;border:1px solid var(--ln);border-radius:999px;background:var(--card);color:var(--tx);font:inherit}.shirt-filters button[aria-pressed="true"]{border-color:var(--pri);box-shadow:inset 0 0 0 1px var(--pri);font-weight:700}.shirt-row-new{display:grid;grid-template-columns:minmax(180px,1.2fr) repeat(3,minmax(110px,.8fr));gap:10px;align-items:center}.shirt-row-new .shirt-fields{display:grid;gap:5px;min-width:0}.shirt-row-new select,.shirt-row-new input,.shirt-row-new textarea{min-height:44px;width:100%;min-width:0;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);padding:9px}.shirt-status{display:inline-flex;gap:5px;align-items:center;border-radius:999px;padding:4px 8px;font-size:12px;border:1px solid var(--ln)}.shirt-status.ok{color:var(--ok)}.shirt-status.wait{color:#a56a00}.shirt-status.no{color:var(--mut)}.shirt-status.err{color:var(--er)}.shirt-actions{display:flex;gap:8px;flex-wrap:wrap}.shirt-actions button{min-height:44px}.shirt-mini{font-size:12px;color:var(--mut)}@media(max-width:760px){.shirt-row-new{grid-template-columns:1fr 1fr}.shirt-row-new .shirt-person-new{grid-column:1/-1;border-bottom:1px solid var(--ln);padding-bottom:8px}.shirt-actions button{flex:1}}@media(max-width:380px){.shirt-row-new{grid-template-columns:1fr}.shirt-row-new .shirt-person-new{grid-column:auto}}</style>
 </head>
 <body class="auth-pending">
 
@@ -3037,6 +3037,46 @@ async function loadCloudWorkspace(requestedVersionId) {
   if (!Array.isArray(workspace.ordensTurma)) workspace.ordensTurma = [];
   return workspace;
 }
+// Camisetas: armazenamento aditivo por pessoa. Não altera os campos legados da planilha.
+function shirtDocumentId(person) {
+  const raw = String(person && (person.id || (String(person.turma || '') + '_' + String(person.sourceRow || person.row || ''))) || '');
+  return raw.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 140) || 'pessoa_sem_id';
+}
+window.firebaseLoadShirtRecords = async function () {
+  if (!auth.currentUser) throw new Error('Faça login antes de consultar camisetas.');
+  const snapshot = await getDocs(collection(firestore, 'camisetas'));
+  return snapshot.docs.map(function (item) { return Object.assign({ id: item.id }, item.data() || {}); });
+};
+window.firebaseSaveShirtRecord = async function (personId, changes, expectedUpdatedAt, auditMeta) {
+  if (!auth.currentUser) throw new Error('Faça login antes de salvar camisetas.');
+  if (!personId || typeof personId !== 'string' || !changes || typeof changes !== 'object') throw new Error('Dados da camiseta inválidos.');
+  const ref = doc(firestore, 'camisetas', personId);
+  const now = new Date().toISOString();
+  let saved;
+  await runTransaction(firestore, async function (tx) {
+    const snap = await tx.get(ref);
+    const before = snap.exists() ? (snap.data() || {}) : {};
+    const currentStamp = before.updatedAt || '';
+    if (String(expectedUpdatedAt || '') !== String(currentStamp)) {
+      const conflict = new Error('Esta camiseta foi alterada em outra sessão. Atualize a lista antes de tentar novamente.');
+      conflict.code = 'shirt/version-conflict';
+      throw conflict;
+    }
+    const next = Object.assign({}, before, changes, {
+      updatedAt: now,
+      updatedBy: auth.currentUser.uid,
+      audit: (Array.isArray(before.audit) ? before.audit : []).concat([{
+        at: now, by: auth.currentUser.uid,
+        actor: String(auditMeta && auditMeta.actor || auth.currentUser.email || auth.currentUser.uid),
+        before: { quer: before.quer || '', tamanho: before.tamanho || '', pago: !!before.pago, entregue: !!before.entregue },
+        after: { quer: changes.quer !== undefined ? changes.quer : (before.quer || ''), tamanho: changes.tamanho !== undefined ? changes.tamanho : (before.tamanho || ''), pago: changes.pago !== undefined ? !!changes.pago : !!before.pago, entregue: changes.entregue !== undefined ? !!changes.entregue : !!before.entregue }
+      }]).slice(-100)
+    });
+    tx.set(ref, next);
+    saved = next;
+  }, { maxAttempts: 3 });
+  return saved;
+};
 window.firebaseSaveWorkspace = saveCloudWorkspace;
 window.firebaseListVersions = async function () {
   if (!auth.currentUser) throw new Error('Faça login para consultar versões.');
