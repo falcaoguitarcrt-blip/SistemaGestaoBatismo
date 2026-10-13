@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#123c32">
 <meta name="description" content="Sistema de gestão de batismo com cadastros, ordem, importação de planilha e sincronização segura pelo Firebase.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <title>Gestão de Batismo</title>
 <style>
 :root{--pri:#123c32;--pri2:#1a5446;--aq:#1f7a99;--gold:#c9a24b;--bg:#f6f8f7;--tx:#14211d;--mut:#5f7069;--card:#fff;--ln:#dfe7e3;--ok:#2e8b57;--pe:#d9951b;--er:#c0392b;--in:#2b7bb9;
@@ -160,7 +161,144 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
 @media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
 #accessible-confirm-dialog{max-width:min(560px,calc(100vw - 28px));width:100%;border:1px solid var(--ln);border-radius:16px;padding:22px;background:var(--card);color:var(--tx)}#accessible-confirm-dialog::backdrop{background:rgba(0,0,0,.55)}#accessible-confirm-dialog form{display:grid;gap:12px}#accessible-confirm-dialog input{width:100%;min-height:42px;margin-top:6px;padding:8px;border:1px solid var(--ln);border-radius:8px;background:var(--bg);color:var(--tx)}
-.import-field-diff{border:1px solid #b7791f;border-radius:8px;background:rgba(183,121,31,.12);padding:6px 8px;font-weight:700}</style>
+.import-field-diff{border:1px solid #b7791f;border-radius:8px;background:rgba(183,121,31,.12);padding:6px 8px;font-weight:700}
+/* Design system da modernização: tokens compartilhados por todas as etapas. */
+:root{
+  color-scheme:light;
+  --color-primary:#123c32;--color-aqua:#1f7a99;--color-gold:#c9a24b;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:24px;--space-6:32px;--space-7:40px;--space-8:48px;
+  --radius-control:12px;--radius-card:16px;--radius-pill:999px;
+  --shadow-1:0 1px 3px rgba(18,60,50,.07),0 1px 2px rgba(18,60,50,.04);
+  --shadow-2:0 12px 32px rgba(18,60,50,.12),0 3px 8px rgba(18,60,50,.06);
+  --status-amber:#8a5a00;--status-amber-bg:#fff4d6;--status-green:#1f6b42;--status-green-bg:#e4f3ea;
+  --status-red:#a02a1f;--status-red-bg:#fcebe8;--status-blue:#1d5f93;--status-blue-bg:#e5f0fa;
+  --bg:#f5f7f6;--tx:#172923;--mut:#5b6d65;--card:#fff;--ln:#dce5e0;--pri:#123c32;--pri2:#1b5949;--aq:#1f7a99;--gold:#c9a24b;
+  --ok:var(--status-green);--pe:var(--status-amber);--er:var(--status-red);--in:var(--status-blue);
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;--bg:#101b18;--tx:#edf4f0;--mut:#a8b9b1;--card:#182722;--ln:#30443a;
+  --pri:#286b58;--pri2:#34856d;--aq:#69b9d0;--gold:#e0bb68;
+  --status-amber:#f2c66d;--status-amber-bg:#3b2e16;--status-green:#8ed2a8;--status-green-bg:#183b2a;
+  --status-red:#ffaaa0;--status-red-bg:#48221f;--status-blue:#a4d0f5;--status-blue-bg:#1b344a;
+  --shadow-1:0 1px 3px rgba(0,0,0,.2);--shadow-2:0 12px 32px rgba(0,0,0,.28);
+}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#101b18;--tx:#edf4f0;--mut:#a8b9b1;--card:#182722;--ln:#30443a;--pri:#286b58;--pri2:#34856d;--aq:#69b9d0;--gold:#e0bb68;--status-amber:#f2c66d;--status-amber-bg:#3b2e16;--status-green:#8ed2a8;--status-green-bg:#183b2a;--status-red:#ffaaa0;--status-red-bg:#48221f;--status-blue:#a4d0f5;--status-blue-bg:#1b344a;--shadow-1:0 1px 3px rgba(0,0,0,.2);--shadow-2:0 12px 32px rgba(0,0,0,.28)}}
+html{scroll-padding-top:88px}
+body{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5;background:var(--bg);color:var(--tx)}
+h1,h2,h3,.kpi b,.big,.data-metric strong{font-family:Fraunces,Georgia,serif}
+button,input,select,textarea{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--aq)!important;outline-offset:3px}
+button,select,input{min-height:44px}
+.icon{width:20px;height:20px;display:block;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.icon-brand{width:22px;height:22px;stroke:none;fill:currentColor}
+.app-header{position:sticky;top:0;z-index:20;margin-left:264px;padding:0 32px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--ln)}
+.app-topbar{min-height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.app-topbar .brand{font-family:Inter,system-ui,sans-serif;font-size:16px;letter-spacing:-.02em;gap:12px}
+.app-topbar .brand i{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--pri);color:var(--color-gold)}
+.app-topbar-tools{display:flex;align-items:center;gap:12px}
+.sync-state{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut);padding:8px 12px;border:1px solid var(--ln);border-radius:var(--radius-pill);background:var(--card)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--status-green);box-shadow:0 0 0 3px var(--status-green-bg)}
+.icon-button{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--ln);border-radius:12px;background:var(--card);color:var(--tx);cursor:pointer}
+#fb-logout{min-height:44px;border-radius:12px;padding:0 14px;background:var(--card);border:1px solid var(--ln);color:var(--tx);font:inherit}
+#nav{position:fixed;z-index:30;inset:0 auto 0 0;width:264px;overflow-y:auto;display:flex;flex-direction:column;gap:24px;padding:24px 16px;background:var(--card);border-right:1px solid var(--ln)}
+.nav-brand{display:flex;align-items:center;gap:12px;padding:0 12px 16px;color:var(--mut);font-size:11px;font-weight:800;letter-spacing:.14em}
+.nav-brand-mark{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:var(--pri);color:var(--color-gold)}
+.nav-brand-mark .icon{width:21px;height:21px;stroke:none;fill:currentColor}
+.nav-group{display:grid;gap:4px}
+.nav-group-title{margin:0 12px 6px;color:var(--mut);font-size:10px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+#nav button[data-s]{width:100%;min-height:44px;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--mut);font-size:13px;font-weight:600;text-align:left;cursor:pointer}
+#nav button[data-s] .icon{width:19px;height:19px}
+#nav button[data-s]:hover{background:var(--bg);color:var(--tx)}
+#nav button[data-s].on{background:#e8f1ed;color:#123c32;border-color:#d4e4dc}
+:root[data-theme="dark"] #nav button[data-s].on{background:#203c32;color:#d8f0e4;border-color:#365749}
+.nav-mobile{display:none}
+main{max-width:none;margin:0 0 0 264px;padding:28px 32px 48px}
+main section{max-width:1440px;margin:0 auto}
+section{display:none}section.on{display:block}
+.card,.panel-card,.metric-card{background:var(--card);border:1px solid var(--ln);border-radius:var(--radius-card);box-shadow:var(--shadow-1)}
+.card{padding:var(--space-4);margin-bottom:var(--space-3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:1px solid transparent;border-radius:12px;padding:10px 16px;font:inherit;font-weight:650;background:var(--color-gold);color:#1d291f;min-height:44px;cursor:pointer;transition:background-color .15s ease,border-color .15s ease}
+.btn:hover{filter:brightness(.97)}.btn:active{transform:translateY(1px)}.btn.g{background:var(--status-green);color:#fff}.btn.o{background:var(--card);border-color:var(--ln);color:var(--tx)}
+.tag,.status-pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:11px;font-weight:700;padding:6px 9px;border-radius:999px;line-height:1.2}
+.t-ok,.status-pill--success{background:var(--status-green-bg);color:var(--status-green)}.t-pe,.status-pill--warning{background:var(--status-amber-bg);color:var(--status-amber)}.t-er,.status-pill--danger{background:var(--status-red-bg);color:var(--status-red)}.t-in,.status-pill--info{background:var(--status-blue-bg);color:var(--status-blue)}
+.status-pill .icon{width:14px;height:14px}
+.page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:0 0 24px}
+.page-heading h1{font-size:clamp(28px,3vw,36px);line-height:1.15;letter-spacing:-.035em;margin:0}
+.eyebrow{margin:0 0 7px;color:var(--aq);font-size:10px;font-weight:800;letter-spacing:.13em}
+.page-subtitle{margin:8px 0 0;color:var(--mut);font-size:14px}
+.demo-label{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--ln);border-radius:999px;color:var(--mut);background:var(--card);font-size:11px;font-weight:700;white-space:nowrap}
+.demo-label .icon{width:15px;height:15px}
+.home-hero{position:relative;display:flex;align-items:center;justify-content:space-between;gap:32px;min-height:260px;padding:32px 40px;margin-bottom:20px;overflow:hidden;border-radius:20px;background:linear-gradient(120deg,#123c32 0%,#164e45 56%,#1f7a99 100%);color:#fff;box-shadow:var(--shadow-2)}
+.home-hero:after{content:"";position:absolute;width:340px;height:340px;right:4%;top:-220px;border:1px solid #ffffff24;border-radius:50%;box-shadow:0 0 0 34px #ffffff0a,0 0 0 68px #ffffff08;pointer-events:none}
+.home-hero-copy{position:relative;z-index:1;flex:1;min-width:0}
+.eyebrow-light{color:#d6c17f}
+.home-hero h2{font-size:clamp(28px,3vw,40px);letter-spacing:-.035em;margin:0 0 12px}
+.home-countdown{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0;color:#e2eeea;font-size:13px}
+.home-countdown .icon{width:17px;height:17px}
+.hero-divider{width:4px;height:4px;border-radius:50%;background:#a7c6ba;margin:0 3px}
+.hero-progress{max-width:520px;margin:24px 0 20px}
+.hero-progress-label{display:flex;justify-content:space-between;gap:12px;margin-bottom:9px;font-size:12px;color:#e2eeea}
+.hero-progress-label strong{color:#fff}
+.home-hero .bar{height:8px;background:#ffffff35;border-radius:99px}
+.home-hero .bar b{background:var(--color-gold);border-radius:99px}
+.hero-action{background:var(--color-gold);color:#172923;min-width:150px}
+.hero-action .icon{width:17px;height:17px}
+.readiness-ring{position:relative;z-index:1;flex:none;width:148px;height:148px;display:grid;place-items:center;margin:0 12px}
+.readiness-ring svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.readiness-ring circle{fill:none;stroke-width:8}
+.ring-track{stroke:#ffffff28}.ring-value{stroke:var(--color-gold);stroke-linecap:round}
+.ring-copy{display:grid;justify-items:center;gap:1px}.ring-copy strong{font:700 31px/1 Fraunces,Georgia,serif}.ring-copy span{font-size:11px;color:#dce9e4}
+.home-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:20px}
+.metric-card{position:relative;display:grid;grid-template-columns:42px 1fr;column-gap:12px;align-content:start;align-items:center;min-width:0;padding:20px}
+.metric-icon{grid-row:span 2;width:42px;height:42px;display:grid;place-items:center;border-radius:13px}
+.metric-icon .icon{width:21px;height:21px}
+.metric-icon--green{background:var(--status-green-bg);color:var(--status-green)}.metric-icon--amber{background:var(--status-amber-bg);color:var(--status-amber)}.metric-icon--blue{background:var(--status-blue-bg);color:var(--status-blue)}.metric-icon--gold{background:#f7f0df;color:#785b19}
+.metric-label{font-size:12px;color:var(--mut);line-height:1.35}.metric-card strong{font:700 29px/1.2 Fraunces,Georgia,serif;margin-top:5px}.metric-card small{grid-column:1/-1;margin-top:15px;padding-top:12px;border-top:1px solid var(--ln);font-size:11px;color:var(--mut)}
+.home-lower-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:20px;align-items:stretch}
+.panel-card{min-width:0;padding:24px}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+.panel-heading .eyebrow{margin-bottom:5px}.panel-heading h2.t{margin:0;font-size:22px}
+.panel-caption,.attention-count{font-size:11px;color:var(--mut);white-space:nowrap}
+.attention-count{padding:6px 9px;border-radius:999px;background:var(--bg)}
+.funnel-row{margin:17px 0}.funnel-label{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:12px}.funnel-label span{color:var(--mut)}.funnel-label strong{font-variant-numeric:tabular-nums}
+.funnel-track{height:8px;border-radius:999px;background:var(--bg);overflow:hidden}.funnel-track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--color-primary),var(--color-aqua))}
+.attention-item{display:flex;align-items:flex-start;gap:12px;padding:15px 0;border-top:1px solid var(--ln)}.attention-item:first-of-type{border-top:0;padding-top:0}
+.attention-copy{display:grid;gap:5px;min-width:0}.attention-copy strong{font-size:13px;line-height:1.4}.attention-copy>span{font-size:11px;color:var(--mut);line-height:1.5}
+#pes input[type=search],input[type=search]{min-height:44px;border-radius:12px}
+@media(max-width:1100px){
+  .app-header{margin-left:228px;padding:0 22px}#nav{width:228px;padding:20px 12px;gap:20px}main{margin-left:228px;padding:24px 22px 40px}
+  .home-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.home-lower-grid{grid-template-columns:1fr}.home-hero{padding:28px}
+}
+@media(max-width:767px){
+  .app-header{margin-left:0;padding:0 16px}.app-topbar{min-height:66px}.app-topbar .brand{font-size:14px}.app-topbar .brand i{width:36px;height:36px}
+  .sync-state{padding:7px 9px;font-size:0}.sync-state .sync-dot{width:9px;height:9px}
+  #nav{inset:auto 0 0;width:100%;height:calc(72px + env(safe-area-inset-bottom,0px));padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--ln);overflow:visible;box-shadow:0 -8px 24px rgba(18,60,50,.08);background:var(--card)}
+  .nav-brand,.nav-group{display:none}.nav-mobile{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;width:100%;height:100%;align-items:center}
+  #nav .nav-mobile button[data-s]{min-height:52px;width:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;padding:5px 2px;border-radius:11px;font-size:10px}
+  #nav .nav-mobile button[data-s] .icon{width:19px;height:19px}
+  #nav .nav-mobile button[data-s].on{background:#e8f1ed;color:#123c32}
+  :root[data-theme="dark"] #nav .nav-mobile button[data-s].on{background:#203c32;color:#d8f0e4}
+  .mobile-more-label{display:flex;min-height:52px;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--mut);font-size:10px;cursor:pointer}
+  .mobile-more-label .icon{width:19px;height:19px}
+  #nav .nav-mobile select{position:absolute;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));width:20%;height:52px;opacity:0;min-height:52px;cursor:pointer}
+  main{margin:0;padding:22px 16px calc(100px + env(safe-area-inset-bottom,0px))}
+  .page-heading{align-items:flex-start;flex-direction:column;gap:12px;margin-bottom:18px}.page-heading h1{font-size:30px}.page-subtitle{font-size:13px}
+  .home-hero{min-height:0;padding:24px 20px;gap:12px;border-radius:18px}.home-hero h2{font-size:29px}.readiness-ring{width:100px;height:100px;margin:0}.ring-copy strong{font-size:24px}.ring-copy span{font-size:10px}
+  .home-countdown{font-size:12px}.hero-progress{margin:18px 0}.hero-action{width:100%}.home-metrics{gap:10px}.metric-card{padding:14px;grid-template-columns:34px 1fr;column-gap:9px}.metric-icon{width:34px;height:34px;border-radius:10px}.metric-icon .icon{width:18px;height:18px}.metric-card strong{font-size:25px}.metric-card small{font-size:10px;margin-top:11px;padding-top:9px}
+  .panel-card{padding:18px}.panel-heading{align-items:flex-start}.panel-heading h2.t{font-size:20px}.status-pill{flex:none}
+}
+@media(max-width:479px){
+  .app-topbar-tools{gap:7px}.app-topbar .brand{gap:8px}.app-topbar .brand i{width:32px;height:32px}.app-topbar .brand span{max-width:150px}
+  .sync-state{border:0;background:transparent;padding:5px}
+  main{padding:18px 12px calc(100px + env(safe-area-inset-bottom,0px))}
+  .home-hero{display:grid;grid-template-columns:minmax(0,1fr) 82px;gap:10px;padding:20px 16px}
+  .home-hero-copy{display:contents}.home-hero-copy>.eyebrow{grid-column:1/-1}.home-hero-copy h2{grid-column:1}.home-countdown{grid-column:1/-1;grid-row:3}.hero-progress{grid-column:1/-1;grid-row:4;margin:12px 0 6px}.hero-action{grid-column:1/-1;grid-row:5}.readiness-ring{grid-column:2;grid-row:2;width:78px;height:78px;align-self:center}.readiness-ring circle{stroke-width:10}.ring-copy strong{font-size:20px}.ring-copy span{font-size:9px}.home-hero h2{font-size:25px}
+  .home-metrics{gap:8px}.metric-card{padding:12px;grid-template-columns:1fr;gap:6px}.metric-icon{grid-row:auto;width:32px;height:32px}.metric-label{min-height:30px;font-size:11px}.metric-card strong{margin-top:0;font-size:24px}.metric-card small{margin-top:8px;padding-top:8px;line-height:1.35}
+  .attention-item{gap:8px}.status-pill{font-size:10px;padding:6px 7px}.attention-copy strong{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+</style>
 </head>
 <body class="auth-pending">
 
@@ -185,37 +323,91 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
   </form>
 </div>
 
-<header>
-<div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
-<nav id="nav" aria-label="Navegação principal">
-<button class="on" data-s="home">▦ Painel</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button>
-<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="ver">Versões</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
-<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="cam" tabindex="-1" aria-hidden="true">Camisetas</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="ver" tabindex="-1" aria-hidden="true">Versões</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
-</nav>
+<header class="app-header">
+  <div class="app-topbar">
+    <div class="brand"><i aria-hidden="true"><svg class="icon icon-brand" viewBox="0 0 24 24"><path d="M12 2.8 14.5 9.5 21.2 12l-6.7 2.5L12 21.2l-2.5-6.7L2.8 12l6.7-2.5L12 2.8Z"/></svg></i><span>Gestão de Batismo</span></div>
+    <div class="app-topbar-tools">
+      <span class="sync-state" role="status" aria-live="polite"><span class="sync-dot" aria-hidden="true"></span><span>Área protegida</span></span>
+      <button id="tm" class="icon-button" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 15.4A8.5 8.5 0 0 1 8.6 3.5 8.6 8.6 0 1 0 20.5 15.4Z"/></svg></button>
+    </div>
+  </div>
 </header>
+<nav id="nav" aria-label="Navegação principal">
+  <div class="nav-brand" aria-hidden="true"><span class="nav-brand-mark"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2.8 14.5 9.5 21.2 12l-6.7 2.5L12 21.2l-2.5-6.7L2.8 12l6.7-2.5L12 2.8Z"/></svg></span><span>GESTÃO</span></div>
+  <div class="nav-group">
+    <p class="nav-group-title">Operação</p>
+    <button class="on" data-s="home" aria-current="page"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/></svg><span>Início</span></button>
+    <button data-s="pes"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-1.5A5.5 5.5 0 0 1 8 13h2a5.5 5.5 0 0 1 5.5 5.5V20Z"/><path d="M16 4.8a3.5 3.5 0 0 1 0 6.5M18 14a5 5 0 0 1 3.5 4.8V20"/></svg><span>Pessoas</span></button>
+    <button data-s="ord"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M8.5 9h7M8.5 13h7M8.5 17h4"/></svg><span>Ordem</span></button>
+    <button data-s="dia"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2.5v5M17 2.5v5M3 10h18M8 15l2.2 2.2L16 12"/></svg><span>Dia do Batismo</span></button>
+  </div>
+  <div class="nav-group">
+    <p class="nav-group-title">Gestão</p>
+    <button data-s="tur"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 9 4.5-9 4.5-9-4.5L12 3Z"/><path d="m3 12 9 4.5 9-4.5M3 16.5 12 21l9-4.5"/></svg><span>Turmas</span></button>
+    <button data-s="pen"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 22 20H2L12 3Z"/><path d="M12 9v5M12 17.2v.1"/></svg><span>Pendências</span></button>
+    <button data-s="cam"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 4 4 2 4-2 5 3-3 5-2-1v10H8V11l-2 1-3-5 5-3Z"/></svg><span>Camisetas</span></button>
+    <button data-s="rep"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.5 9A7 7 0 0 1 18 6l2 6M4 12l2 6a7 7 0 0 0 12.5-3"/></svg><span>Reposição</span></button>
+  </div>
+  <div class="nav-group">
+    <p class="nav-group-title">Registro</p>
+    <button data-s="his"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5M12 7v5l3.5 2"/></svg><span>Histórico</span></button>
+    <button data-s="imp"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 15V3m-4 4 4-4 4 4"/><path d="M5 13v7h14v-7"/></svg><span>Importar</span></button>
+    <button data-s="ver"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 4 7v5c0 4.5 3.5 7.5 8 9 4.5-1.5 8-4.5 8-9V7l-8-4Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg><span>Versões</span></button>
+    <button data-s="cfg"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.1 1.8-1.8 3.1-2.1-.5a8 8 0 0 1-1.5.9l-.6 2.1h-3.6l-.6-2.1a8 8 0 0 1-1.5-.9l-2.1.5-1.8-3.1 1.1-1.8a8 8 0 0 1 0-1.8l-1.1-1.8 1.8-3.1 2.1.5a8 8 0 0 1 1.5-.9l.6-2.1h3.6l.6 2.1a8 8 0 0 1 1.5.9l2.1-.5 1.8 3.1-1.1 1.8a8 8 0 0 1 0 1.8Z"/></svg><span>Configurações</span></button>
+  </div>
+  <div class="nav-mobile">
+    <button class="on" data-s="home" aria-label="Início"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/></svg><span>Início</span></button>
+    <button data-s="pes" aria-label="Pessoas"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-1.5A5.5 5.5 0 0 1 8 13h2a5.5 5.5 0 0 1 5.5 5.5V20Z"/></svg><span>Pessoas</span></button>
+    <button data-s="ord" aria-label="Ordem"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.8h6V4M8.5 9h7M8.5 13h7"/></svg><span>Ordem</span></button>
+    <button data-s="dia" aria-label="Dia do Batismo"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2.5v5M17 2.5v5M3 10h18"/></svg><span>Dia</span></button>
+    <label class="mobile-more-label" for="nav-more"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg><span>Mais</span></label>
+    <select id="nav-more" aria-label="Mais telas"><option value="">Mais</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="ver">Versões</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
+  </div>
+</nav>
 <main>
 
 <section id="tur"><h2 class="t">Turmas</h2><div class="card"><p class="section-sub">Cadastre e organize os ciclos de batismo. Criar uma turma não importa nem copia participantes da turma anterior.</p><div class="data-toolbar" style="grid-template-columns:minmax(0,1fr) auto"><input id="turma-new-number" type="text" maxlength="40" placeholder="Número ou identificação (ex.: 37)" aria-label="Número ou identificação da nova turma"><button type="button" class="btn" data-create-turma>Criar turma vazia</button></div><div id="turma-status" class="import-status" role="status" aria-live="polite">As turmas registradas aparecerão abaixo.</div><div id="turma-list" class="data-list"></div></div></section>
 
-<section id="home" class="on">
-<div class="card hero"><small>PRÓXIMO BATISMO · TURMA EXEMPLO</small><h2>12 de outubro</h2><small>em 2 dias · 42 de 57 prontos</small>
-<div class="bar" style="margin:12px 0"><b style="width:74%"></b></div><button type="button" class="btn">Abrir ordem →</button></div>
-<div class="grid" style="margin-bottom:12px">
-<div class="card kpi" style="margin:0"><span>Pessoas na turma</span><b>57</b></div>
-<div class="card kpi" style="margin:0"><span>Com pendências</span><b style="color:var(--pe)">15</b></div>
-<div class="card kpi" style="margin:0"><span>Jornada concluída</span><b style="color:var(--ok)">49</b></div>
-<div class="card kpi" style="margin:0"><span>Camisetas a pagar</span><b style="color:var(--aq)">11</b></div>
-</div>
-<div class="card"><h2 class="t">Funil de preparação</h2>
-<div class="f"><span>Inscritos</span><div class="bar"><b style="width:100%"></b></div><em>57</em></div>
-<div class="f"><span>Aulas 1–4</span><div class="bar"><b style="width:95%"></b></div><em>54</em></div>
-<div class="f"><span>Jornada</span><div class="bar"><b style="width:86%"></b></div><em>49</em></div>
-<div class="f"><span>Ekklesia</span><div class="bar"><b style="width:81%"></b></div><em>46</em></div>
-<div class="f"><span>Camiseta</span><div class="bar"><b style="width:70%"></b></div><em>40</em></div></div>
-<div class="card"><h2 class="t">Atenção agora</h2>
-<div class="row"><span class="tag t-er">Urgente</span><div class="m">3 menores sem responsável cadastrado</div></div>
-<div class="row"><span class="tag t-pe">Antiga</span><div class="m">8 pendências abertas há mais de 30 dias</div></div>
-<div class="row"><span class="tag t-in">Dados</span><div class="m">2 possíveis duplicados para revisar</div></div></div>
+<section id="home" class="on" aria-labelledby="home-title">
+  <div class="page-heading">
+    <div><p class="eyebrow">PAINEL DE OPERAÇÃO</p><h1 id="home-title">Início</h1><p class="page-subtitle">Acompanhe a preparação para o próximo batismo.</p></div>
+    <span class="demo-label"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.5v.1"/></svg> Turma exemplo</span>
+  </div>
+  <div class="home-hero">
+    <div class="home-hero-copy">
+      <p class="eyebrow eyebrow-light">PRÓXIMO BATISMO</p>
+      <h2>12 de outubro</h2>
+      <p class="home-countdown"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>em 2 dias</span><span class="hero-divider" aria-hidden="true"></span><span>42 de 57 pessoas prontas</span></p>
+      <div class="hero-progress"><div class="hero-progress-label"><span>Preparação da turma</span><strong>74%</strong></div><div class="bar"><b style="width:74%"></b></div></div>
+      <button type="button" class="btn hero-action">Abrir ordem <svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    </div>
+    <div class="readiness-ring" role="img" aria-label="74 por cento de preparação, 42 de 57 pessoas prontas">
+      <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-track" cx="60" cy="60" r="49"/><circle class="ring-value" cx="60" cy="60" r="49" pathLength="100" stroke-dasharray="74 100"/></svg>
+      <div class="ring-copy"><strong>74%</strong><span>prontos</span></div>
+    </div>
+  </div>
+  <div class="home-metrics" aria-label="Indicadores da turma">
+    <article class="metric-card"><span class="metric-icon metric-icon--green"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-1.5A5.5 5.5 0 0 1 8 13h2a5.5 5.5 0 0 1 5.5 5.5V20Z"/></svg></span><span class="metric-label">Pessoas na turma</span><strong>57</strong><small>Inscrições registradas</small></article>
+    <article class="metric-card"><span class="metric-icon metric-icon--amber"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 22 20H2L12 3Z"/><path d="M12 9v5M12 17.2v.1"/></svg></span><span class="metric-label">Com pendências</span><strong>15</strong><small>Precisam de acompanhamento</small></article>
+    <article class="metric-card"><span class="metric-icon metric-icon--blue"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M5 12.5 9.5 17 19 7.5"/></svg></span><span class="metric-label">Jornada concluída</span><strong>49</strong><small>Etapas de jornada finalizadas</small></article>
+    <article class="metric-card"><span class="metric-icon metric-icon--gold"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m8 4 4 2 4-2 5 3-3 5-2-1v10H8V11l-2 1-3-5 5-3Z"/></svg></span><span class="metric-label">Camisetas a pagar</span><strong>11</strong><small>Aguardando confirmação</small></article>
+  </div>
+  <div class="home-lower-grid">
+    <article class="panel-card preparation-panel">
+      <div class="panel-heading"><div><p class="eyebrow">ACOMPANHAMENTO</p><h2 class="t">Funil de preparação</h2></div><span class="panel-caption">57 inscritos</span></div>
+      <div class="funnel-row"><div class="funnel-label"><span>Inscritos</span><strong>57</strong></div><div class="funnel-track"><span style="width:100%"></span></div></div>
+      <div class="funnel-row"><div class="funnel-label"><span>Aulas 1 a 4</span><strong>54</strong></div><div class="funnel-track"><span style="width:95%"></span></div></div>
+      <div class="funnel-row"><div class="funnel-label"><span>Jornada</span><strong>49</strong></div><div class="funnel-track"><span style="width:86%"></span></div></div>
+      <div class="funnel-row"><div class="funnel-label"><span>Ekklesia</span><strong>46</strong></div><div class="funnel-track"><span style="width:81%"></span></div></div>
+      <div class="funnel-row"><div class="funnel-label"><span>Camiseta</span><strong>40</strong></div><div class="funnel-track"><span style="width:70%"></span></div></div>
+    </article>
+    <article class="panel-card attention-panel">
+      <div class="panel-heading"><div><p class="eyebrow">PRIORIDADES</p><h2 class="t">Atenção agora</h2></div><span class="attention-count">3 itens</span></div>
+      <div class="attention-item"><span class="status-pill status-pill--danger"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 3 22 20H2L12 3Z"/><path d="M12 9v5M12 17.2v.1"/></svg>Urgente</span><div class="attention-copy"><strong>3 menores sem responsável cadastrado</strong><span>Revise os dados antes do batismo.</span></div></div>
+      <div class="attention-item"><span class="status-pill status-pill--warning"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Antiga</span><div class="attention-copy"><strong>8 pendências abertas há mais de 30 dias</strong><span>Priorize os casos mais antigos.</span></div></div>
+      <div class="attention-item"><span class="status-pill status-pill--info"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20v-1.5A5.5 5.5 0 0 1 8 13h2a5.5 5.5 0 0 1 5.5 5.5V20Z"/><path d="m15 15 2 2 4-4"/></svg>Dados</span><div class="attention-copy"><strong>2 possíveis duplicados para revisar</strong><span>Confirme a identidade antes de alterar cadastros.</span></div></div>
+    </article>
+  </div>
 </section>
 
 <section id="pes">
