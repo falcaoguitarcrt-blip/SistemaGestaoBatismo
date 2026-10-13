@@ -15,7 +15,7 @@ assert.ok(html.includes('function shirtCell(value)'), 'Sanitização CSV present
 assert.ok(html.includes("'\\uFEFF'+rows.map"), 'CSV com BOM UTF-8 presente');
 assert.ok(html.includes("data-shirt-action=\"whatsapp\""), 'Ação de WhatsApp presente');
 assert.ok(html.includes('ultimoContatoEm'), 'Registro de contato presente');
-assert.ok(!/from\\s+['\"]firebase-admin(?:\\/|['\"])/.test(html) && !/require\\(\\s*['\"]firebase-admin(?:\\/|['\"])/.test(html), 'Nenhum SDK Firebase Admin importado');
+assert.ok(!/from\s+['"]firebase-admin(?:\/|['"])/.test(html) && !/require\(\s*['"]firebase-admin(?:\/|['"])/.test(html), 'Nenhum SDK Firebase Admin importado');
 assert.ok(!html.includes('allow read, write: if true'), 'Nenhuma regra permissiva introduzida');
 
 function billable(record) { return record.quer === 'sim'; }
