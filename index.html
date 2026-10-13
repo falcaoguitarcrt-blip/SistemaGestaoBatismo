@@ -1554,6 +1554,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var saved = normal(person && person.shirtChoice);
     if (saved === 'sim' || saved === 'quer camiseta') return 'Sim';
     if (saved === 'nao' || saved === 'não') return 'Não';
+    if (saved === 'ja possui' || saved === 'ja tem' || saved === 'ja tenho') return 'Já possui';
     if (saved === 'pendente') return 'Pendente';
     var value = normal(person && person.shirt);
     if (!value) return 'Pendente';
