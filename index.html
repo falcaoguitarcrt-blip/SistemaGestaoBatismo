@@ -1692,8 +1692,8 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       var name = '<div class="shirt-person"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0,2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div><strong>' + esc(displayName(p)) + '</strong><div class="shirt-save-status" aria-live="polite"></div></div></div>';
       return '<div class="data-item"><div class="shirt-row">' + name +
         shirtSelect('Quer camiseta?', choice, [{label:'Pendente',value:'Pendente'},{label:'Sim',value:'Sim'},{label:'Não',value:'Não'},{label:'Já possui',value:'Já possui'}], p, 'choice', false) +
-        shirtSelect('Tamanho', size, [{label:'Pendente',value:''},{label:'PP',value:'PP'},{label:'P',value:'P'},{label:'M',value:'M'},{label:'G',value:'G'},{label:'GG',value:'GG'},{label:'XGG',value:'XGG'}], p, 'size', choice === 'Não' || choice === 'Já possui') +
-        shirtSelect('Pagamento', payment, [{label:'Pendente',value:'Pendente'},{label:'Pago',value:'Pago'}], p, 'payment', choice === 'Não' || choice === 'Já possui') +
+        shirtSelect('Tamanho', size, [{label:'Pendente',value:''},{label:'PP',value:'PP'},{label:'P',value:'P'},{label:'M',value:'M'},{label:'G',value:'G'},{label:'GG',value:'GG'},{label:'XGG',value:'XGG'}], p, 'size', false) +
+        shirtSelect('Pagamento', payment, [{label:'Pendente',value:'Pendente'},{label:'Pago',value:'Pago'}], p, 'payment', false) +
         '</div></div>';
     }).join('') || '<div class="data-empty">Nenhum participante encontrado para esta busca.</div>';
     document.getElementById('shirt-pager').innerHTML = '<button type="button" class="btn o" data-page="shirt:-1" ' + (shirtState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + shirtState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="shirt:1" ' + (shirtState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
