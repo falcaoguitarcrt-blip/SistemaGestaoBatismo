@@ -72,6 +72,17 @@ h2.t{font-size:22px;margin:4px 0 12px}
 .data-list{display:grid;gap:8px;margin:10px 0}
 .data-item{display:flex;align-items:flex-start;gap:10px;padding:12px;border:1px solid var(--ln);border-radius:12px;background:var(--card);min-width:0}
 .data-item .item-main{flex:1;min-width:0}
+.shirt-row{display:grid;grid-template-columns:minmax(170px,1.15fr) minmax(130px,.8fr) minmax(100px,.55fr) minmax(130px,.8fr);align-items:center;gap:10px;width:100%;min-width:0}
+.shirt-person{display:flex;align-items:center;gap:10px;min-width:0}
+.shirt-person strong{display:block;overflow-wrap:anywhere}
+.shirt-control{display:grid;gap:4px;min-width:0}
+.shirt-control label{font-size:10px;font-weight:700;letter-spacing:.055em;text-transform:uppercase;color:var(--mut)}
+.shirt-control select{width:100%;min-width:0;padding:10px 9px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-size:13px;outline-offset:2px}
+.shirt-control select:focus{border-color:var(--accent,#ff5a1f)}
+.shirt-save-status{font-size:11px;color:var(--mut);min-height:14px}
+@media(max-width:760px){.shirt-row{grid-template-columns:minmax(0,1fr) minmax(105px,.8fr);gap:9px}.shirt-person{grid-column:1/-1}.shirt-control select{padding:9px 7px;font-size:12px}}
+@media(max-width:380px){.shirt-row{grid-template-columns:minmax(0,1fr) minmax(95px,.8fr)}}
+
 .data-item strong{overflow-wrap:anywhere}
 .data-item .item-meta{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
 .data-item .item-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
@@ -1540,39 +1551,109 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   }
 
   function shirtChoiceLabel(person) {
+    var saved = normal(person && person.shirtChoice);
+    if (saved === 'sim' || saved === 'quer camiseta') return 'Sim';
+    if (saved === 'nao' || saved === 'não') return 'Não';
+    if (saved === 'pendente') return 'Pendente';
     var value = normal(person && person.shirt);
-    if (!value) return 'Não informado';
+    if (!value) return 'Pendente';
     if (value === 'ja tem' || value === 'ja possui' || value === 'ja tenho') return 'Já possui';
-    if (/nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao\.*/.test(value)) return 'Não quer';
-    return 'Quer camiseta';
+    if (/nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao\.*/.test(value)) return 'Não';
+    return 'Sim';
   }
-  function buildShirts() {
+  function shirtSizeValue(person) {
+    if (person && person.shirtSize != null) return clean(person.shirtSize);
+    var legacy = clean(person && person.shirt);
+    if (!legacy || /^(ja tem|ja possui|ja tenho|nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao informado|pendente)$/i.test(normal(legacy))) return '';
+    return legacy;
+  }
+  function shirtPaymentChoice(person) {
+    if (person && person.shirtPaymentStatus) {
+      var saved = normal(person.shirtPaymentStatus);
+      if (saved === 'pago') return 'Pago';
+      if (saved === 'pendente' || saved === 'a pagar') return 'Pendente';
+    }
+    var legacy = shirtPaidValue(person);
+    return legacy === true ? 'Pago' : (legacy === false ? 'Pendente' : 'Pendente');
+  }
+  function shirtSelect(label, value, options, personRow, field, disabled) {
+    return '<div class="shirt-control"><label>' + esc(label) + '</label><select aria-label="' + esc(label + ' · ' + (personRow.name || 'participante')) + '" data-shirt-row="' + esc(personRow.sourceRow) + '" data-shirt-field="' + esc(field) + '" ' + (disabled ? 'disabled' : '') + '>' +
+      options.map(function (option) { return '<option value="' + esc(option.value) + '" ' + (value === option.value ? 'selected' : '') + '>' + esc(option.label) + '</option>'; }).join('') +
+      '</select></div>';
+  }
+  async function updateShirtField(sourceRow, field, value, selectNode) {
+    if (!appData) return;
+    var original = (appData.people || []).find(function (p) { return String(p.sourceRow) === String(sourceRow); });
+    if (!original) { setImportMessage('Não foi possível localizar este participante. Nenhum dado foi alterado.', 'error'); return; }
+    var updated = Object.assign({}, original);
+    if (field === 'choice') updated.shirtChoice = value;
+    if (field === 'size') updated.shirtSize = value;
+    if (field === 'payment') updated.shirtPaymentStatus = value;
+    if (field === 'choice' && value !== 'Sim') {
+      // Keep the previously selected size and payment in the record; they are only disabled in the UI.
+    }
+    var draft = Object.assign({}, appData, {
+      people: appData.people.map(function (p) {
+        return String(p.sourceRow) === String(sourceRow) ? updated : p;
+      })
+    });
+    var row = selectNode && selectNode.closest('.data-item');
+    var status = row && row.querySelector('.shirt-save-status');
+    if (status) status.textContent = 'Salvando…';
+    if (selectNode) selectNode.disabled = true;
+    try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A gravação no Firebase não está disponível nesta sessão.');
+      await window.firebaseSaveWorkspace(draft, true);
+      try { await saveWorkspace(draft, false); } catch (localError) {}
+      appData = draft;
+      drawShirtResults();
+      buildShirtsSummary();
+    } catch (error) {
+      if (status) status.textContent = 'Não salvo';
+      setImportMessage('Não foi possível salvar a alteração da camiseta. Os demais dados foram preservados. ' + (error && error.message ? error.message : ''), 'error');
+      if (selectNode) selectNode.disabled = false;
+    }
+  }
+  function buildShirtsSummary() {
+    if (!appData || !document.getElementById('cam')) return;
     var currentTurma = String(appData.turmaPadrao || '36');
     var people = (appData.people || []).filter(function (p) { return matchesTurmaFilter(p, currentTurma); });
-    var wants = people.filter(function (p) { return shirtChoiceLabel(p) === 'Quer camiseta'; });
-    var paid = wants.filter(function (p) { return shirtPaidValue(p) === true; });
-    var unpaid = wants.filter(function (p) { return shirtPaidValue(p) === false; });
-    var unknownPayment = wants.filter(function (p) { return shirtPaidValue(p) === null; });
-    var bySize = countBy(wants, function (p) { return p.shirt; });
+    var wants = people.filter(function (p) { return shirtChoiceLabel(p) === 'Sim'; });
+    var paid = wants.filter(function (p) { return shirtPaymentChoice(p) === 'Pago'; });
+    var unpaid = wants.filter(function (p) { return shirtPaymentChoice(p) === 'Pendente'; });
+    var bySize = countBy(wants.filter(function (p) { return !!shirtSizeValue(p); }), function (p) { return shirtSizeValue(p); });
     var sizes = Object.keys(bySize).sort(function (a, b) { return a.localeCompare(b, 'pt-BR', { numeric: true }); });
     var max = Math.max.apply(null, sizes.map(function (size) { return bySize[size]; }).concat([1]));
     var countChoice = function (label) { return people.filter(function (p) { return shirtChoiceLabel(p) === label; }).length; };
-    document.getElementById('cam').innerHTML =
-      '<h2 class="t">Camisetas · Batismo atual · Turma ' + esc(currentTurma) + '</h2>' +
+    var summary = document.getElementById('shirt-summary');
+    if (!summary) return;
+    summary.innerHTML =
       '<div class="data-metrics">' +
         metric('Participantes do batismo', people.length, 'Somente a turma atual') +
-        metric('Querem camiseta', wants.length, 'Incluídos no pedido') +
-        metric('Pagas', paid.length, 'Pagamento confirmado') +
-        metric('A pagar', unpaid.length, 'Pagamento não confirmado') +
+        metric('Querem camiseta', wants.length, 'Opção Sim') +
+        metric('Pagamento pendente', unpaid.length, 'Entre quem quer camiseta') +
+        metric('Escolha pendente', countChoice('Pendente'), 'Aguardando confirmação') +
       '</div>' +
-      '<div class="card"><h2 class="t">Quantidade por tamanho</h2><p class="section-sub">Contagem somente de participantes que optaram por camiseta. Os tamanhos permanecem como registrados.</p>' +
-        (sizes.map(function (size) { return '<div class="data-bar-row"><span>' + esc(size) + '</span><div class="data-bar"><i style="width:' + Math.round((bySize[size] / max) * 100) + '%"></i></div><em>' + numberLabel(bySize[size]) + '</em></div>'; }).join('') || '<div class="data-empty">Nenhum tamanho informado para o batismo atual.</div>') +
-      '</div>' +
-      '<div class="card"><h2 class="t">Lista de camisetas</h2><p class="section-sub">A opção, o tamanho e o pagamento ficam visíveis aqui. Não é necessário abrir a ficha individual.</p>' +
-        '<div class="data-toolbar"><input id="shirt-search" type="search" placeholder="Buscar participante ou tamanho…" aria-label="Buscar participantes na lista de camisetas"><span class="local-only-note">Não altera os registros nem os pagamentos.</span></div>' +
+      '<div class="card"><h2 class="t">Quantidade por tamanho</h2><p class="section-sub">Contagem das camisetas solicitadas com tamanho selecionado.</p>' +
+        (sizes.map(function (size) { return '<div class="data-bar-row"><span>' + esc(size) + '</span><div class="data-bar"><i style="width:' + Math.round((bySize[size] / max) * 100) + '%"></i></div><em>' + numberLabel(bySize[size]) + '</em></div>'; }).join('') || '<div class="data-empty">Nenhum tamanho selecionado para o batismo atual.</div>') +
+      '</div>';
+  }
+  function buildShirts() {
+    var currentTurma = String(appData.turmaPadrao || '36');
+    document.getElementById('cam').innerHTML =
+      '<h2 class="t">Camisetas · Batismo atual · Turma ' + esc(currentTurma) + '</h2>' +
+      '<div id="shirt-summary"></div>' +
+      '<div class="card"><h2 class="t">Lista de camisetas</h2><p class="section-sub">Atualize as três opções diretamente na mesma linha do participante. Cada alteração é salva no Firebase sem substituir os campos originais da planilha.</p>' +
+        '<div class="data-toolbar"><input id="shirt-search" type="search" placeholder="Buscar participante ou tamanho…" aria-label="Buscar participantes na lista de camisetas"><span class="local-only-note">Salvamento automático</span></div>' +
         '<div id="shirt-count" class="data-summary"></div><div id="shirt-results" class="data-list"></div><div id="shirt-pager" class="data-pager"></div>' +
       '</div>';
     document.getElementById('shirt-search').addEventListener('input', function () { shirtState.query = this.value; shirtState.page = 1; drawShirtResults(); });
+    document.getElementById('shirt-results').addEventListener('change', function (event) {
+      var node = event.target;
+      if (!node || !node.matches('select[data-shirt-field]')) return;
+      updateShirtField(node.getAttribute('data-shirt-row'), node.getAttribute('data-shirt-field'), node.value, node);
+    });
+    buildShirtsSummary();
     drawShirtResults();
   }
   function drawShirtResults() {
@@ -1581,7 +1662,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var query = normal(shirtState.query);
     var items = (appData.people || []).filter(function (p) {
       if (!matchesTurmaFilter(p, currentTurma)) return false;
-      return !query || normal([p.name, p.shirt, p.shirtPaid, p.turma, p.phone, p.sourceRow].join(' ')).indexOf(query) >= 0;
+      return !query || normal([p.name, shirtSizeValue(p), p.shirtChoice, p.shirtPaymentStatus, p.shirtPaid, p.turma, p.phone, p.sourceRow].join(' ')).indexOf(query) >= 0;
     }).sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR'); });
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
     shirtState.page = Math.min(Math.max(1, shirtState.page), pages);
@@ -1590,12 +1671,15 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     document.getElementById('shirt-count').textContent = numberLabel(items.length) + ' participantes do batismo atual';
     document.getElementById('shirt-results').innerHTML = view.map(function (p) {
       var choice = shirtChoiceLabel(p);
-      var size = choice === 'Quer camiseta' ? display(p.shirt) : (choice === 'Já possui' ? 'Já possui camiseta' : '—');
-      var payment = choice !== 'Quer camiseta' ? '<span class="tag" style="background:var(--ln);color:var(--mut)">Sem cobrança</span>' :
-        (shirtPaidValue(p) === true ? chip('Pago', 't-ok') : (shirtPaidValue(p) === false ? chip('A pagar', 't-pe') : chip('Pagamento não informado', 't-in')));
-      var choiceChip = choice === 'Quer camiseta' ? chip('Quer camiseta', 't-ok') :
-        (choice === 'Não quer' ? '<span class="tag" style="background:var(--ln);color:var(--mut)">Não quer</span>' : chip(choice, 't-pe'));
-      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\\s+/).filter(Boolean).slice(0,2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Tamanho: ' + esc(size) + '</div><div class="item-badges">' + choiceChip + payment + '</div></div></div>';
+      var size = shirtSizeValue(p);
+      var payment = shirtPaymentChoice(p);
+      var row = esc(p.sourceRow);
+      var name = '<div class="shirt-person"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0,2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div><strong>' + esc(displayName(p)) + '</strong><div class="shirt-save-status" aria-live="polite"></div></div></div>';
+      return '<div class="data-item"><div class="shirt-row">' + name +
+        shirtSelect('Quer camiseta?', choice, [{label:'Pendente',value:'Pendente'},{label:'Sim',value:'Sim'},{label:'Não',value:'Não'},{label:'Já possui',value:'Já possui'}], p, 'choice', false) +
+        shirtSelect('Tamanho', size, [{label:'Pendente',value:''},{label:'PP',value:'PP'},{label:'P',value:'P'},{label:'M',value:'M'},{label:'G',value:'G'},{label:'GG',value:'GG'},{label:'XGG',value:'XGG'}], p, 'size', choice !== 'Sim') +
+        shirtSelect('Pagamento', payment, [{label:'Pendente',value:'Pendente'},{label:'Pago',value:'Pago'}], p, 'payment', choice !== 'Sim') +
+        '</div></div>';
     }).join('') || '<div class="data-empty">Nenhum participante encontrado para esta busca.</div>';
     document.getElementById('shirt-pager').innerHTML = '<button type="button" class="btn o" data-page="shirt:-1" ' + (shirtState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + shirtState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="shirt:1" ' + (shirtState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
