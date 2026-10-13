@@ -1503,62 +1503,66 @@ section{display:none}section.on{display:block}
   function buildHome() {
     if (!appData) return;
     var home = document.getElementById('home');
-    var turmaAtual = String(appData.turmaPadrao || '36');
+    var turmaAtual = String(appData.turmaPadrao || '');
     var turmaSelecionada = (appData.turmas || []).find(function (t) {
       return String(t.id) === turmaAtual || String(t.number) === turmaAtual;
-    }) || { id: turmaAtual, number: turmaAtual, name: 'Turma ' + turmaAtual };
-    var dateSummary = turmaDateSummary(turmaSelecionada);
+    }) || (turmaAtual ? { id: turmaAtual, number: turmaAtual, name: 'Turma ' + turmaAtual } : null);
+    var dateSummary = turmaSelecionada ? turmaDateSummary(turmaSelecionada) : '';
     var orderTurma = workspaceOrderTurmaId(appData);
-    var people = (appData.people || []).filter(function (p) { return matchesTurmaFilter(p, turmaAtual); });
+    var people = (appData.people || []).filter(function (p) { return !turmaAtual || matchesTurmaFilter(p, turmaAtual); });
     var namedPeople = people.filter(function (p) { return !!p.name; });
     var pendingPeople = people.filter(hasPendingSignal);
     var journeyDone = namedPeople.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
     var journeyKnown = namedPeople.filter(function (p) { return !isBlank(p.journey); }).length;
     var shirts = shirtSummary(turmaAtual);
-    var orderRows = String(turmaAtual) === orderTurma
+    var orderRows = turmaAtual && String(turmaAtual) === orderTurma
       ? (appData.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: orderTurma }); })
       : [];
     var manualRows = (appData.ordensTurma || []).filter(function (r) { return String(r.turmaId) === turmaAtual; }).map(function (r) {
       return Object.assign({}, r, { sourceRow: r.id, number: r.number, name: r.name, note: r.note, removed: r.removed, participantId: r.participantId, __turmaId: turmaAtual, __manual: true });
     });
-    var namedOrder = orderRows.concat(manualRows).filter(function (r) { return !!r.name; });
+    var namedOrder = orderRows.concat(manualRows).filter(function (r) { return !!r.name && !r.removed; });
     var presentCount = 0, baptizedCount = 0;
     namedOrder.forEach(function (r) {
       var mark = dayMarks[dayMarkIdForRow(r, orderTurma)] || {};
       if (mark.presente) presentCount++;
       if (mark.batizado) baptizedCount++;
     });
-    var journeyPercent = namedPeople.length ? Math.round(journeyDone * 100 / namedPeople.length) : 0;
-    var journeyKnownLabel = namedPeople.length ? journeyKnown + ' de ' + namedPeople.length + ' com jornada informada' : 'Nenhum cadastro da turma com nome';
-    var presencePercent = namedOrder.length ? Math.round(presentCount * 100 / namedOrder.length) : 0;
+    var hasPeople = namedPeople.length > 0;
+    var journeyPercent = hasPeople && journeyKnown ? Math.round(journeyDone * 100 / namedPeople.length) : null;
+    var presencePercent = namedOrder.length ? Math.round(presentCount * 100 / namedOrder.length) : null;
     var shirtsText = shirts.shirts.length ? (shirts.unpaid.length + ' não pagas · ' + shirts.paid.length + ' pagas') : 'Nenhum tamanho informado';
+    var pendingLabel = hasPeople ? String(pendingPeople.length) : 'Não informado';
+    var shirtCountLabel = shirts.shirts.length || shirts.unpaid.length || shirts.paid.length ? String(shirts.shirts.length) : 'Não informado';
+    var presentLabel = namedOrder.length ? String(presentCount) : 'Não informado';
+    var progressLabel = journeyPercent === null ? 'Não informado' : journeyPercent + '%';
+    var safeTurma = turmaSelecionada ? esc(turmaSelecionada.name || ('Turma ' + turmaAtual)) : 'Turma não selecionada';
+    var dateLabel = dateSummary ? esc(dateSummary) : 'Data do batismo não informada';
+    var attention = [];
+    if (hasPeople && pendingPeople.length) attention.push('<div class="attention-item"><span class="status-pill status-pill--warning">Pendente</span><div class="attention-copy"><strong>' + pendingPeople.length + ' pessoas com pendências identificadas</strong><span>Confira os registros sinalizados antes do batismo.</span></div><button type="button" class="btn o" data-go="pen">Ver</button></div>');
+    if (namedOrder.length && presentCount < namedOrder.length) attention.push('<div class="attention-item"><span class="status-pill status-pill--info">Presença</span><div class="attention-copy"><strong>' + (namedOrder.length - presentCount) + ' pessoas ainda sem presença confirmada</strong><span>Contagem baseada na ordem disponível e nas marcações sincronizadas.</span></div><button type="button" class="btn o" data-go="dia">Ver</button></div>');
+    if (!dateSummary) attention.push('<div class="attention-item"><span class="status-pill status-pill--info">Data</span><div class="attention-copy"><strong>Data do próximo batismo não informada</strong><span>Cadastre a data na turma para exibir o resumo aqui.</span></div><button type="button" class="btn o" data-go="tur">Ver turmas</button></div>');
+    if (!attention.length) attention.push('<div class="empty-state" role="status"><strong>Nenhuma prioridade identificada com os dados disponíveis.</strong><p>Os alertas serão exibidos quando houver registros que precisem de atenção.</p></div>');
+    var funnelRows = [
+      { label: 'Inscritos', count: hasPeople ? namedPeople.length : null },
+      { label: 'Jornada concluída', count: journeyKnown ? journeyDone : null },
+      { label: 'Presentes', count: namedOrder.length ? presentCount : null },
+      { label: 'Batizados', count: namedOrder.length ? baptizedCount : null }
+    ];
+    var funnelMax = namedPeople.length || namedOrder.length;
     home.innerHTML =
-      '<div class="card hero"><small>BATISMO ATUAL · ' + esc(turmaSelecionada.name || ('Turma ' + turmaAtual)) + '</small><h2>Resumo do batismo</h2>' +
-      (dateSummary ? '<p class="section-sub" style="margin:6px 0 0">' + esc(dateSummary) + '</p>' : '') +
-      '<p style="margin:6px 0 0;opacity:.9">Acompanhamento calculado a partir dos registros disponíveis para a turma selecionada. Nenhuma data é estimada.</p><div class="bb"><button type="button" class="btn" data-go="dia">Acompanhar presenças →</button><button type="button" class="btn o" data-go="ord">Ver ordem</button></div></div>' +
-      '<div class="data-metrics">' +
-      metric('Participantes cadastrados', namedPeople.length, 'Cadastros identificados como turma ' + turmaAtual) +
-      metric('Com pendências', pendingPeople.length, 'Pessoas com ao menos um sinal registrado') +
-      metric('Jornada concluída', journeyDone, journeyKnownLabel) +
-      metric('Presentes no dia', presentCount, namedOrder.length + ' pessoas nomeadas na ordem') +
-      '</div>' +
-      '<div class="card"><h2 class="t">Andamento da preparação</h2>' +
-      '<div class="data-bar-row"><span>Jornada</span><div class="data-bar"><i style="width:' + journeyPercent + '%"></i></div><em>' + journeyDone + '/' + namedPeople.length + '</em></div>' +
-      '<p class="section-sub">A conclusão considera apenas o status “concluída” registrado na jornada. Cadastros sem informação não são considerados concluídos.</p>' +
-      '<div class="bb"><button type="button" class="btn o" data-go="pes">Ver participantes</button><button type="button" class="btn o" data-go="pen">Resolver pendências</button></div></div>' +
-      '<div class="card"><h2 class="t">Dia do batismo · ' + esc(turmaSelecionada.name || ('Turma ' + turmaAtual)) + '</h2>' +
-      '<div class="data-metrics">' +
-      metric('Presentes', presentCount, 'De ' + namedOrder.length + ' pessoas nomeadas na ordem') +
-      metric('Batizados', baptizedCount, 'Marcações registradas no sistema') +
-      '</div>' +
-      '<div class="data-bar-row"><span>Presença</span><div class="data-bar"><i style="width:' + presencePercent + '%"></i></div><em>' + presentCount + '/' + namedOrder.length + '</em></div>' +
-      '<p class="section-sub">As marcações são as sincronizadas pelo sistema. Posições sem nome não entram no total de pessoas.</p>' +
-      '<button type="button" class="btn o" data-go="dia">Abrir acompanhamento do dia</button></div>' +
-      '<div class="card"><h2 class="t">Camisetas</h2><div class="data-metrics">' +
-      metric('Com tamanho informado', shirts.shirts.length, 'Não inclui “Já tem”') +
-      metric('Pagamentos pendentes', shirts.unpaid.length, shirtsText) +
-      '</div><button type="button" class="btn o" data-go="cam">Ver camisetas da turma</button></div>' +
-      '<p class="note">Os indicadores usam somente dados disponíveis para a turma padrão. Registros sem turma identificada não são atribuídos automaticamente.</p>';
+      '<div class="page-heading"><div><p class="eyebrow">PAINEL DE OPERAÇÃO</p><h1 id="home-title">Início</h1><p class="page-subtitle">Resumo baseado nos registros disponíveis no sistema.</p></div><span class="demo-label">' + safeTurma + '</span></div>' +
+      '<div class="home-hero"><div class="home-hero-copy"><p class="eyebrow eyebrow-light">PRÓXIMO BATISMO</p><h2>' + dateLabel + '</h2><p class="home-countdown">' + (turmaSelecionada ? 'Turma ativa: ' + safeTurma : 'Selecione ou cadastre uma turma para acompanhar a preparação.') + '</p><div class="hero-progress"><div class="hero-progress-label"><span>Preparação da jornada</span><strong>' + progressLabel + '</strong></div><div class="bar"><b style="width:' + (journeyPercent === null ? 0 : journeyPercent) + '%"></b></div></div><div class="bb"><button type="button" class="btn hero-action" data-go="ord">Ver detalhes da ordem <span aria-hidden="true">→</span></button><button type="button" class="btn o" data-go="tur">Ver turma</button></div></div><div class="readiness-ring" role="img" aria-label="' + (journeyPercent === null ? 'Progresso da jornada não informado' : journeyPercent + ' por cento da jornada concluída') + '"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="ring-track" cx="60" cy="60" r="49"/><circle class="ring-value" cx="60" cy="60" r="49" pathLength="100" stroke-dasharray="' + (journeyPercent === null ? '0 100' : journeyPercent + ' 100') + '"/></svg><div class="ring-copy"><strong>' + progressLabel + '</strong><span>jornada</span></div></div></div>' +
+      '<div class="home-metrics" aria-label="Indicadores da turma">' +
+      '<article class="metric-card"><span class="metric-icon metric-icon--green" aria-hidden="true">P</span><span class="metric-label">Pessoas inscritas</span><strong>' + (hasPeople ? namedPeople.length : 'Não informado') + '</strong><small>Cadastros com nome na turma selecionada</small></article>' +
+      '<article class="metric-card"><span class="metric-icon metric-icon--amber" aria-hidden="true">!</span><span class="metric-label">Pendências</span><strong>' + pendingLabel + '</strong><small>Pessoas com sinais de pendência registrados</small></article>' +
+      '<article class="metric-card"><span class="metric-icon metric-icon--blue" aria-hidden="true">C</span><span class="metric-label">Camisetas</span><strong>' + shirtCountLabel + '</strong><small>' + esc(shirtsText) + '</small></article>' +
+      '<article class="metric-card"><span class="metric-icon metric-icon--gold" aria-hidden="true">✓</span><span class="metric-label">Check-ins confirmados</span><strong>' + presentLabel + '</strong><small>' + (namedOrder.length ? 'De ' + namedOrder.length + ' pessoas nomeadas na ordem' : 'Ordem ou marcações não disponíveis') + '</small></article></div>' +
+      '<div class="home-lower-grid"><article class="panel-card preparation-panel"><div class="panel-heading"><div><p class="eyebrow">ACOMPANHAMENTO</p><h2 class="t">Funil de preparação</h2></div><span class="panel-caption">' + (hasPeople ? namedPeople.length + ' inscritos' : 'Sem dados') + '</span></div>' +
+      funnelRows.map(function (item) { var pct = item.count === null || !funnelMax ? 0 : Math.min(100, Math.round(item.count * 100 / funnelMax)); return '<div class="funnel-row"><div class="funnel-label"><span>' + item.label + '</span><strong>' + (item.count === null ? 'Não informado' : item.count) + '</strong></div><div class="funnel-track"><span style="width:' + pct + '%"></span></div></div>'; }).join('') +
+      '<p class="panel-caption">Cada etapa usa apenas informações disponíveis; dados ausentes não são estimados.</p><div class="bb"><button type="button" class="btn o" data-go="pes">Ver pessoas</button><button type="button" class="btn o" data-go="dia">Abrir check-in</button></div></article>' +
+      '<article class="panel-card attention-panel"><div class="panel-heading"><div><p class="eyebrow">PRIORIDADES</p><h2 class="t">Atenção agora</h2></div><span class="attention-count">' + attention.length + ' itens</span></div>' + attention.join('') + '</article></div>' +
+      '<p class="note">Indicadores calculados a partir dos dados carregados pelo sistema. Registros sem turma identificada não são atribuídos automaticamente.</p>';
   }
 
   function buildPeople() {
