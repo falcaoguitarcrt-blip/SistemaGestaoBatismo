@@ -352,6 +352,111 @@ img,svg,video,canvas{max-width:100%}
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 
+
+/* Refinamento visual da tela Início: CSS apenas, preservando conteúdo e lógica existentes. */
+:root{
+  --home-radius:18px;
+  --home-gap:clamp(12px,1.35vw,20px);
+}
+#home .page-heading{
+  align-items:center;
+  margin-bottom:clamp(18px,2vw,28px);
+  padding:clamp(2px,.5vw,8px) 0;
+}
+#home .page-heading h1{
+  font-size:clamp(30px,3.2vw,40px);
+  letter-spacing:-.045em;
+}
+#home .page-subtitle{max-width:62ch;line-height:1.65}
+#home .demo-label{
+  flex:none;
+  padding:10px 14px;
+  border-radius:14px;
+  box-shadow:var(--shadow-1);
+}
+#home .home-hero{
+  min-height:240px;
+  gap:clamp(18px,3vw,42px);
+  padding:clamp(22px,3vw,40px);
+  border:1px solid color-mix(in srgb,var(--color-gold) 24%,transparent);
+  border-radius:var(--home-radius);
+  background:
+    radial-gradient(ellipse at 78% 10%,color-mix(in srgb,var(--color-gold) 25%,transparent),transparent 36%),
+    linear-gradient(120deg,#0c211b 0%,#123c32 54%,#1c5144 100%);
+}
+#home .home-hero:after{
+  width:clamp(230px,28vw,380px);
+  height:clamp(230px,28vw,380px);
+  right:8%;
+  top:-48%;
+  border-color:#e0bb6833;
+  box-shadow:0 0 0 28px #e0bb6810,0 0 0 58px #e0bb6808;
+}
+#home .home-hero h2{max-width:18ch;line-height:1.08}
+#home .hero-progress{max-width:560px}
+#home .hero-action{border-radius:12px;box-shadow:0 5px 16px #0002}
+#home .readiness-ring{width:clamp(112px,11vw,148px);height:clamp(112px,11vw,148px)}
+#home .home-metrics{gap:var(--home-gap);margin-bottom:var(--home-gap)}
+#home .metric-card{
+  border-radius:var(--home-radius);
+  padding:clamp(14px,1.5vw,22px);
+  transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+#home .metric-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-2);border-color:color-mix(in srgb,var(--pri) 35%,var(--ln))}
+#home .metric-icon{border-radius:13px}
+#home .metric-card strong{font-variant-numeric:tabular-nums;letter-spacing:-.035em}
+#home .metric-card small{line-height:1.5}
+#home .home-lower-grid{gap:var(--home-gap)}
+#home .panel-card{
+  border-radius:var(--home-radius);
+  padding:clamp(17px,2vw,26px);
+}
+#home .panel-heading{margin-bottom:clamp(14px,1.6vw,22px)}
+#home .panel-heading h2.t{letter-spacing:-.025em}
+#home .funnel-row{margin:19px 0}
+#home .funnel-track span{background:linear-gradient(90deg,var(--pri),var(--color-aqua))}
+#home .attention-item{gap:13px;padding:16px 0}
+#home .attention-copy strong{font-size:13px}
+#home .attention-copy>span{font-size:12px}
+#nav{box-shadow:8px 0 28px rgba(10,35,25,.035)}
+#nav .nav-brand{letter-spacing:.08em}
+#nav button[data-s]{transition:background-color .15s ease,color .15s ease,border-color .15s ease}
+#nav button[data-s].on{box-shadow:inset 3px 0 0 var(--color-gold)}
+.app-header{backdrop-filter:saturate(1.15);-webkit-backdrop-filter:saturate(1.15)}
+:root[data-theme="dark"] #home .home-hero{
+  background:
+    radial-gradient(ellipse at 78% 10%,#c9a24b2b,transparent 36%),
+    linear-gradient(120deg,#0a1512 0%,#102b22 54%,#173d31 100%);
+}
+:root[data-theme="dark"] #home .metric-card:hover{border-color:#477764}
+@media(max-width:1100px){
+  #home .home-hero{min-height:220px}
+  #home .home-lower-grid{gap:14px}
+}
+@media(max-width:767px){
+  #home .page-heading{gap:10px}
+  #home .demo-label{align-self:flex-start}
+  #home .home-hero{padding:23px 20px;border-radius:16px}
+  #home .home-hero h2{max-width:14ch}
+  #home .home-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #home .metric-card{border-radius:15px}
+  #home .home-lower-grid{grid-template-columns:minmax(0,1fr)}
+  #nav{box-shadow:0 -8px 24px rgba(10,35,25,.10)}
+}
+@media(max-width:479px){
+  #home .page-heading h1{font-size:29px}
+  #home .home-hero{grid-template-columns:minmax(0,1fr) 70px;padding:18px 14px;gap:8px}
+  #home .home-hero h2{font-size:24px}
+  #home .readiness-ring{width:70px;height:70px}
+  #home .ring-copy strong{font-size:18px}
+  #home .home-metrics{gap:8px}
+  #home .metric-card{padding:12px}
+  #home .panel-card{padding:15px}
+}
+@media(hover:none){
+  #home .metric-card:hover{transform:none;box-shadow:var(--shadow-1)}
+}
+
 </style>
 </head>
 <body class="auth-pending">
