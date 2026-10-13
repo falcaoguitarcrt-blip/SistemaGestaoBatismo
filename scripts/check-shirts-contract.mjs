@@ -27,7 +27,7 @@ for (const choice of ['nao', 'ja_tem', '']) {
 assert.equal(unpaid({ quer: 'sim', pago: false }), true, 'sim sem pagamento gera pendência');
 assert.equal(unpaid({ quer: 'sim', pago: true }), false, 'sim pago não gera pendência');
 assert.equal({ quer: 'sim', tamanho: '' }.quer === 'sim' && !{ quer: 'sim', tamanho: '' }.tamanho, true, 'sim sem tamanho deve ser detectável');
-function safeCell(value) { const s=String(value ?? ''); return /^[=+\\-@\\t\\r]/.test(s) ? "'" + s : s; }
+function safeCell(value) { const s=String(value ?? ''); return /^(=|\\+|-|@|\\t|\\r)/.test(s) ? "'" + s : s; }
 for (const dangerous of ['=1+1','+SUM(A1:A2)','-2+3','@cmd','\\tformula','\\rformula']) {
   assert.ok(safeCell(dangerous).startsWith("'"), 'CSV protege fórmula: ' + JSON.stringify(dangerous));
 }
