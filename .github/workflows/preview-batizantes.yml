@@ -1,0 +1,40 @@
+name: Prévia Batizantes · Ordem Operacional
+
+on:
+  push:
+    branches:
+      - feature/batizantes-ordem-operacional-v1
+
+permissions:
+  contents: write
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: feature/batizantes-ordem-operacional-v1
+
+      - name: Aplicar atualização somente na Ordem
+        run: python scripts/update-batizantes-order.py
+
+      - name: Validar JavaScript inline
+        run: node scripts/check-inline-scripts.mjs
+
+      - name: Validar proteção do Google Login
+        run: python scripts/assert-google-unchanged.py
+
+      - name: Commit da prévia na branch
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "Nenhuma alteração pendente."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add index.html
+            git commit -m "feat: consolida presença batismo e eklesia na ordem dos batizantes [skip ci]"
+            git push origin HEAD:feature/batizantes-ordem-operacional-v1
+          fi
