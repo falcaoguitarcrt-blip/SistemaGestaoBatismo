@@ -17,7 +17,7 @@ body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Inter,system-u
 h1,h2{font-family:Fraunces,Georgia,serif;margin:0}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--ln)}
 .brand{display:flex;align-items:center;gap:8px;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:18px}
-.brand i{background:var(--pri);color:var(--gold);width:30px;height:30px;border-radius:99px;display:grid;place-items:center;font-style:normal}
+.brand i{background:var(--pri);color:var(--gold);width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-style:normal}
 nav{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding:2px 1px 5px;scrollbar-width:thin}
 nav button{flex:none;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;padding:8px 14px;font:inherit;font-size:13px;min-height:40px}
 nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
@@ -95,7 +95,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
 .data-item .item-meta{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
 .data-item .item-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
 .data-item .item-badges .tag{margin:0}
-.data-item .item-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.data-item .item-actions{display:flex;flex-wrap:wrap;gap:6px}
 .data-item .item-actions .btn{padding:8px 10px;min-height:38px;font-size:12px}
 .data-item .item-actions [data-checkin]{min-height:40px}.data-item .item-badges .tag{white-space:normal}
 .data-empty{border:1px dashed var(--ln);padding:18px;text-align:center;border-radius:12px;color:var(--mut);font-size:13px}
@@ -136,6 +136,7 @@ h2.t{font-size:22px;margin:4px 0 12px}
  .import-actions .btn{width:100%}
 }
 
+
 /* Acesso autenticado ao sistema */
 body.auth-pending{overflow:hidden}
 body.auth-pending>header,body.auth-pending>main{visibility:hidden}
@@ -151,6 +152,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 #firebase-status.error{color:var(--er)}
 #fb-logout{border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 11px;font:inherit;font-size:12px;cursor:pointer}
 #fb-logout[hidden]{display:none}
+
 
 .record-editor-shell{position:fixed;inset:0;z-index:9000;display:grid;place-items:center;padding:16px;background:rgba(20,20,20,.62)}
 .record-editor-shell[hidden]{display:none!important}
@@ -169,7 +171,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .record-editor-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px}
 .record-editor-actions .btn{min-width:120px}
 @media(max-width:600px){.record-editor-fields{grid-template-columns:1fr}.record-editor-card{padding:14px}.record-editor-field.wide{grid-column:auto}.record-editor-actions{flex-direction:column-reverse}.record-editor-actions .btn{width:100%}}
-
 /* Check-in do Dia do Batismo */
 .day-sync{position:sticky;top:0;z-index:4;padding:10px 12px;margin:-14px -14px 12px;background:#fff0e9;color:#a83a12;font-weight:700;border-bottom:1px solid var(--ln)}
 .day-tools{display:grid;gap:8px}.day-tools input{width:100%;min-height:48px;padding:12px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
@@ -179,7 +180,7 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
 @media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
 
-/* ===== Identidade visual premium ===== */
+/* ===== Identidade visual premium: azul-marinho, azul profundo, dourado e neutros ===== */
 :root{--bg:#111315;--tx:#f4f5f6;--mut:#b6b9bd;--card:#1b1d20;--ln:#35383d;--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--ok:#ff8155;--pe:#d5a64a;--er:#e06464;--in:#ff8155;color-scheme:dark}
 :root[data-theme="light"]{--bg:#f4f6fa;--tx:#f4f5f6;--mut:#637187;--card:#fff;--ln:#dce3ed;--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--ok:#ff8155;--pe:#a96700;--er:#c0394b;--in:#ff8155;color-scheme:light}
 body{background:var(--bg);color:var(--tx);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
@@ -268,54 +269,8 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 @media(max-width:390px){.data-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-grid{grid-template-columns:minmax(0,1fr)}.hero h2{font-size:26px}.brand{font-size:14px}}
 @media(prefers-reduced-motion:reduce){section.on{animation:none}}
 
-/* ===== Fluxo operacional simplificado ===== */
-.order-item { align-items: center; cursor: grab; transition: transform .16s ease, border-color .16s ease, background .16s ease, opacity .16s ease; }
-.order-item:active { cursor: grabbing; }
-.order-item.order-dragging { opacity: .42; transform: scale(.99); border-color: var(--pri); }
-.order-item.order-drag-over { border-color: var(--pri); background: color-mix(in srgb, var(--card) 90%, var(--pri)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--pri) 22%, transparent); }
-.order-drag-handle { flex: 0 0 28px; width: 28px; height: 34px; display: grid; place-items: center; border-radius: 8px; color: var(--mut); font-size: 22px; letter-spacing: -5px; cursor: grab; user-select: none; }
-.order-drag-handle:hover { color: var(--pri); background: color-mix(in srgb, var(--pri) 10%, transparent); }
-#ord .card:first-of-type { background: linear-gradient(135deg, color-mix(in srgb, var(--card) 94%, var(--pri)), var(--card)); }
-#ord .card:first-of-type .section-sub { margin-bottom: 0; }
-#ord .data-toolbar { grid-template-columns: minmax(0,1fr) minmax(150px,.55fr) auto; }
-#ord .data-summary { padding: 8px 10px; border-radius: 9px; background: color-mix(in srgb, var(--pri) 8%, var(--card)); }
-#dia .day-sync { border-radius: 10px; margin: 0 0 12px; }
-#dia .day-filters button { min-height: 42px; }
-#dia .day-row .btn, #dia .data-item .btn { font-weight: 750; }
-#dia .day-row .item-actions [data-checkin="presente"] { border-color: color-mix(in srgb, var(--ok) 50%, var(--ln)); }
-#dia .day-row .item-actions [data-checkin="batizado"] { background: var(--ok); color: #fff; }
-@media (min-width: 901px) {
-  header nav#nav button[data-s="home"], header nav#nav button[data-s="pes"], header nav#nav button[data-s="ord"], header nav#nav button[data-s="dia"] { font-weight: 700; }
-}
-@media (max-width: 760px) {
-  #ord .data-toolbar { grid-template-columns: 1fr; }
-  .order-item { align-items: flex-start; }
-  .order-drag-handle { flex-basis: 24px; width: 24px; }
-}
-
-/* ===== Batizantes concentrados na Ordem e Camisetas ===== */
-#dia[hidden], #cam[hidden] { display:none !important; }
-.order-operation-card { background: linear-gradient(135deg, color-mix(in srgb, var(--pri) 10%, var(--card)), var(--card)); }
-.order-live-summary { display:block; margin-top:6px; color:var(--mut); }
-.order-live-summary b { color:var(--tx); }
-.order-status-actions { align-items:stretch; max-width:360px; }
-.order-status-actions .btn { min-height:38px; padding:8px 9px; font-size:11px; }
-@media(max-width:760px){.order-status-actions{width:100%;max-width:none}.order-status-actions .btn{flex:1;min-width:0}.order-live-summary{margin-top:8px}}
-
-/* Estilo integrado para seletores de camiseta na lista de Batizantes */
-.person-shirt-controls {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(110px, 1fr));
-  gap: 10px;
-  width: 100%;
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--ln);
-}
-@media(max-width: 600px){
-  .person-shirt-controls { grid-template-columns: 1fr; }
-}
 </style>
+<!-- editor-camiseta-labels-v1 -->
 </head>
 <body class="auth-pending">
 
@@ -343,9 +298,9 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <header>
 <div class="brand"><i>✦</i>Gestão de Batismo<button id="tm" style="margin-left:auto;border:1px solid var(--ln);background:var(--card);color:var(--tx);border-radius:99px;min-height:36px;padding:0 12px">🌓</button></div>
 <nav id="nav" aria-label="Navegação principal">
-<button class="on" data-s="home">▦ Painel</button><button data-s="pes">♙ Batizantes</button><button data-s="ord">✧ Ordem do batismo</button>
-<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
-<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
+<button class="on" data-s="home">▦ Painel</button><button data-s="pes">♙ Pessoas</button><button data-s="ord">✧ Ordem</button><button data-s="dia">⛪ Dia do Batismo</button>
+<label class="nav-more-label" for="nav-more">Mais</label><select id="nav-more" aria-label="Mais ferramentas"><option value="">Ferramentas</option><option value="tur">Turmas</option><option value="pen">Pendências</option><option value="cam">Camisetas</option><option value="rep">Reposição</option><option value="his">Histórico</option><option value="imp">Importar</option><option value="cfg">Configurações</option></select>
+<button class="nav-secondary" data-s="tur" tabindex="-1" aria-hidden="true">Turmas</button><button class="nav-secondary" data-s="pen" tabindex="-1" aria-hidden="true">Pendências</button><button class="nav-secondary" data-s="cam" tabindex="-1" aria-hidden="true">Camisetas</button><button class="nav-secondary" data-s="rep" tabindex="-1" aria-hidden="true">Reposição</button><button class="nav-secondary" data-s="his" tabindex="-1" aria-hidden="true">Histórico</button><button class="nav-secondary" data-s="imp" tabindex="-1" aria-hidden="true">Importar</button><button class="nav-secondary" data-s="cfg" tabindex="-1" aria-hidden="true">Configurações</button>
 </nav>
 </header>
 <main>
@@ -383,6 +338,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36 · 28 anos</div></div><span class="tag t-pe">Aula 3</span></div>
 <div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Turma 36 · 50 anos</div></div><span class="tag t-ok">Pronto</span></div></div>
 <p id="pes-empty" class="note" style="display:none">Nenhuma pessoa encontrada com esse termo.</p>
+<p class="note">Toque numa pessoa para abrir a ficha demonstrativa</p>
 </section>
 
 <section id="fic" aria-label="Ficha individual" hidden>
@@ -409,7 +365,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <div class="bb"><button type="button" class="btn">🖨 Imprimir ordem</button><button type="button" class="btn o" data-demo-action="true">+ Pessoa</button></div>
 </section>
 
-<section id="dia" hidden>
+<section id="dia">
 <div class="card" style="text-align:center"><small style="color:var(--mut)">BATIZADOS HOJE</small><div class="big"><span id="cnt">18</span> <small style="font-size:20px;color:var(--mut)">/ 57</small></div>
 <div class="bar"><b style="width:32%;background:var(--aq)"></b></div><span class="tag t-ok" style="margin-top:10px">● Protótipo · sem sincronização real</span></div>
 <input type="search" placeholder="🔍 Buscar na ordem…" aria-label="Buscar pessoas na ordem do batismo">
@@ -428,11 +384,30 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <div class="card"><h3>Resolvidas · 22</h3><div class="i"><b>Camiseta G</b><br>Rafael Torres ✓</div></div></div>
 </section>
 
-<section id="cam" hidden>
-<!-- Secção oculta pois a gestão de camisetas foi unificada em Batizantes -->
+<section id="cam">
+<h2 class="t">Camisetas</h2>
+<div class="card"><b>Opção de cada pessoa · Turma 36</b>
+<div class="bar" style="display:flex;margin:10px 0"><b style="width:89%;background:var(--aq)"></b><b style="width:7%;background:var(--mut)"></b><b style="width:4%;background:var(--gold)"></b></div>
+<span class="tag t-in">51 querem</span><span class="tag" style="background:var(--ln);color:var(--mut)">4 não querem</span><span class="tag t-pe">2 já têm</span>
+<p style="font-size:12px;color:var(--mut);margin:8px 0 0">Só quem <b>optou por ter</b> entra na cobrança. Quem não quis ou já tem fica sem pendência.</p></div>
+<b style="font-size:13px">Pedido por tamanho (apenas quem optou)</b>
+<div class="card">
+<div class="f"><span>PP</span><div class="bar"><b style="width:25%;background:var(--aq)"></b></div><em>4</em></div>
+<div class="f"><span>P</span><div class="bar"><b style="width:45%;background:var(--aq)"></b></div><em>7</em></div>
+<div class="f"><span>M</span><div class="bar"><b style="width:100%;background:var(--aq)"></b></div><em>16</em></div>
+<div class="f"><span>G</span><div class="bar"><b style="width:75%;background:var(--aq)"></b></div><em>12</em></div>
+<div class="f"><span>GG</span><div class="bar"><b style="width:50%;background:var(--aq)"></b></div><em>8</em></div>
+<div class="f"><span>EG / G1+</span><div class="bar"><b style="width:25%;background:var(--aq)"></b></div><em>4</em></div></div>
+<div class="grid"><div class="card kpi"><span>Pagas</span><b style="color:var(--ok)">40</b></div><div class="card kpi"><span>A receber</span><b style="color:var(--pe)">11</b></div><div class="card kpi"><span>Entregues</span><b>0</b></div></div>
+<div class="card"><b>Cobrança · só quem optou e ainda não pagou</b>
+<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Optou · tamanho M</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Optou · tamanho G</div></div><span class="tag t-pe">A pagar</span></div>
+<div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Optou · tamanho GG</div></div><span class="tag t-ok">Pago</span></div>
+<div class="row"><div class="av" style="background:var(--mut)">JL</div><div class="m"><b>João Lima</b><div>Não optou por camiseta</div></div><span class="tag" style="background:var(--ln);color:var(--mut)">Sem cobrança</span></div></div>
+<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 Cobrar 11 pessoas</button><button type="button" class="btn" data-demo-action="true">⬇ Exportar pedido</button></div>
 </section>
 
-<style>.cert{border:3px double var(--gold);border-radius:14px;padding:22px 14px;text-align:center;background:var(--card)}.cert h2{font-size:24px;color:var(--pri)}.cert .s{width:60%;margin:22px auto 4px;border-top:1px solid var(--mut)}.st{display:flex;gap:6px;margin-bottom:12px}.st span{flex:1;text-align:center;font-size:11px;padding:8px 2px;border-radius:99px;background:var(--ln);color:var(--mut)}.st .d{background:var(--ok);color:#fff}.st .c{background:var(--pri);color:#fff}.sw{width:40px;height:22px;border-radius:99px;background:var(--ok);position:relative;flex:none}.sw:after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}</style>
+<style>.cert{border:3px double var(--gold);border-radius:14px;padding:22px 14px;text-align:center;background:var(--card)}.cert h2{font-size:24px;color:var(--pri)}.cert .s{width:60%;margin:22px auto 4px;border-top:1px solid var(--mut)}.st{display:flex;gap:6px;margin-bottom:12px}.st span{flex:1;text-align:center;font-size:11px;padding:8px 2px;border-radius:9px;background:var(--ln);color:var(--mut)}.st .d{background:var(--ok);color:#fff}.st .c{background:var(--pri);color:#fff}.sw{width:40px;height:22px;border-radius:99px;background:var(--ok);position:relative;flex:none}.sw:after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}</style>
 <section id="rep"><h2 class="t">Reposição de aulas</h2>
 <div class="card hero"><small>PRÓXIMO AULÃO</small><h2>14 de nov · 19h</h2><small>23 inscritos · 6 vagas livres</small></div>
 <div class="card"><b>Quem precisa repor</b>
@@ -521,7 +496,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       item.classList.remove('on');
     });
     button.classList.add('on');
-    if (navMore && button.dataset.s !== 'tur' && button.dataset.s !== 'pen' && button.dataset.s !== 'rep' && button.dataset.s !== 'his' && button.dataset.s !== 'imp' && button.dataset.s !== 'cfg') navMore.value = '';
+    if (navMore && button.dataset.s !== 'tur' && button.dataset.s !== 'pen' && button.dataset.s !== 'cam' && button.dataset.s !== 'rep' && button.dataset.s !== 'his' && button.dataset.s !== 'imp' && button.dataset.s !== 'cfg') navMore.value = '';
     if (navMore && button.classList.contains('nav-secondary')) navMore.value = button.dataset.s;
     button.setAttribute('aria-current', 'page');
     document.querySelectorAll('#nav button').forEach(function (item) {
@@ -532,47 +507,81 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     window.scrollTo({ top: 0, behavior: 'auto' });
   });
 
-  var peopleSearch = document.querySelector('#pes input');
-  if (peopleSearch) {
-    peopleSearch.addEventListener('input', function () {
-      var query = peopleSearch.value.toLowerCase().trim();
-      var visible = 0;
-      document.querySelectorAll('#pes .row').forEach(function (row) {
-        var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
-        row.style.display = matches ? '' : 'none';
-        if (matches) visible += 1;
-      });
-      document.getElementById('pes-empty').style.display = visible ? 'none' : 'block';
+  document.querySelectorAll('#pes .row').forEach(function (row) {
+    row.style.cursor = 'pointer';
+    row.setAttribute('tabindex', '0');
+    row.setAttribute('role', 'button');
+    row.setAttribute('aria-label', 'Abrir ficha demonstrativa de ' + row.querySelector('.m b').textContent);
+
+    function openPerson() {
+      var name = row.querySelector('.m b').textContent.trim();
+      var metadata = row.querySelector('.m div').textContent.trim();
+      var initials = row.querySelector('.av').textContent.trim();
+      var statusTag = row.querySelector('.tag');
+      var profile = document.querySelector('#fic .card:first-child');
+      var avatar = profile.querySelector('.av');
+      var title = profile.querySelector('h2');
+      var meta = profile.querySelector('.m div');
+      var tags = profile.querySelectorAll('.tag');
+
+      avatar.textContent = initials;
+      title.textContent = name;
+      meta.textContent = metadata;
+      if (tags[0] && statusTag) {
+        tags[0].className = statusTag.className;
+        tags[0].textContent = statusTag.textContent;
+      }
+      if (tags[1]) {
+        tags[1].className = 'tag t-in';
+        tags[1].textContent = 'Ficha demonstrativa';
+      }
+      go('fic');
+    }
+
+    row.addEventListener('click', openPerson);
+    row.addEventListener('keydown', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openPerson();
+      }
     });
-  }
+  });
+
+  var peopleSearch = document.querySelector('#pes input');
+  peopleSearch.addEventListener('input', function () {
+    var query = peopleSearch.value.toLowerCase().trim();
+    var visible = 0;
+    document.querySelectorAll('#pes .row').forEach(function (row) {
+      var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
+    });
+    document.getElementById('pes-empty').style.display = visible ? 'none' : 'block';
+  });
 
   var daySearch = document.querySelector('#dia input[type="search"]');
-  if (daySearch) {
-    daySearch.addEventListener('input', function () {
-      var query = daySearch.value.toLowerCase().trim();
-      var visible = 0;
-      Array.prototype.slice.call(document.querySelectorAll('#dia .card')).slice(1).forEach(function (card) {
-        var matches = card.textContent.toLowerCase().indexOf(query) !== -1;
-        card.style.display = matches ? '' : 'none';
-        if (matches) visible += 1;
-      });
-      document.getElementById('dia-empty').style.display = visible ? 'none' : 'block';
+  daySearch.addEventListener('input', function () {
+    var query = daySearch.value.toLowerCase().trim();
+    var visible = 0;
+    Array.prototype.slice.call(document.querySelectorAll('#dia .card')).slice(1).forEach(function (card) {
+      var matches = card.textContent.toLowerCase().indexOf(query) !== -1;
+      card.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
     });
-  }
+    document.getElementById('dia-empty').style.display = visible ? 'none' : 'block';
+  });
 
   var historySearch = document.querySelector('#his input[type="search"]');
-  if (historySearch) {
-    historySearch.addEventListener('input', function () {
-      var query = historySearch.value.toLowerCase().trim();
-      var visible = 0;
-      document.querySelectorAll('#his .card .row').forEach(function (row) {
-        var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
-        row.style.display = matches ? '' : 'none';
-        if (matches) visible += 1;
-      });
-      document.getElementById('his-empty').style.display = visible ? 'none' : 'block';
+  historySearch.addEventListener('input', function () {
+    var query = historySearch.value.toLowerCase().trim();
+    var visible = 0;
+    document.querySelectorAll('#his .card .row').forEach(function (row) {
+      var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
+      row.style.display = matches ? '' : 'none';
+      if (matches) visible += 1;
     });
-  }
+    document.getElementById('his-empty').style.display = visible ? 'none' : 'block';
+  });
 
   document.querySelectorAll('#dia .btn.g').forEach(function (button) {
     button.addEventListener('click', function () {
@@ -586,7 +595,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       count.textContent = String(next);
       var progress = document.querySelector('#dia .bar b');
       progress.style.width = ((next / 57) * 100) + '%';
-      showToast('Registro de demonstração atualizado nesta tela.');
+      showToast('Registro de demonstração atualizado nesta tela. Ele não é salvo em uma base de dados.');
     });
   });
 
@@ -619,7 +628,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   document.querySelectorAll('[data-demo-action="true"]').forEach(function (button) {
     button.disabled = true;
     button.setAttribute('aria-disabled', 'true');
-    button.title = 'Ação demonstrativa indisponível.';
+    button.title = 'Ação demonstrativa indisponível. Importe dados reais para habilitar as funções do sistema.';
   });
 })();
 </script>
@@ -639,6 +648,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   var manualOrderEditingId = '';
   var dayState = { query: '' , page: 1, turmaId: '' };
   var pendingState = { query: '', page: 1, turma: '' };
+  var shirtState = { query: '', page: 1, turma: '' };
   var returnState = { query: '', page: 1, turma: '' };
   var historyState = { query: '', source: 'geral', page: 1 };
   var manualPersonEditingId = '';
@@ -673,14 +683,15 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   });
 
   configSection.innerHTML = '<h2 class="t">Dados e privacidade</h2>' +
-    '<div class="card"><b>Banco de dados central</b><p class="section-sub">Os registros importados são armazenados no Cloud Firestore do Firebase.</p></div>' +
+    '<div class="card"><b>Banco de dados central</b><p class="section-sub">Os registros importados são armazenados no Cloud Firestore do Firebase. O acesso depende do login e das regras de segurança do projeto. O GitHub hospeda somente o código do sistema.</p></div>' +
     '<div class="card"><b>Origem carregada</b><div id="config-source" class="local-only-note">Nenhuma planilha carregada do Firebase.</div><div class="bb"><button type="button" class="btn o" data-go="imp">Abrir importação</button><button type="button" class="btn o" data-download-current="xlsx" disabled>Baixar Excel original deste navegador</button><button type="button" class="btn o" data-download-current="json" disabled>Exportar dados JSON</button></div></div>' +
+    '<div class="card"><b>Preservação</b><p class="section-sub">Somente as duas primeiras abas, Batismo e Ordem, são importadas para o Firestore, com suas linhas de origem. As abas seguintes são ignoradas na nuvem. Cada nova importação cria uma nova versão da base, sem apagar a versão anterior.</p><p class="section-sub">O arquivo Excel original completo, com todas as abas e formatação, fica somente como cópia local no navegador usado para importar. Mantenha também o XLSX original guardado em local seguro.</p></div>' +
     '<div class="card"><b>Backups locais deste navegador</b><div id="backup-items-config" class="backup-list"><span class="note">Carregando…</span></div></div>';
 
   var homeSection = document.getElementById('home');
   var demoNotice = document.createElement('div');
   demoNotice.className = 'card security-callout';
-  demoNotice.innerHTML = '<b>Base ainda não carregada</b><p>Para começar, abra <strong>Importar</strong>, selecione o Excel original e confira os quantitativos.</p><button type="button" class="btn" data-go="imp">Importar minha planilha →</button>';
+  demoNotice.innerHTML = '<b>Base ainda não carregada</b><p>Para começar, abra <strong>Importar</strong>, selecione o Excel original e confira os quantitativos. Ao confirmar, os registros serão enviados ao Firestore e uma cópia local será mantida neste navegador.</p><button type="button" class="btn" data-go="imp">Importar minha planilha →</button>';
   homeSection.insertBefore(demoNotice, homeSection.firstChild);
 
   function isBlank(value) {
@@ -802,27 +813,32 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   window.addEventListener('cloud-version-offline', showCloudVersionBanner);
   window.addEventListener('cloud-version-current', hideCloudVersionBanner);
   window.addEventListener('cloud-version-late-save-settled', function () {
-    setImportMessage('O Firebase confirmou o salvamento após o tempo limite.', 'success');
+    setImportMessage('O Firebase confirmou o salvamento após o tempo limite. A base foi atualizada; confira os dados antes de continuar.', 'success');
   });
   window.addEventListener('firebase-workspace-refresh', function (event) {
     var typedFields = captureTypedFields();
     var workspace = event.detail && event.detail.workspace;
     if (!workspace) {
       showCloudVersionBanner();
-      setImportMessage('Não foi encontrada uma versão principal para atualizar.', 'error');
+      setImportMessage('Não foi encontrada uma versão principal para atualizar. Seus dados locais foram mantidos.', 'error');
       return;
     }
     appData = Object.assign({}, workspace, { id: 'current' });
     buildAll();
     restoreTypedFields(typedFields);
-    setImportMessage('Dados atualizados.', 'success');
+    var editorReview = document.getElementById('manual-person-status');
+    if (editorReview) {
+      editorReview.className = 'import-status success';
+      editorReview.textContent = 'Dados atualizados, revise antes de salvar.';
+    }
+    setImportMessage('Dados atualizados, revise antes de salvar.', 'success');
   });
   function goTo(sectionId) {
     var button = document.querySelector('#nav [data-s="' + sectionId + '"]');
     if (button) button.click();
   }
   function openDatabase() {
-    if (!('indexedDB' in window)) return Promise.reject(new Error('Este navegador não oferece armazenamento local compatível.'));
+    if (!('indexedDB' in window)) return Promise.reject(new Error('Este navegador não oferece armazenamento local compatível. Use uma versão atualizada do Chrome, Edge ou Firefox.'));
     return new Promise(function (resolve, reject) {
       var request = indexedDB.open(DB_NAME, DB_VERSION);
       request.onupgradeneeded = function () {
@@ -891,7 +907,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     return row.slice(1).every(isBlank);
   }
   function normalizeWorkbook(file, buffer) {
-    if (!window.XLSX) throw new Error('A biblioteca para ler Excel ainda não carregou.');
+    if (!window.XLSX) throw new Error('A biblioteca para ler Excel ainda não carregou. Confira a conexão e recarregue a página.');
     var workbook = XLSX.read(buffer, { type: 'array', cellDates: false, raw: true });
     var rawSheets = {};
     var sheetStats = [];
@@ -911,6 +927,8 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     });
 
     var mainRows = getSheetRows(rawSheets, 'Batismo');
+    // A segunda aba é a ordem operacional. Aceita "Ordem" e nomes específicos
+    // como "Ordem Batismo 36", sem ler nenhuma aba posterior.
     var secondSheetName = selectedSheetNames[1] || '';
     var secondSheetKey = normal(secondSheetName);
     var orderRows = rawSheets[secondSheetName] || null;
@@ -918,8 +936,8 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var generalRows = [];
     var missingSheets = [];
     if (normal(selectedSheetNames[0] || '') !== 'batismo' || !mainRows) missingSheets.push('Batismo (primeira aba)');
-    if (secondSheetKey.indexOf('ordem') !== 0 || !orderRows) missingSheets.push('Ordem (segunda aba)');
-    if (missingSheets.length) throw new Error('Abas inválidas. Encontradas: ' + selectedSheetNames.join(', '));
+    if (secondSheetKey.indexOf('ordem') !== 0 || !orderRows) missingSheets.push('Ordem (segunda aba, por exemplo "Ordem Batismo 36")');
+    if (missingSheets.length) throw new Error('Use a primeira aba Batismo e a segunda aba Ordem/Ordem Batismo 36. As abas após a segunda são ignoradas. Abas encontradas: ' + selectedSheetNames.join(', ') + '. Nenhum dado foi substituído.');
 
     var people = [];
     var skippedDuplicateHeaders = 0;
@@ -941,7 +959,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       });
     }
 
-    function createOrderEntries(rows) {
+    function createOrderEntries(rows, kind) {
       var headers = (rows[0] || []).map(normal);
       var eklesiaIndex = headers.findIndex(function (header) {
         return header.indexOf('batizado no eklesia') >= 0 || header.indexOf('batizado no ekklesia') >= 0;
@@ -956,8 +974,21 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
         };
       }).filter(function (record) { return hasData(record.fields); });
     }
-    var order = createOrderEntries(orderRows);
-    var order35 = createOrderEntries(order35Rows);
+    var order = createOrderEntries(orderRows, 'current');
+    var order35 = createOrderEntries(order35Rows, 'history35');
+    var generalAll = generalRows.slice(1).map(function (row, index) {
+      var fields = row.slice(0, 5);
+      while (fields.length < 5) fields.push(null);
+      return { sourceRow: index + 2, fields: fields, name: typeof fields[0] === 'string' ? clean(fields[0]) : '', age: fields[1], phone: fields[2], turma: fields[3], year: fields[4] };
+    }).filter(function (record) { return hasData(record.fields); });
+    var general = generalAll.filter(function (record) { return !!record.name; });
+    var generalUnmapped = generalAll.filter(function (record) { return !record.name; });
+
+    var stats = {};
+    Object.keys(rawSheets).forEach(function (key) {
+      var rows = rawSheets[key];
+      stats[key] = { rows: rows.length, nonemptyRows: rows.filter(hasData).length, columns: sheetStats.find(function (s) { return s.name === key; }).columns };
+    });
 
     return {
       id: 'current',
@@ -970,12 +1001,11 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       people: people,
       order: order,
       order35: order35,
-      general: [],
-      generalAll: [],
-      generalUnmapped: [],
+      general: general,
+      generalAll: generalAll,
+      generalUnmapped: generalUnmapped,
       skippedDuplicateHeaders: skippedDuplicateHeaders,
       checkin: {},
-      ordemSequencia: {},
       turmas: (appData && Array.isArray(appData.turmas) ? appData.turmas : []),
       ordensTurma: (appData && Array.isArray(appData.ordensTurma) ? appData.ordensTurma : []),
       turmaPadrao: appData && appData.turmaPadrao ? appData.turmaPadrao : '',
@@ -984,6 +1014,25 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     };
   }
 
+  function namedPeople() {
+    return appData ? appData.people.filter(function (p) { return !!p.name; }) : [];
+  }
+  function uniqueCount(items, keyFn) {
+    var seen = {};
+    items.forEach(function (item) {
+      var key = normal(keyFn(item));
+      if (key) seen[key] = true;
+    });
+    return Object.keys(seen).length;
+  }
+  function duplicateNameGroups(items, keyFn) {
+    var counts = {};
+    items.forEach(function (item) {
+      var key = normal(keyFn(item));
+      if (key) counts[key] = (counts[key] || 0) + 1;
+    });
+    return Object.keys(counts).filter(function (key) { return counts[key] > 1; }).length;
+  }
   function signalFlags(person) {
     var flags = [];
     if (!person.name) flags.push('Sem nome');
@@ -1039,71 +1088,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   function metric(label, value, foot) {
     return '<div class="data-metric"><span>' + esc(label) + '</span><strong>' + esc(numberLabel(value)) + '</strong><span class="item-meta">' + esc(foot || '') + '</span></div>';
   }
-
-  // --- Funções para gerenciar o estado da Camiseta diretamente na pessoa ---
-  function shirtChoiceLabel(person) {
-    var saved = normal(person && person.shirtChoice);
-    if (saved === 'sim' || saved === 'quer camiseta') return 'Sim';
-    if (saved === 'nao' || saved === 'não') return 'Não';
-    if (saved === 'ja possui' || saved === 'ja tem' || saved === 'ja tenho') return 'Já possui';
-    if (saved === 'pendente') return 'Pendente';
-    var value = normal(person && person.shirt);
-    if (!value) return 'Pendente';
-    if (value === 'ja tem' || value === 'ja possui' || value === 'ja tenho') return 'Já possui';
-    if (/nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao\.*/.test(value)) return 'Não';
-    return 'Sim';
-  }
-  function shirtSizeValue(person) {
-    if (person && person.shirtSize != null) return clean(person.shirtSize);
-    var legacy = clean(person && person.shirt);
-    if (!legacy || /^(ja tem|ja possui|ja tenho|nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao informado|pendente)$/i.test(normal(legacy))) return '';
-    return legacy;
-  }
-  function shirtPaymentChoice(person) {
-    if (person && person.shirtPaymentStatus) {
-      var saved = normal(person.shirtPaymentStatus);
-      if (saved === 'pago') return 'Pago';
-      if (saved === 'pendente' || saved === 'a pagar') return 'Pendente';
-    }
-    var legacy = shirtPaidValue(person);
-    return legacy === true ? 'Pago' : (legacy === false ? 'Pendente' : 'Pendente');
-  }
-  function shirtSelect(label, value, options, personRow, field, disabled) {
-    return '<div class="shirt-control"><label>' + esc(label) + '</label><select aria-label="' + esc(label + ' · ' + (personRow.name || 'participante')) + '" data-shirt-row="' + esc(personRow.sourceRow) + '" data-shirt-field="' + esc(field) + '" ' + (disabled ? 'disabled' : '') + '>' +
-      options.map(function (option) { return '<option value="' + esc(option.value) + '" ' + (value === option.value ? 'selected' : '') + '>' + esc(option.label) + '</option>'; }).join('') +
-      '</select></div>';
-  }
-  async function updateShirtField(sourceRow, field, value, selectNode) {
-    if (!appData) return;
-    var original = (appData.people || []).find(function (p) { return String(p.sourceRow) === String(sourceRow); });
-    if (!original) { setImportMessage('Não foi possível localizar este participante.', 'error'); return; }
-    var updated = Object.assign({}, original);
-    if (field === 'choice') updated.shirtChoice = value;
-    if (field === 'size') updated.shirtSize = value;
-    if (field === 'payment') updated.shirtPaymentStatus = value;
-
-    var draft = Object.assign({}, appData, {
-      people: appData.people.map(function (p) {
-        return String(p.sourceRow) === String(sourceRow) ? updated : p;
-      })
-    });
-    var row = selectNode && selectNode.closest('.data-item');
-    var status = row && row.querySelector('.shirt-save-status');
-    if (status) { status.className = 'shirt-save-status is-saving'; status.textContent = 'Salvando…'; }
-    if (selectNode) selectNode.disabled = true;
-    try {
-      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A gravação no Firebase não está disponível.');
-      await window.firebaseSaveWorkspace(draft, true);
-      try { await saveWorkspace(draft, false); } catch (localError) {}
-      appData = draft;
-      drawPeopleResults();
-      if (status) { status.className = 'shirt-save-status is-saved'; status.textContent = 'Salvo'; }
-    } catch (error) {
-      if (status) { status.className = 'shirt-save-status is-error'; status.textContent = 'Não salvo'; }
-      if (selectNode) selectNode.disabled = false;
-    }
-  }
-
   function buildHome() {
     if (!appData) return;
     var home = document.getElementById('home');
@@ -1115,7 +1099,9 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var namedPeople = people.filter(function (p) { return !!p.name; });
     var pendingPeople = people.filter(hasPendingSignal);
     var journeyDone = namedPeople.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
+    var journeyKnown = namedPeople.filter(function (p) { return !isBlank(p.journey); }).length;
     var shirts = shirtSummary(turmaAtual);
+    // A ordem importada é histórica e pertence à Turma 36; não a atribua a outras turmas.
     var orderRows = turmaId === '36' ? (appData.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: '36' }); }) : [];
     var manualRows = (appData.ordensTurma || []).filter(function (r) { return String(r.turmaId) === turmaId; }).map(function (r) {
       return Object.assign({}, r, { sourceRow: r.id, number: r.number, name: r.name, note: r.note, removed: r.removed, participantId: r.participantId, __turmaId: turmaId, __manual: true });
@@ -1128,51 +1114,72 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       if (mark.presente) presentCount++;
       if (mark.batizado) baptizedCount++;
     });
-
+    var journeyPercent = namedPeople.length ? Math.round(journeyDone * 100 / namedPeople.length) : 0;
+    var presencePercent = namedOrder.length ? Math.round(presentCount * 100 / namedOrder.length) : 0;
+    var shirtPercent = namedPeople.length ? Math.round(shirts.shirts.length * 100 / namedPeople.length) : 0;
+    var checklist = [
+      {label:'Jornada concluída',count:journeyDone,total:namedPeople.length,percent:journeyPercent,go:'pes',icon:'✓'},
+      {label:'Presenças registradas',count:presentCount,total:namedOrder.length,percent:presencePercent,go:'dia',icon:'◉'},
+      {label:'Camisetas com tamanho',count:shirts.shirts.length,total:namedPeople.length,percent:shirtPercent,go:'cam',icon:'✦'}
+    ];
+    var checklistHtml = checklist.map(function (item) {
+      return '<div class="home-list-row"><span class="quick-icon">'+item.icon+'</span><div class="home-list-main"><strong>'+esc(item.label)+'</strong><small>'+item.count+' de '+item.total+' registros</small><div class="data-bar" style="margin-top:8px"><i style="width:'+item.percent+'%"></i></div></div><button type="button" class="btn o" data-go="'+item.go+'" style="padding:7px 10px;min-height:34px;font-size:11px">Abrir</button></div>';
+    }).join('');
+    var recentPeople = namedPeople.slice(-5).reverse();
+    var recentHtml = recentPeople.length ? recentPeople.map(function(p){
+      var name=String(p.name || 'Participante');
+      var initials=name.split(/\s+/).slice(0,2).map(function(part){return part.charAt(0)}).join('').toUpperCase();
+      return '<div class="home-list-row"><span class="avatar">'+esc(initials)+'</span><div class="home-list-main"><strong>'+esc(name)+'</strong><small>'+esc(p.turma || turmaLabel)+'</small></div><span class="home-list-value">Participante</span></div>';
+    }).join('') : '<p class="section-sub">Nenhum participante identificado nesta turma.</p>';
     home.innerHTML =
-      '<div class="card hero"><small>GESTÃO DE BATISMO · ' + esc(turmaLabel.toUpperCase()) + '</small><h2>Vamos preparar cada detalhe.</h2><p>Um panorama da preparação e do dia do batismo.</p><div class="bb"><button type="button" class="btn" data-go="ord">Acompanhar presenças <span aria-hidden="true">→</span></button><button type="button" class="btn o" data-go="ord">Consultar ordem</button></div></div>' +
+      '<div class="card hero"><small>GESTÃO DE BATISMO · '+esc(turmaLabel.toUpperCase())+'</small><h2>Vamos preparar cada detalhe.</h2><p>Um panorama da preparação e do dia do batismo, calculado a partir dos registros disponíveis no sistema.</p><div class="bb"><button type="button" class="btn" data-go="dia">Acompanhar presenças <span aria-hidden="true">→</span></button><button type="button" class="btn o" data-go="ord">Consultar ordem</button></div></div>' +
       '<div class="data-metrics">' +
-      '<div class="kpi"><span>Participantes cadastrados</span><b>' + namedPeople.length + '</b><span>Registros em ' + esc(turmaLabel.toLowerCase()) + '</span></div>' +
-      '<div class="kpi"><span>Presenças confirmadas</span><b>' + presentCount + '</b><span>Na ordem do batismo</span></div>' +
-      '<div class="kpi"><span>Pendências de preparação</span><b>' + pendingPeople.length + '</b><span>Sinais registrados</span></div>' +
-      '<div class="kpi"><span>Camisetas com tamanho</span><b>' + shirts.shirts.length + '</b><span>Cadastros identificados</span></div>' +
-      '</div>';
+      '<div class="kpi"><span>Participantes cadastrados</span><b>'+namedPeople.length+'</b><span>Registros identificados em '+esc(turmaLabel.toLowerCase())+'</span></div>' +
+      '<div class="kpi"><span>Presenças confirmadas</span><b>'+presentCount+'</b><span>'+presencePercent+'% das pessoas nomeadas na ordem</span></div>' +
+      '<div class="kpi"><span>Pendências de preparação</span><b>'+pendingPeople.length+'</b><span>Pessoas com ao menos um sinal registrado</span></div>' +
+      '<div class="kpi"><span>Camisetas com tamanho</span><b>'+shirts.shirts.length+'</b><span>'+shirtPercent+'% dos cadastros identificados</span></div>' +
+      '</div>' +
+      '<div class="card"><h2 class="t">Ações rápidas</h2><div class="quick-grid">' +
+      '<button type="button" class="quick-action" data-go="pes"><span class="quick-icon">＋</span><span>Ver participantes</span></button>' +
+      '<button type="button" class="quick-action" data-go="dia"><span class="quick-icon">✓</span><span>Fazer check-in</span></button>' +
+      '<button type="button" class="quick-action" data-go="tur"><span class="quick-icon">▦</span><span>Gerenciar turmas</span></button>' +
+      '<button type="button" class="quick-action" data-go="cam"><span class="quick-icon">✦</span><span>Camisetas</span></button>' +
+      '<button type="button" class="quick-action" data-go="ord"><span class="quick-icon">☷</span><span>Ordem do batismo</span></button>' +
+      '<button type="button" class="quick-action" data-go="pen"><span class="quick-icon">!</span><span>Resolver pendências</span></button>' +
+      '<button type="button" class="quick-action" data-go="his"><span class="quick-icon">◷</span><span>Histórico</span></button>' +
+      '<button type="button" class="quick-action" data-go="imp"><span class="quick-icon">⇧</span><span>Importar planilha</span></button>' +
+      '</div></div>' +
+      '<div class="dashboard-columns"><div class="card"><h2 class="t">Participantes da turma</h2><div class="home-list">'+recentHtml+'</div><button type="button" class="btn o" data-go="pes">Ver todos os participantes →</button></div>' +
+      '<div class="card"><h2 class="t">Checklist da turma</h2><div class="home-list">'+checklistHtml+'</div><p class="section-sub">Os percentuais consideram somente os registros disponíveis. Dados ausentes não são estimados.</p></div></div>' +
+      '<div class="card"><h2 class="t">Dia do batismo</h2><div class="data-metrics" style="margin-bottom:8px"><div class="kpi"><span>Presentes</span><b>'+presentCount+'</b><span>De '+namedOrder.length+' pessoas nomeadas na ordem</span></div><div class="kpi"><span>Batizados</span><b>'+baptizedCount+'</b><span>Marcações registradas no sistema</span></div><div class="kpi"><span>Pagamentos pendentes</span><b>'+shirts.unpaid.length+'</b><span>'+shirts.paid.length+' camisetas pagas</span></div><div class="kpi"><span>Jornada informada</span><b>'+journeyKnown+'</b><span>De '+namedPeople.length+' participantes</span></div></div><button type="button" class="btn o" data-go="dia">Abrir acompanhamento do dia →</button></div>' +
+      '<p class="note">Os indicadores consideram '+esc(turmaLabel)+'. A ordem histórica importada é usada somente na Turma 36; registros sem turma identificada não são atribuídos automaticamente. A lista não representa necessariamente a ordem cronológica de cadastro.</p>';
   }
 
   function buildPeople() {
     var section = document.getElementById('pes');
-    var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
+    var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
+    // Fluxo operacional atual: abrir Pessoas já filtrado para a Turma 36.
+    // Se a turma não existir no conjunto de dados, manter Todas as turmas sem inventar registros.
     if (turmas.indexOf('36') >= 0) { if (!peopleState.turma || peopleState.turma === '') peopleState.turma = '36'; }
     else if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
-
-    section.innerHTML = '<h2 class="t">Batizantes · ' + numberLabel(appData.people.length) + ' registros</h2>' +
-      '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
-      '<div class="card"><h3 style="margin-top:0">Cadastro direto no sistema</h3><form id="manual-person-form"><div class="record-editor-fields"><label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="name"></label><label class="record-editor-field">Telefone<input id="manual-person-phone" maxlength="50" autocomplete="tel"></label><label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label><label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('') + '</select></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite"></div></form><div id="manual-person-results" class="data-list"></div></div>' +
-      '<div class="data-metrics" id="people-ops-summary"></div>' +
-      '<div class="card"><div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option></select></div></div>' +
-      '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>';
-
+    section.innerHTML = '<h2 class="t">Pessoas · ' + numberLabel(appData.people.length) + ' registros de origem</h2>' +
+      '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa da planilha</button></div>' +
+      '<div class="card"><h3 style="margin-top:0">Cadastro direto no sistema</h3><p class="section-sub">Cadastro com identificador próprio, independente das linhas do Excel.</p><form id="manual-person-form"><div class="record-editor-fields"><label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="name"></label><label class="record-editor-field">Telefone<input id="manual-person-phone" maxlength="50" autocomplete="tel"></label><label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label><label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('') + '</select></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite"></div></form><div id="manual-person-results" class="data-list"></div></div>' +
+      '<div class="data-metrics" id="people-ops-summary"></div><div class="card"><p class="section-sub">Visão operacional da Turma 36: jornada, pendências, camiseta, pagamento, presença e batismo no mesmo cadastro. As marcações do dia só aparecem quando a associação com a ordem é segura; nomes repetidos ficam sem associação automática.</p><div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option><option value="no-group">Não consta no grupo</option></select></div></div>' +
+      '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>' +
+      '<p class="note">Os registros repetidos permanecem separados. Toque em um registro para abrir a ficha completa com os campos da planilha.</p>';
     document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
-
-    // Listener para delegação de alteração nos seletores de camiseta dos batizantes
-    document.getElementById('people-results').addEventListener('change', function (event) {
-      var node = event.target;
-      if (!node || !node.matches('select[data-shirt-field]')) return;
-      updateShirtField(node.getAttribute('data-shirt-row'), node.getAttribute('data-shirt-field'), node.value, node);
-    });
-
     drawPeopleResults();
     drawManualPeople();
     document.getElementById('manual-person-form').addEventListener('submit', saveManualPerson);
     document.getElementById('manual-person-cancel').addEventListener('click', resetManualPersonForm);
   }
-
   function drawManualPeople(){
     var host=document.getElementById('manual-person-results'); if(!host||!appData)return;
     var list=(appData.participantes||[]).slice().sort(function(a,b){return String(a.nome).localeCompare(String(b.nome),'pt-BR');});
-    host.innerHTML=list.map(function(p){return '<div class="data-item"><div class="item-main"><strong>'+esc(p.nome)+'</strong><div class="item-meta">Turma '+esc(p.turma)+' · Idade: '+esc(display(p.idade))+' · Telefone: '+esc(display(p.telefone))+'</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-manual-person="'+esc(p.id)+'">Editar / transferir</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa cadastrada diretamente ainda.</div>';
+    host.innerHTML=list.map(function(p){return '<div class="data-item"><div class="item-main"><strong>'+esc(p.nome)+'</strong><div class="item-meta">Turma '+esc(p.turma)+' · Idade: '+esc(display(p.idade))+' · Telefone: '+esc(display(p.telefone))+'</div>'+(p.historicoTurmas&&p.historicoTurmas.length?'<div class="item-meta">Histórico de turmas: '+esc(p.historicoTurmas.map(function(h){return h.turma;}).join(' → '))+'</div>':'')+'</div><div class="item-actions"><button type="button" class="btn o" data-edit-manual-person="'+esc(p.id)+'">Editar / transferir</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa cadastrada diretamente ainda.</div>';
   }
   function resetManualPersonForm(){manualPersonEditingId='';var form=document.getElementById('manual-person-form');if(!form)return;form.reset();document.getElementById('manual-person-save').textContent='Cadastrar pessoa';document.getElementById('manual-person-cancel').hidden=true;document.getElementById('manual-person-status').textContent='';}
   async function saveManualPerson(event){
@@ -1181,15 +1188,14 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var status=document.getElementById('manual-person-status');if(!nome||!turma){status.className='import-status error';status.textContent='Preencha o nome e selecione a turma.';return;}
     var draft=cloneWorkspaceForEdit();if(!Array.isArray(draft.participantes))draft.participantes=[];
     var existing=draft.participantes.find(function(p){return p.id===manualPersonEditingId;});var now=new Date().toISOString();
-    if(existing){var oldTurma=String(existing.turma);if(oldTurma!==String(turma)){if(!Array.isArray(existing.historicoTurmas))existing.historicoTurmas=[];existing.historicoTurmas.push({turma:oldTurma,desde:existing.atualizadoEm||existing.criadoEm||now,ate:now});existing.turma=turma;}existing.nome=nome;existing.telefone=telefone;existing.idade=idade;existing.atualizadoEm=now;}
+    if(existing){var oldTurma=String(existing.turma);if(oldTurma!==String(turma)){if(!Array.isArray(existing.historicoTurmas))existing.historicoTurmas=[];existing.historicoTurmas.push({turma:oldTurma,desde:existing.atualizadoEm||existing.criadoEm||now,ate:now});existing.turma=turma;existing.transferencias=(existing.transferencias||0)+1;}existing.nome=nome;existing.telefone=telefone;existing.idade=idade;existing.atualizadoEm=now;}
     else draft.participantes.push({id:'p_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),nome:nome,telefone:telefone,idade:idade,turma:turma,criadoEm:now,atualizadoEm:now,historicoTurmas:[],participacoes:[]});
-    var save=document.getElementById('manual-person-save');save.disabled=true;status.className='import-status';status.textContent='Salvando cadastro...';
-    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(localError){}appData=draft;resetManualPersonForm();buildAll();goTo('pes');}
+    var save=document.getElementById('manual-person-save');save.disabled=true;status.className='import-status';status.textContent='Salvando cadastro e histórico no Firebase…';
+    try{if(typeof window.firebaseSaveWorkspace!=='function')throw new Error('Firebase não está disponível.');await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(localError){}appData=draft;resetManualPersonForm();buildAll();goTo('pes');setImportMessage(existing?'Cadastro atualizado. Histórico de transferência preservado.':'Pessoa cadastrada no sistema.', 'success');}
     catch(error){status.className='import-status error';status.textContent='Não foi possível salvar: '+(error.message||'erro desconhecido');}
     finally{save.disabled=false;}
   }
-  function editManualPerson(id){var p=(appData.participantes||[]).find(function(item){return item.id===id;});if(!p)return;manualPersonEditingId=p.id;document.getElementById('manual-person-name').value=p.nome||'';document.getElementById('manual-person-phone').value=p.telefone||'';document.getElementById('manual-person-age').value=p.idade||'';document.getElementById('manual-person-turma').value=p.turma||'';document.getElementById('manual-person-save').textContent='Salvar alterações';document.getElementById('manual-person-cancel').hidden=false;}
-
+  function editManualPerson(id){var p=(appData.participantes||[]).find(function(item){return item.id===id;});if(!p)return;manualPersonEditingId=p.id;document.getElementById('manual-person-name').value=p.nome||'';document.getElementById('manual-person-phone').value=p.telefone||'';document.getElementById('manual-person-age').value=p.idade||'';document.getElementById('manual-person-turma').value=p.turma||'';document.getElementById('manual-person-save').textContent='Salvar alterações';document.getElementById('manual-person-cancel').hidden=false;document.getElementById('manual-person-status').textContent='Ao mudar a turma, a turma anterior será registrada no histórico.';document.getElementById('manual-person-name').focus();}
   function safeDayLinkForPerson(person) {
     if (!person || !person.name || String(person.turma) !== '36') return null;
     var samePeople = (appData.people || []).filter(function (p) {
@@ -1208,14 +1214,18 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var named = items.filter(function (p) { return !!p.name; });
     var pending = named.filter(hasPendingSignal).length;
     var journeyDone = named.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
+    var shirts = items.filter(shirtChosen);
+    var unpaid = shirts.filter(function (p) { return shirtPaidValue(p) === false; }).length;
     var knownLinks = named.map(safeDayLinkForPerson).filter(Boolean);
     var present = knownLinks.filter(function (r) { return !!(dayMarks[dayId(r)] || {}).presente; }).length;
+    var baptized = knownLinks.filter(function (r) { return !!(dayMarks[dayId(r)] || {}).batizado; }).length;
     host.innerHTML = metric('Participantes', named.length, 'Cadastros com nome') +
       metric('Pendências', pending, 'Com sinal registrado') +
       metric('Jornada concluída', journeyDone, 'Status “concluída”') +
-      metric('Presentes', present, 'Na ordem do batismo');
+      metric('Camisetas a pagar', unpaid, 'Pagamento marcado como pendente') +
+      metric('Presentes', present, knownLinks.length + ' associações seguras com a ordem') +
+      metric('Batizados', baptized, 'Marcações registradas');
   }
-
   function drawPeopleResults() {
     if (!appData || !document.getElementById('people-results')) return;
     var query = normal(peopleState.query);
@@ -1226,6 +1236,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       if (peopleState.filter === 'pending' && !hasPendingSignal(p)) return false;
       if (peopleState.filter === 'without-phone' && !isBlank(p.phone)) return false;
       if (peopleState.filter === 'without-name' && p.name) return false;
+      if (peopleState.filter === 'no-group' && asBoolean(p.group) !== false) return false;
       return true;
     });
     drawPeopleOpsSummary((appData.people || []).filter(function (p) { return matchesTurmaFilter(p, peopleState.turma); }));
@@ -1234,49 +1245,24 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var start = (peopleState.page - 1) * PAGE_SIZE;
     var view = items.slice(start, start + PAGE_SIZE);
     document.getElementById('people-count').textContent = numberLabel(items.length) + ' registros encontrados · página ' + peopleState.page + ' de ' + pages;
-    
     document.getElementById('people-results').innerHTML = view.map(function (p) {
       var status = isBlank(p.status) ? (p.name ? 'Status não preenchido' : 'Registro incompleto') : p.status;
       var classes = p.name ? 't-in' : 't-er';
+      var shirtText = !shirtChosen(p) ? (normal(p.shirt) === 'ja tem' ? 'Já tem camiseta' : 'Camiseta não informada') : ('Camiseta ' + display(p.shirt));
+      var paid = shirtChosen(p) ? (shirtPaidValue(p) === true ? chip('Camiseta paga', 't-ok') : (shirtPaidValue(p) === false ? chip('Camiseta a pagar', 't-pe') : chip('Pagamento não informado', 't-in'))) : '';
       var link = safeDayLinkForPerson(p);
       var mark = link ? (dayMarks[dayId(link)] || {}) : null;
       var attendance = link ? chip(mark && mark.presente ? 'Presente' : 'Não marcado presente', mark && mark.presente ? 't-ok' : 't-pe') + chip(mark && mark.batizado ? 'Batizado' : 'Não marcado batizado', mark && mark.batizado ? 't-ok' : 't-in') : chip('Ordem sem vínculo seguro', 't-in');
-      
-      // Apenas botão Marcar Presente retido (botão Marcar Batizado e Ficha Completa removidos conforme imagem)
-      var checkinActions = link ? '<button type="button" class="btn ' + (mark && mark.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(dayId(link)) + '" data-order-row="' + esc(link.sourceRow) + '">' + (mark && mark.presente ? '✓ Presente' : 'Marcar presente') + '</button>' : '';
-      
-      // Controlos de camiseta integrados diretamente no card do Batizante
-      var choice = shirtChoiceLabel(p);
-      var size = shirtSizeValue(p);
-      var payment = shirtPaymentChoice(p);
-      var shirtControlsHtml = '<div class="person-shirt-controls">' +
-        shirtSelect('Quer camiseta?', choice, [{label:'Pendente',value:'Pendente'},{label:'Sim',value:'Sim'},{label:'Não',value:'Não'},{label:'Já possui',value:'Já possui'}], p, 'choice', false) +
-        shirtSelect('Tamanho', size, [{label:'Pendente',value:''},{label:'PP',value:'PP'},{label:'P',value:'P'},{label:'M',value:'M'},{label:'G',value:'G'},{label:'GG',value:'GG'},{label:'XGG',value:'XGG'}], p, 'size', choice === 'Não' || choice === 'Já possui') +
-        shirtSelect('Pagamento', payment, [{label:'Pendente',value:'Pendente'},{label:'Pago',value:'Pago'}], p, 'payment', choice === 'Não' || choice === 'Já possui') +
-      '</div>';
-
-      return '<div class="data-item">' +
-        '<div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div>' +
-        '<div class="item-main">' +
-          '<strong>' + esc(displayName(p)) + '</strong>' +
-          '<div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Jornada: ' + esc(display(p.journey)) + '<br>Pendência/observação: ' + esc(display(p.pending)) + '</div>' +
-          '<div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + attendance + '</div>' +
-          shirtControlsHtml +
-        '</div>' +
-        '<div class="item-actions">' +
-          checkinActions +
-          '<button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button>' +
-        '</div>' +
-      '</div>';
+      var checkinActions = link ? '<button type="button" class="btn o" data-checkin="presente" data-checkin-id="' + esc(dayId(link)) + '" data-order-row="' + esc(link.sourceRow) + '">' + (mark && mark.presente ? 'Desmarcar presença' : 'Marcar presente') + '</button><button type="button" class="btn o" data-checkin="batizado" data-checkin-id="' + esc(dayId(link)) + '" data-order-row="' + esc(link.sourceRow) + '">' + (mark && mark.batizado ? 'Desmarcar batismo' : 'Marcar batizado') + '</button>' : '';
+      return '<div class="data-item"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Jornada: ' + esc(display(p.journey)) + ' · ' + esc(shirtText) + '<br>Pendência/observação: ' + esc(display(p.pending)) + '</div><div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + paid + attendance + '</div></div><div class="item-actions">' + checkinActions + '<button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Ficha completa</button><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhum registro encontrado com estes filtros.</div>';
-    
     document.getElementById('people-pager').innerHTML = '<button type="button" class="btn o" data-page="people:-1" ' + (peopleState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>' + numberLabel(start + (view.length ? 1 : 0)) + '–' + numberLabel(start + view.length) + ' de ' + numberLabel(items.length) + '</span><button type="button" class="btn o" data-page="people:1" ' + (peopleState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
   function buildFiche(person) {
     var section = document.getElementById('fic');
     if (!person) {
-      section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="data-empty">Selecione uma pessoa para abrir a ficha completa.</div>';
+      section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="data-empty">Importe a planilha e selecione uma pessoa na aba Pessoas para abrir a ficha completa.</div>';
       return;
     }
     var fields = [
@@ -1288,8 +1274,10 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     ];
     section.innerHTML = '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button></div><h2 class="t">Ficha individual</h2><div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>Linha ' + esc(person.sourceRow) + ' da aba Batismo · Turma ' + esc(display(person.turma)) + '</div></div></div>' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Tem observação', 't-pe') : '') + '</div>' +
       '<div class="card"><b>Todos os campos da planilha</b><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></div>' +
-      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button></div>';
+      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button><button type="button" class="btn o" data-go="imp">Importação e backups</button></div>' +
+      '<p class="note">Use “Editar cadastro” para salvar alterações no Firebase. O arquivo Excel original permanece como cópia de origem.</p>';
   }
+
 
   function openRecordEditor(kind, record) {
     if (!appData) return;
@@ -1318,7 +1306,9 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       isNew: isNew, returnSection: document.querySelector('section.on') ? document.querySelector('section.on').id : (kind === 'person' ? 'pes' : 'ord')
     };
     document.getElementById('record-editor-title').textContent = title;
-    document.getElementById('record-editor-description').textContent = 'Preencha os campos e salve.';
+    document.getElementById('record-editor-description').textContent = isNew
+      ? 'Preencha os campos e salve para gravar no banco central do Firebase.'
+      : 'As alterações serão salvas no Firebase; os dados originais da planilha permanecem nas versões anteriores.';
     recordEditorStatus.textContent = '';
     recordEditorStatus.className = 'record-editor-status';
     recordEditorFields.innerHTML = labels.map(function (label, index) {
@@ -1333,7 +1323,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
           '</select>';
         label = 'Entrou no grupo?';
       } else if (kind === 'person' && index === 8) {
-        content = '<input type="text" data-editor-index="8" aria-label="Tamanho da camiseta" value="' + esc(value) + '" placeholder="Ex.: P, M, G, GG">';
+        content = '<input type="text" data-editor-index="8" aria-label="Tamanho da camiseta" value="' + esc(value) + '" placeholder="Ex.: P, M, G, GG, G3">';
         label = 'Tamanho da camiseta';
       } else if (kind === 'person' && index === 9) {
         var paymentValue = value.toLowerCase();
@@ -1346,7 +1336,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       } else {
         content = (kind === 'person' && [11, 13].indexOf(index) >= 0)
           ? '<textarea data-editor-index="' + index + '" aria-label="' + esc(label) + '">' + esc(value) + '</textarea>'
-          : '<input type="text" data-editor-index="' + index + '" aria-label="' + esc(label) + '" value="' + esc(value) + '">';
+          : '<input type="text" data-editor-index="' + index + '" aria-label="' + esc(label) + '" value="' + esc(value) + '"' + (isNew && kind === 'person' && index === 0 ? ' required' : (isNew && kind === 'order' && index === 1 ? ' required' : '')) + '>';
       }
       return '<label class="record-editor-field' + (wide ? ' wide' : '') + '">' + esc(label) + content + '</label>';
     }).join('');
@@ -1368,8 +1358,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       turmas: (appData.turmas || []).map(function (item) { return Object.assign({}, item); }),
       ordensTurma: (appData.ordensTurma || []).map(function(item){return Object.assign({},item);}),
       participantes: (appData.participantes || []).map(function (item) { return Object.assign({}, item, { historicoTurmas: (item.historicoTurmas || []).map(function(h){return Object.assign({},h);}), participacoes: (item.participacoes || []).map(function(h){return Object.assign({},h);}) }); }),
-      checkin: Object.assign({}, appData.checkin || {}),
-      ordemSequencia: Object.keys(appData.ordemSequencia || {}).reduce(function (all, key) { all[key] = (appData.ordemSequencia[key] || []).slice(); return all; }, {})
+      checkin: Object.assign({}, appData.checkin || {})
     });
   }
   function updateSheetStats(workspace, sheetName, rows) {
@@ -1420,7 +1409,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       var normalizedName = normal(name);
       return normalizedName === state.key || (state.key === 'ordem' && normalizedName.indexOf('ordem') === 0);
     });
-    if (!sheetName) throw new Error('A aba de origem não foi encontrada.');
+    if (!sheetName) throw new Error('A aba de origem "' + state.key + '" não foi encontrada na planilha importada.');
     var rows = draft.rawSheets[sheetName];
     var sourceRow = state.sourceRow;
     if (state.isNew) {
@@ -1447,7 +1436,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       if (state.isNew) draft.people.push(person);
       else {
         var personIndex = draft.people.findIndex(function (item) { return Number(item.sourceRow) === Number(sourceRow); });
-        if (personIndex < 0) throw new Error('Não foi possível localizar este cadastro.');
+        if (personIndex < 0) throw new Error('Não foi possível localizar este cadastro na lista de pessoas.');
         draft.people[personIndex] = person;
       }
       selectedPersonRow = sourceRow;
@@ -1457,21 +1446,26 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       if (state.isNew) draft.order.push(orderRecord);
       else {
         var orderIndex = draft.order.findIndex(function (item) { return Number(item.sourceRow) === Number(sourceRow); });
-        if (orderIndex < 0) throw new Error('Não foi possível localizar esta posição.');
+        if (orderIndex < 0) throw new Error('Não foi possível localizar esta posição da ordem.');
         draft.order[orderIndex] = orderRecord;
       }
     }
     recordEditorSaveButton.disabled = true;
-    recordEditorStatus.textContent = 'Salvando...';
+    recordEditorStatus.textContent = 'Salvando no Firebase e criando uma versão de segurança…';
+    recordEditorStatus.className = 'record-editor-status';
     try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível. Atualize a página e entre novamente.');
       await window.firebaseSaveWorkspace(draft, true);
-      try { await saveWorkspace(draft, false); } catch (localError) {}
+      var localWarning = '';
+      try { await saveWorkspace(draft, false); }
+      catch (localError) { localWarning = ' A cópia local deste navegador não foi atualizada, mas a alteração foi salva no Firebase.'; }
       appData = draft;
       closeRecordEditor();
       buildAll();
       goTo(state.returnSection || (state.kind === 'person' ? 'pes' : 'ord'));
+      setImportMessage((state.isNew ? 'Novo registro cadastrado.' : 'Alterações salvas.') + ' A mudança está no Firebase e a versão anterior foi preservada.' + localWarning, localWarning ? 'error' : 'success');
     } catch (error) {
-      recordEditorStatus.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido');
+      recordEditorStatus.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido') + '. O cadastro anterior continua ativo.';
       recordEditorStatus.className = 'record-editor-status error';
     } finally {
       recordEditorSaveButton.disabled = false;
@@ -1487,27 +1481,18 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   });
 
   function selectedOrderTurma(){var id=String(orderState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
-  function orderItemKey(row){return row&&row.__manual?'manual_'+String(row.id):'imported_'+String(row.sourceRow||row.id||row.number);}
-  function sortOrderItems(items,turmaId){var sequence=(appData.ordemSequencia&&appData.ordemSequencia[String(turmaId)])||[];if(!sequence.length)return items;var rank={};sequence.forEach(function(key,index){rank[String(key)]=index;});return items.slice().sort(function(a,b){var ar=rank[orderItemKey(a)];var br=rank[orderItemKey(b)];if(ar===undefined&&br===undefined)return 0;if(ar===undefined)return 1;if(br===undefined)return -1;return ar-br;});}
-  function currentOrderItems(){var t=selectedOrderTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__manual:true,__turmaId:String(t.id)});});var imported=String(t.id)==='36'?(appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}):[];return sortOrderItems(imported.concat(manual),t.id);}
-
+  function currentOrderItems(){var t=selectedOrderTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__manual:true});});if(String(t.id)==='36')return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual);return manual;}
   function buildOrder() {
     var section=document.getElementById('ord');
-    section.innerHTML='<h2 class="t">Batizantes · Ordem do batismo</h2><div class="card order-operation-card"><b>Operação do batismo</b><p class="section-sub">Arraste para reorganizar. Marque Presente, Batizado e Incluído no Ekklesia diretamente nesta lista.</p></div><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
-    
+    section.innerHTML='<h2 class="t">Ordem de batismo</h2><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select><p class="section-sub">A ordem histórica importada da turma 36 é preservada. As demais turmas têm posições independentes.</p></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
     document.getElementById('order-turma-select').onchange=function(){orderState.turmaId=this.value;orderState.page=1;manualOrderEditingId='';buildOrder();};
     document.getElementById('order-search').addEventListener('input',function(){orderState.query=this.value;orderState.page=1;drawOrderResults();});
     document.getElementById('order-filter').addEventListener('change',function(){orderState.filter=this.value;orderState.page=1;drawOrderResults();});
     document.getElementById('manual-order-form').addEventListener('submit',saveManualOrder);
     document.getElementById('manual-order-cancel').onclick=function(){manualOrderEditingId='';buildOrder();};
     var next=Math.max.apply(null,currentOrderItems().map(function(r){return Number(r.number)||0;}).concat([0]))+1;document.getElementById('manual-order-number').value=next;
-    
     drawOrderResults();
-    window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawOrderResults();buildHome();});
-    window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawOrderResults();});
-    window.addEventListener('day-checkin-error',function(e){dayToast('Não foi possível salvar.');});
   }
-
   async function saveManualOrder(event){
     event.preventDefault();var t=selectedOrderTurma(),number=document.getElementById('manual-order-number').value.trim(),participantId=document.getElementById('manual-order-person').value,note=document.getElementById('manual-order-note').value.trim(),status=document.getElementById('manual-order-status');
     if(!number){status.className='import-status error';status.textContent='Informe o número da posição.';return;}
@@ -1516,38 +1501,18 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var existing=draft.ordensTurma.find(function(r){return r.id===manualOrderEditingId;});
     var item={id:existing?existing.id:'o_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),turmaId:String(t.id),number:Number(number),participantId:participantId||'',name:person?person.nome:'',note:note,removed:false,createdAt:existing?existing.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
     if(existing)Object.assign(existing,item);else draft.ordensTurma.push(item);
-    var button=document.getElementById('manual-order-save');button.disabled=true;status.className='import-status';status.textContent='Salvando...';
-    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(e){}appData=draft;manualOrderEditingId='';buildAll();goTo('ord');}
+    var button=document.getElementById('manual-order-save');button.disabled=true;status.className='import-status';status.textContent='Salvando a ordem no Firebase…';
+    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(e){}appData=draft;manualOrderEditingId='';buildAll();goTo('ord');setImportMessage('Posição da ordem salva para '+(t.name||('Turma '+t.number))+'.','success');}
     catch(error){status.className='import-status error';status.textContent='Não foi possível salvar: '+(error.message||'erro desconhecido');}
     finally{button.disabled=false;}
   }
-
+  function editManualOrder(id){var r=(appData.ordensTurma||[]).find(function(x){return x.id===id;});if(!r)return;manualOrderEditingId=id;buildOrder();document.getElementById('manual-order-number').value=r.number||'';document.getElementById('manual-order-person').value=r.participantId||'';document.getElementById('manual-order-note').value=r.note||'';document.getElementById('manual-order-save').textContent='Salvar posição';document.getElementById('manual-order-cancel').hidden=false;}
   function drawOrderResults() {
     if(!appData||!document.getElementById('order-results'))return;
     var queryText=normal(orderState.query),items=currentOrderItems().filter(function(r){if(orderState.filter==='named'&&isBlank(r.name))return false;if(orderState.filter==='unnamed'&&!isBlank(r.name))return false;return !queryText||normal([r.number,r.name,r.note,r.removed,r.sourceRow].join(' ')).indexOf(queryText)>=0;});
     var pages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));orderState.page=Math.min(Math.max(1,orderState.page),pages);var start=(orderState.page-1)*PAGE_SIZE,view=items.slice(start,start+PAGE_SIZE),named=currentOrderItems().filter(function(r){return !!r.name;}).length;
-    var allOrder=currentOrderItems().filter(function(r){return !!r.name;}), total=allOrder.length, present=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).presente;}).length, baptized=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).batizado;}).length, eklesia=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).eklesia || !isBlank(r.eklesiaStatus) && normal(r.eklesiaStatus)==='ok';}).length;
-    
-    document.getElementById('order-count').innerHTML='<span>'+numberLabel(items.length)+' posições · '+numberLabel(named)+' com nome</span><span class="order-live-summary"><b>'+present+'</b> presentes · <b>'+baptized+'</b> batizados · <b>'+eklesia+'</b> no Ekklesia</span>';
-    
-    document.getElementById('order-results').innerHTML=view.map(function(r){
-      var key=orderItemKey(r), marks=dayMarks[dayId(r)]||{}, eklesiaMarked=!!marks.eklesia || (!isBlank(r.eklesiaStatus)&&normal(r.eklesiaStatus)==='ok');
-      
-      // Removidos os botões "Não batizado" e "Editar origem", mantendo Presente, Batizado (quando selecionado) e Incluído no Ekklesia conforme solicitado
-      var statusActions = '';
-      if (r.name) {
-        statusActions += '<button class="btn ' + (marks.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (marks.presente ? '✓ Presente' : 'Presente') + '</button>';
-        
-        if (marks.batizado) {
-          statusActions += '<button class="btn g" data-checkin="batizado" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">✓ Batizado</button>';
-        }
-        
-        statusActions += '<button class="btn ' + (eklesiaMarked ? 'g' : 'o') + '" data-checkin="eklesia" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (eklesiaMarked ? '✓ Incluído no Ekklesia' : 'Incluído no Ekklesia') + '</button>';
-      }
-
-      return '<div class="data-item order-item" draggable="true" data-order-key="'+esc(key)+'"><div class="order-drag-handle" title="Arrastar para reorganizar" aria-label="Arrastar para reorganizar">☷</div><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.note?'Observação: '+esc(r.note):'Sem observação')+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+(marks.presente?chip('Presente','t-ok'):'')+(marks.batizado?chip('Batizado','t-ok'):'')+(eklesiaMarked?chip('Incluído no Eklesia','t-in'):'')+(dayBadges(r,personForDay(r))||'')+'</div></div><div class="item-actions order-status-actions">'+statusActions+'</div></div>';
-    }).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
-    
+    document.getElementById('order-count').textContent=numberLabel(items.length)+' posições encontradas · '+numberLabel(named)+' com nome · '+numberLabel(currentOrderItems().length-named)+' reservadas/sem nome';
+    document.getElementById('order-results').innerHTML=view.map(function(r){return '<div class="data-item"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.__manual?'Posição cadastrada no sistema':'Registro da planilha original')+' · '+(r.note?'Observação: '+esc(r.note):'Sem observação')+(isBlank(r.eklesiaStatus)?'':' · Batizado no Eklesia: '+esc(display(r.eklesiaStatus)))+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+'</div></div><div class="item-actions">'+(r.__manual?'<button type="button" class="btn o" data-edit-manual-order="'+esc(r.id)+'">Editar posição</button>':'<button type="button" class="btn o" data-edit-order="'+esc(r.sourceRow)+'">Editar origem</button>')+'</div></div>';}).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
     document.getElementById('order-pager').innerHTML='<button type="button" class="btn o" data-page="order:-1" '+(orderState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+orderState.page+' de '+pages+'</span><button type="button" class="btn o" data-page="order:1" '+(orderState.page>=pages?'disabled':'')+'>Próxima →</button>';
   }
 
@@ -1555,25 +1520,24 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
   function personForDay(row){if(row&&row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
   function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
-  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});if(String(t.id)==='36')return sortOrderItems((appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual),t.id);return sortOrderItems(manual,t.id);}
+  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});if(String(t.id)==='36')return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual);return manual;}
   function dayId(row){var t=String(row.__turmaId||'36'),pos=String(clean(row.id)||clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');return t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos;}
   function dayBadges(row,p){var b='';if(normal(row.note||'').includes('prioridade'))b+=chip('Prioridade','t-er');if(p&&Number(p.age)>0&&Number(p.age)<18)b+=chip('Menor','t-pe');if(p&&hasPendingSignal(p))b+=chip('Pendência','t-pe');return b;}
-
   function buildDay(){
     var sec=document.getElementById('dia');
-    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Batizantes · Ordem do batismo</h2><div class="card"><label for="day-turma-select"><b>Turma do evento</b></label><select id="day-turma-select" class="day-turma-select" aria-label="Selecionar turma">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(dayState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'> '+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select></div><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
+    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Dia do batismo</h2><div class="card"><label for="day-turma-select"><b>Turma do evento</b></label><select id="day-turma-select" class="day-turma-select" aria-label="Selecionar turma">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(dayState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'> '+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select><p class="section-sub">Cada turma possui sua própria ordem e marcações.</p></div><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button><button type="button" class="btn o" id="day-json-backup" hidden>Exportar backup JSON agora</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
     sec.querySelector('#day-search').oninput=function(){dayState.query=this.value;dayState.page=1;drawDayResults();};
     sec.querySelector('#day-turma-select').onchange=function(){dayState.turmaId=this.value;dayState.page=1;dayState.query='';sec.querySelector('#day-search').value='';drawDayResults();};
     sec.querySelectorAll('[data-day-filter]').forEach(function(b){b.onclick=function(){dayFilter=b.dataset.dayFilter;dayState.page=1;drawDayResults();};});
     sec.querySelector('[data-day-print]').onclick=function(){window.print();};
-    
+    var jb=sec.querySelector('#day-json-backup');jb.hidden=!window.firebaseIsAdmin;jb.onclick=function(){if(window.firebaseIsAdmin&&appData)downloadJson(Object.assign({},appData,{marcacoesBatismo:dayMarks}));};
+    window.addEventListener('firebase-admin-status',function(){jb.hidden=!window.firebaseIsAdmin;});
     window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawDayResults();drawPeopleResults();buildHome();});
     window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawDayResults();});
-    window.addEventListener('day-checkin-error',function(e){dayToast('Não foi possível salvar.');});
+    window.addEventListener('day-checkin-error',function(e){dayToast('Não foi possível salvar: '+((e.detail&&e.detail.message)||'verifique a conexão e as permissões.'));});
     window.addEventListener('online',function(){dayStatus.online=true;drawDayResults();});window.addEventListener('offline',function(){dayStatus.online=false;drawDayResults();});
     drawDayResults();
   }
-
   function drawDayResults(){
     var host=document.getElementById('day-results');if(!appData||!host)return;
     var all=orderForTurma().slice().sort(function(a,b){return Number(a.number||a.sourceRow)-Number(b.number||b.sourceRow);});
@@ -1582,15 +1546,13 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     rows=rows.filter(function(x){if(dayFilter==='aguardando'&&(x.s.presente||x.s.batizado))return false;if(dayFilter==='presentes'&&!x.s.presente)return false;if(dayFilter==='batizados'&&!x.s.batizado)return false;return !dayState.query||normal([x.row.name,x.row.number,x.row.note].join(' ')).includes(normal(dayState.query));});
     var next=rows.findIndex(function(x){return !x.s.presente&&!x.s.batizado;}),pages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));dayState.page=Math.min(Math.max(1,dayState.page),pages);
     var start=(dayState.page-1)*PAGE_SIZE,view=rows.slice(start,start+PAGE_SIZE);
-    
-    document.getElementById('day-sync').textContent=!dayStatus.online?'Offline':'Online';
+    document.getElementById('day-sync').textContent=!dayStatus.online?'Offline · '+dayStatus.pending+' alterações pendentes':(!dayStatus.ready||dayStatus.pending?'Sincronizando…':'Online · sincronizado');
     document.getElementById('day-summary').innerHTML='<div class="day-count"><b>Presentes '+pres+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?pres*100/total:0)+'%"></i></div></div><div class="day-count"><b>Batizados '+bat+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?bat*100/total:0)+'%"></i></div></div>';
     document.querySelectorAll('[data-day-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.dayFilter===dayFilter);});
-    
-    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s;var when=function(v){return v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';};return '<div class="data-item day-row '+(next===i?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
+    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s;var when=function(v){return v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';};return '<div class="data-item day-row '+(next===i?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+(x.p&&hasPendingSignal(x.p)?'<div class="day-warning">Há pendência no cadastro; confirme com a equipe.</div>':'')+(s.porNome?'<div class="item-meta">Marcado por '+esc(s.porNome)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
     document.getElementById('day-pager').innerHTML='<button class="btn o" data-page="day:-1" '+(dayState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+dayState.page+' de '+pages+'</span><button class="btn o" data-page="day:1" '+(dayState.page>=pages?'disabled':'')+'>Próxima →</button>';
+    document.getElementById('day-print-list').innerHTML='<h1>Lista de apoio · Dia do Batismo</h1><table><thead><tr><th>Nº</th><th>Nome</th><th>Ficha</th><th>Presente</th><th>Batizado</th><th>Observação</th></tr></thead><tbody>'+all.map(function(r){var st=dayMarks[dayId(r)]||{};return '<tr><td>'+esc(display(r.number))+'</td><td>'+esc(display(r.name))+'</td><td>'+(asBoolean(r.removed)===true?'☒':'☐')+'</td><td>'+(st.presente?'☒':'☐')+'</td><td>'+(st.batizado?'☒':'☐')+'</td><td>'+esc(display(r.note))+'</td></tr>';}).join('')+'</tbody></table>';
   }
-
   function buildPending() {
     var scopedPeople = appData.people.filter(function (p) { return matchesTurmaFilter(p, pendingState.turma); });
     var pending = scopedPeople.filter(hasPendingSignal);
@@ -1598,7 +1560,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var makeupCount = scopedPeople.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
     var noteCount = scopedPeople.filter(function (p) { return !isBlank(p.pending); }).length;
     var noPhone = scopedPeople.filter(function (p) { return isBlank(p.phone); }).length;
-    document.getElementById('pen').innerHTML = '<h2 class="t">Observações e pendências</h2><div class="data-metrics">' + metric('Status PENDENCIA', statusCount, 'Campo STATUS') + metric('Sinais de reposição', makeupCount, 'JORNADA ou AULA P/ REPOR') + metric('Observações preenchidas', noteCount, 'Texto preservado') + metric('Sem telefone', noPhone, 'Incompleto') + '</div><div class="card"><div class="data-toolbar"><input id="pending-search" type="search" placeholder="Buscar em nomes e observações…" aria-label="Buscar pendências"><select id="pending-turma" aria-label="Filtrar pendências por turma">' + turmaFilterOptions(pendingState.turma) + '</select></div><div id="pending-count" class="data-summary"></div><div id="pending-results" class="data-list"></div><div id="pending-pager" class="data-pager"></div></div>';
+    document.getElementById('pen').innerHTML = '<h2 class="t">Observações e pendências da planilha</h2><div class="data-metrics">' + metric('Status PENDENCIA', statusCount, 'Campo STATUS') + metric('Sinais de reposição', makeupCount, 'JORNADA ou AULA P/ REPOR') + metric('Observações preenchidas', noteCount, 'Texto original preservado') + metric('Sem telefone', noPhone, 'Cadastro incompleto') + '</div><div class="card"><p class="section-sub">A planilha mistura pendências com observações operacionais. O texto não foi reinterpretado; cada valor é apresentado como veio da origem.</p><div class="data-toolbar"><input id="pending-search" type="search" placeholder="Buscar em nomes, pendências e observações…" aria-label="Buscar pendências"><select id="pending-turma" aria-label="Filtrar pendências por turma">' + turmaFilterOptions(pendingState.turma) + '</select><span class="local-only-note">Não houve mesclagem nem correção automática.</span></div><div id="pending-count" class="data-summary"></div><div id="pending-results" class="data-list"></div><div id="pending-pager" class="data-pager"></div></div>';
     document.getElementById('pending-search').addEventListener('input', function () { pendingState.query = this.value; pendingState.page = 1; drawPendingResults(); });
     document.getElementById('pending-turma').addEventListener('change', function () { pendingState.turma = this.value; pendingState.query = ''; pendingState.page = 1; buildPending(); });
     drawPendingResults();
@@ -1613,16 +1575,157 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     pendingState.page = Math.min(Math.max(1, pendingState.page), pages);
     var start = (pendingState.page - 1) * PAGE_SIZE;
     var view = items.slice(start, start + PAGE_SIZE);
-    document.getElementById('pending-count').textContent = numberLabel(items.length) + ' registros encontrados · página ' + pendingState.page + ' de ' + pages;
+    document.getElementById('pending-count').textContent = numberLabel(items.length) + ' registros com algum sinal ou observação · página ' + pendingState.page + ' de ' + pages;
     document.getElementById('pending-results').innerHTML = view.map(function (p) {
-      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Linha ' + esc(p.sourceRow) + '</div><div class="item-badges">' + signalFlags(p).map(function (flag) { return chip(flag, flag.indexOf('Status:') === 0 ? 't-er' : 't-pe'); }).join('') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Linha ' + esc(p.sourceRow) + '</div><div class="item-badges">' + signalFlags(p).map(function (flag) { return chip(flag, flag.indexOf('Status:') === 0 ? 't-er' : 't-pe'); }).join('') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhum registro encontrado.</div>';
     document.getElementById('pending-pager').innerHTML = '<button type="button" class="btn o" data-page="pending:-1" ' + (pendingState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + pendingState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="pending:1" ' + (pendingState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
+  function shirtChoiceLabel(person) {
+    var saved = normal(person && person.shirtChoice);
+    if (saved === 'sim' || saved === 'quer camiseta') return 'Sim';
+    if (saved === 'nao' || saved === 'não') return 'Não';
+    if (saved === 'ja possui' || saved === 'ja tem' || saved === 'ja tenho') return 'Já possui';
+    if (saved === 'pendente') return 'Pendente';
+    var value = normal(person && person.shirt);
+    if (!value) return 'Pendente';
+    if (value === 'ja tem' || value === 'ja possui' || value === 'ja tenho') return 'Já possui';
+    if (/nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao\.*/.test(value)) return 'Não';
+    return 'Sim';
+  }
+  function shirtSizeValue(person) {
+    if (person && person.shirtSize != null) return clean(person.shirtSize);
+    var legacy = clean(person && person.shirt);
+    if (!legacy || /^(ja tem|ja possui|ja tenho|nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao informado|pendente)$/i.test(normal(legacy))) return '';
+    return legacy;
+  }
+  function shirtPaymentChoice(person) {
+    if (person && person.shirtPaymentStatus) {
+      var saved = normal(person.shirtPaymentStatus);
+      if (saved === 'pago') return 'Pago';
+      if (saved === 'pendente' || saved === 'a pagar') return 'Pendente';
+    }
+    var legacy = shirtPaidValue(person);
+    return legacy === true ? 'Pago' : (legacy === false ? 'Pendente' : 'Pendente');
+  }
+  function shirtSelect(label, value, options, personRow, field, disabled) {
+    return '<div class="shirt-control"><label>' + esc(label) + '</label><select aria-label="' + esc(label + ' · ' + (personRow.name || 'participante')) + '" data-shirt-row="' + esc(personRow.sourceRow) + '" data-shirt-field="' + esc(field) + '" ' + (disabled ? 'disabled' : '') + '>' +
+      options.map(function (option) { return '<option value="' + esc(option.value) + '" ' + (value === option.value ? 'selected' : '') + '>' + esc(option.label) + '</option>'; }).join('') +
+      '</select></div>';
+  }
+  async function updateShirtField(sourceRow, field, value, selectNode) {
+    if (!appData) return;
+    var original = (appData.people || []).find(function (p) { return String(p.sourceRow) === String(sourceRow); });
+    if (!original) { setImportMessage('Não foi possível localizar este participante. Nenhum dado foi alterado.', 'error'); return; }
+    var updated = Object.assign({}, original);
+    if (field === 'choice') updated.shirtChoice = value;
+    if (field === 'size') updated.shirtSize = value;
+    if (field === 'payment') updated.shirtPaymentStatus = value;
+    if (field === 'choice' && value !== 'Sim') {
+      // Keep the previously selected size and payment in the record; they are only disabled in the UI.
+    }
+    var draft = Object.assign({}, appData, {
+      people: appData.people.map(function (p) {
+        return String(p.sourceRow) === String(sourceRow) ? updated : p;
+      })
+    });
+    var row = selectNode && selectNode.closest('.data-item');
+    var status = row && row.querySelector('.shirt-save-status');
+    if (status) { status.className = 'shirt-save-status is-saving'; status.textContent = 'Salvando…'; }
+    if (selectNode) selectNode.disabled = true;
+    try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A gravação no Firebase não está disponível nesta sessão.');
+      await window.firebaseSaveWorkspace(draft, true);
+      var localSaveFailed = false;
+      try { await saveWorkspace(draft, false); } catch (localError) { localSaveFailed = true; }
+      appData = draft;
+      drawShirtResults();
+      buildShirtsSummary();
+      var savedStatus = null;
+      document.querySelectorAll('select[data-shirt-row]').forEach(function (node) {
+        if (String(node.getAttribute('data-shirt-row')) === String(sourceRow) && !savedStatus) savedStatus = node.closest('.data-item') && node.closest('.data-item').querySelector('.shirt-save-status');
+      });
+      if (savedStatus) { savedStatus.className = 'shirt-save-status ' + (localSaveFailed ? 'is-error' : 'is-saved'); savedStatus.textContent = localSaveFailed ? 'Salvo no Firebase; falha na cópia local' : 'Salvo'; }
+    } catch (error) {
+      if (status) { status.className = 'shirt-save-status is-error'; status.textContent = 'Não salvo'; }
+      setImportMessage('Não foi possível salvar a alteração da camiseta. Os demais dados foram preservados. ' + (error && error.message ? error.message : ''), 'error');
+      if (selectNode) selectNode.disabled = false;
+    }
+  }
+  function buildShirtsSummary() {
+    if (!appData || !document.getElementById('cam')) return;
+    var currentTurma = String(appData.turmaPadrao || '36');
+    var people = (appData.people || []).filter(function (p) { return matchesTurmaFilter(p, currentTurma); });
+    var wants = people.filter(function (p) { return shirtChoiceLabel(p) === 'Sim'; });
+    var paid = wants.filter(function (p) { return shirtPaymentChoice(p) === 'Pago'; });
+    var unpaid = wants.filter(function (p) { return shirtPaymentChoice(p) === 'Pendente'; });
+    var bySize = countBy(wants.filter(function (p) { return !!shirtSizeValue(p); }), function (p) { return shirtSizeValue(p); });
+    var sizes = Object.keys(bySize).sort(function (a, b) { return a.localeCompare(b, 'pt-BR', { numeric: true }); });
+    var max = Math.max.apply(null, sizes.map(function (size) { return bySize[size]; }).concat([1]));
+    var countChoice = function (label) { return people.filter(function (p) { return shirtChoiceLabel(p) === label; }).length; };
+    var summary = document.getElementById('shirt-summary');
+    if (!summary) return;
+    summary.innerHTML =
+      '<div class="data-metrics">' +
+        metric('Participantes do batismo', people.length, 'Somente a turma atual') +
+        metric('Querem camiseta', wants.length, 'Opção Sim') +
+        metric('Pagamento pendente', unpaid.length, 'Entre quem quer camiseta') +
+        metric('Escolha pendente', countChoice('Pendente'), 'Aguardando confirmação') +
+      '</div>' +
+      '<div class="card"><h2 class="t">Quantidade por tamanho</h2><p class="section-sub">Contagem das camisetas solicitadas com tamanho selecionado.</p>' +
+        (sizes.map(function (size) { return '<div class="data-bar-row"><span>' + esc(size) + '</span><div class="data-bar"><i style="width:' + Math.round((bySize[size] / max) * 100) + '%"></i></div><em>' + numberLabel(bySize[size]) + '</em></div>'; }).join('') || '<div class="data-empty">Nenhum tamanho selecionado para o batismo atual.</div>') +
+      '</div>';
+  }
+  function buildShirts() {
+    var currentTurma = String(appData.turmaPadrao || '36');
+    document.getElementById('cam').innerHTML =
+      '<h2 class="t">Camisetas · Batismo atual · Turma ' + esc(currentTurma) + '</h2>' +
+      '<div id="shirt-summary"></div>' +
+      '<div class="card"><h2 class="t">Lista de camisetas</h2><p class="section-sub">Atualize as três opções diretamente na mesma linha do participante. Cada alteração é salva no Firebase sem substituir os campos originais da planilha.</p>' +
+        '<div class="data-toolbar"><input id="shirt-search" type="search" placeholder="Buscar participante ou tamanho…" aria-label="Buscar participantes na lista de camisetas"><span class="local-only-note">Salvamento automático</span></div>' +
+        '<div id="shirt-count" class="data-summary"></div><div id="shirt-results" class="data-list"></div><div id="shirt-pager" class="data-pager"></div>' +
+      '</div>';
+    document.getElementById('shirt-search').addEventListener('input', function () { shirtState.query = this.value; shirtState.page = 1; drawShirtResults(); });
+    document.getElementById('shirt-results').addEventListener('change', function (event) {
+      var node = event.target;
+      if (!node || !node.matches('select[data-shirt-field]')) return;
+      updateShirtField(node.getAttribute('data-shirt-row'), node.getAttribute('data-shirt-field'), node.value, node);
+    });
+    buildShirtsSummary();
+    drawShirtResults();
+  }
+  function drawShirtResults() {
+    if (!appData || !document.getElementById('shirt-results')) return;
+    var currentTurma = String(appData.turmaPadrao || '36');
+    var query = normal(shirtState.query);
+    var items = (appData.people || []).filter(function (p) {
+      if (!matchesTurmaFilter(p, currentTurma)) return false;
+      return !query || normal([p.name, shirtSizeValue(p), p.shirtChoice, p.shirtPaymentStatus, p.shirtPaid, p.turma, p.phone, p.sourceRow].join(' ')).indexOf(query) >= 0;
+    }).sort(function (a, b) { return String(a.name || '').localeCompare(String(b.name || ''), 'pt-BR'); });
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    shirtState.page = Math.min(Math.max(1, shirtState.page), pages);
+    var start = (shirtState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    document.getElementById('shirt-count').textContent = numberLabel(items.length) + ' participantes do batismo atual';
+    document.getElementById('shirt-results').innerHTML = view.map(function (p) {
+      var choice = shirtChoiceLabel(p);
+      var size = shirtSizeValue(p);
+      var payment = shirtPaymentChoice(p);
+      var row = esc(p.sourceRow);
+      var name = '<div class="shirt-person"><div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0,2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div><strong>' + esc(displayName(p)) + '</strong><div class="shirt-save-status" aria-live="polite"></div></div></div>';
+      return '<div class="data-item"><div class="shirt-row">' + name +
+        shirtSelect('Quer camiseta?', choice, [{label:'Pendente',value:'Pendente'},{label:'Sim',value:'Sim'},{label:'Não',value:'Não'},{label:'Já possui',value:'Já possui'}], p, 'choice', false) +
+        shirtSelect('Tamanho', size, [{label:'Pendente',value:''},{label:'PP',value:'PP'},{label:'P',value:'P'},{label:'M',value:'M'},{label:'G',value:'G'},{label:'GG',value:'GG'},{label:'XGG',value:'XGG'}], p, 'size', choice === 'Não' || choice === 'Já possui') +
+        shirtSelect('Pagamento', payment, [{label:'Pendente',value:'Pendente'},{label:'Pago',value:'Pago'}], p, 'payment', choice === 'Não' || choice === 'Já possui') +
+        '</div></div>';
+    }).join('') || '<div class="data-empty">Nenhum participante encontrado para esta busca.</div>';
+    document.getElementById('shirt-pager').innerHTML = '<button type="button" class="btn o" data-page="shirt:-1" ' + (shirtState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + shirtState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="shirt:1" ' + (shirtState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
+  }
+
   function buildReturns() {
     var rows = appData.people.filter(function (p) { return matchesTurmaFilter(p, returnState.turma) && (normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson)); });
-    document.getElementById('rep').innerHTML = '<h2 class="t">Reposição de aulas</h2><div class="card"><div class="data-metrics">' + metric('Registros com reposição', rows.length, 'JORNADA ou AULA P/ REPOR') + '</div><div class="data-toolbar"><input id="return-search" type="search" placeholder="Buscar nome, aula ou turma…" aria-label="Buscar reposições"><select id="return-turma" aria-label="Filtrar reposições por turma">' + turmaFilterOptions(returnState.turma) + '</select></div><div id="return-count" class="data-summary"></div><div id="return-results" class="data-list"></div><div id="return-pager" class="data-pager"></div></div>';
+    document.getElementById('rep').innerHTML = '<h2 class="t">Reposição de aulas</h2><div class="card"><div class="data-metrics">' + metric('Registros com reposição', rows.length, 'JORNADA ou AULA P/ REPOR') + metric('Com aula descrita', rows.filter(function (p) { return !isBlank(p.lesson); }).length, 'Texto original da coluna AULA P/ REPOR') + '</div><div class="data-toolbar"><input id="return-search" type="search" placeholder="Buscar nome, aula ou turma…" aria-label="Buscar reposições"><select id="return-turma" aria-label="Filtrar reposições por turma">' + turmaFilterOptions(returnState.turma) + '</select><span class="local-only-note">Datas e textos são exibidos como registrados.</span></div><div id="return-count" class="data-summary"></div><div id="return-results" class="data-list"></div><div id="return-pager" class="data-pager"></div></div>';
     document.getElementById('return-search').addEventListener('input', function () { returnState.query = this.value; returnState.page = 1; drawReturnResults(); });
     document.getElementById('return-turma').addEventListener('change', function () { returnState.turma = this.value; returnState.query = ''; returnState.page = 1; buildReturns(); });
     drawReturnResults();
@@ -1639,7 +1742,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var view = items.slice(start, start + PAGE_SIZE);
     document.getElementById('return-count').textContent = numberLabel(items.length) + ' registros · página ' + returnState.page + ' de ' + pages;
     document.getElementById('return-results').innerHTML = view.map(function (p) {
-      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Jornada: ' + esc(display(p.journey)) + ' · Aula para repor: ' + esc(display(p.lesson)) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Jornada: ' + esc(display(p.journey)) + ' · Aula para repor: ' + esc(display(p.lesson)) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir ficha</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhuma reposição encontrada.</div>';
     document.getElementById('return-pager').innerHTML = '<button type="button" class="btn o" data-page="return:-1" ' + (returnState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + returnState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="return:1" ' + (returnState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
@@ -1652,31 +1755,58 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       });
     });
     transfers.sort(function (a, b) { return String(b.quando).localeCompare(String(a.quando)); });
-    document.getElementById('his').innerHTML = '<h2 class="t">Histórico</h2><div class="card"><p class="section-sub">O histórico é preservado no Firebase.</p><div class="bb"><button type="button" class="btn" data-go="pes">Abrir pessoas</button><button type="button" class="btn o" data-go="ord">Abrir ordem</button></div></div><div class="card"><h3 style="margin-top:0">Transferências entre turmas</h3><div id="transfer-history-count" class="data-summary">' + numberLabel(transfers.length) + ' transferências registradas</div><div class="data-list">' + transfers.map(function (h) { return '<div class="data-item"><div class="item-main"><strong>' + esc(h.nome) + '</strong><div class="item-meta">Turma ' + esc(h.de) + ' → Turma ' + esc(h.para) + (h.quando ? ' · ' + esc(new Date(h.quando).toLocaleString('pt-BR')) : '') + '</div></div></div>'; }).join('') + (transfers.length ? '' : '<div class="data-empty">Ainda não há transferências registradas.</div>') + '</div></div>';
+    document.getElementById('his').innerHTML = '<h2 class="t">Histórico</h2><div class="card"><p class="section-sub">O histórico de versões da base é preservado no Firebase. As abas GERAL e Ordem Batismo 35 não fazem parte da base central importada.</p><div class="bb"><button type="button" class="btn" data-go="pes">Abrir pessoas</button><button type="button" class="btn o" data-go="ord">Abrir ordem</button></div></div><div class="card"><h3 style="margin-top:0">Transferências entre turmas</h3><p class="section-sub">Registro das mudanças de turma feitas no cadastro direto. A ordem e as marcações antigas não são apagadas por esta listagem.</p><div id="transfer-history-count" class="data-summary">' + numberLabel(transfers.length) + ' transferências registradas</div><div class="data-list">' + transfers.map(function (h) { return '<div class="data-item"><div class="item-main"><strong>' + esc(h.nome) + '</strong><div class="item-meta">Turma ' + esc(h.de) + ' → Turma ' + esc(h.para) + (h.quando ? ' · ' + esc(new Date(h.quando).toLocaleString('pt-BR')) : '') + '</div><div class="item-meta">ID do cadastro: ' + esc(h.participanteId) + '</div></div></div>'; }).join('') + (transfers.length ? '' : '<div class="data-empty">Ainda não há transferências registradas.</div>') + '</div></div>';
+  }
+  function drawHistoryResults() {
+    if (!appData || !document.getElementById('history-results')) return;
+    var query = normal(historyState.query);
+    var items;
+    if (historyState.source === 'geral') {
+      items = appData.general.filter(function (p) { return !query || normal([p.name, p.age, p.phone, p.turma, p.year, p.sourceRow].join(' ')).indexOf(query) >= 0; });
+    } else {
+      items = appData.order35.filter(function (p) { return !query || normal([p.number, p.name, p.removed, p.lesson, p.baptized, p.merged, p.sourceRow].join(' ')).indexOf(query) >= 0; });
+    }
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+    historyState.page = Math.min(Math.max(1, historyState.page), pages);
+    var start = (historyState.page - 1) * PAGE_SIZE;
+    var view = items.slice(start, start + PAGE_SIZE);
+    document.querySelectorAll('[data-history-tab]').forEach(function (button) {
+      button.classList.toggle('active', button.dataset.historyTab === historyState.source);
+    });
+    document.getElementById('history-count').textContent = numberLabel(items.length) + ' registros nesta aba · página ' + historyState.page + ' de ' + pages;
+    document.getElementById('history-results').innerHTML = view.map(function (p) {
+      if (historyState.source === 'geral') {
+        return '<div class="data-item"><div class="item-main"><strong>' + esc(p.name) + '</strong><div class="item-meta">Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Turma: ' + esc(display(p.turma)) + ' · Ano: ' + esc(display(p.year)) + ' · Linha ' + esc(p.sourceRow) + '</div></div></div>';
+      }
+      return '<div class="data-item"><div class="n">' + esc(display(p.number)) + '</div><div class="item-main"><strong>' + esc(p.name || 'Registro sem nome') + '</strong><div class="item-meta">Ficha retirada: ' + esc(display(p.removed)) + '<br>Aula de batismo: ' + esc(display(p.lesson)) + ' · Batizado na missão: ' + esc(display(p.baptized)) + '<br>Unificação: ' + esc(display(p.merged)) + ' · Linha ' + esc(p.sourceRow) + '</div></div></div>';
+    }).join('') || '<div class="data-empty">Nenhum registro encontrado.</div>';
+    document.getElementById('history-pager').innerHTML = '<button type="button" class="btn o" data-page="history:-1" ' + (historyState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + historyState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="history:1" ' + (historyState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
   function buildImportPreview(payload) {
     var stats = payload.sheetStats.map(function (sheet) {
       var extra = '';
       var key = normal(sheet.name);
-      if (key === 'batismo') extra = numberLabel(payload.people.length) + ' linhas mapeadas';
-      if (key.indexOf('ordem') === 0) extra = numberLabel(payload.order.length) + ' posições com conteúdo';
-      return '<div class="mapping-row"><strong>' + esc(sheet.name) + '</strong><span>' + numberLabel(sheet.rowCount) + ' linhas lidas<br>' + esc(extra) + '</span></div>';
+      if (key === 'batismo') extra = numberLabel(payload.people.length) + ' linhas mapeadas, ' + numberLabel(payload.people.filter(function (p) { return !p.name; }).length) + ' sem nome';
+      if (key.indexOf('ordem') === 0) extra = numberLabel(payload.order.length) + ' posições com conteúdo, ' + numberLabel(payload.order.filter(function (p) { return !!p.name; }).length) + ' com nome' + (payload.order.some(function (p) { return !isBlank(p.eklesiaStatus); }) ? ', status Eklesia mapeado separadamente' : '');
+      return '<div class="mapping-row"><strong>' + esc(sheet.name) + '</strong><span>' + numberLabel(sheet.rowCount) + ' linhas lidas · ' + numberLabel(sheet.nonemptyRows) + ' não vazias · ' + esc(sheet.columns) + ' colunas<br>' + esc(extra) + '</span></div>';
     }).join('');
-    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + '</div>';
+    var skipped = payload.skippedDuplicateHeaders ? '<p class="section-sub">' + numberLabel(payload.skippedDuplicateHeaders) + ' linha(s) repetindo o cabeçalho da aba Batismo será(ão) excluída(s) apenas da lista de pessoas. Ela(s) continua(m) preservada(s) no Excel original e em rawSheets.</p>' : '';
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Conferência antes de importar</b>' + stats + skipped + '<p class="section-sub">Somente as duas primeiras abas (' + esc(payload.sourceSheetNames[0] || 'Batismo') + ' e ' + esc(payload.sourceSheetNames[1] || 'Ordem') + ') e suas linhas de origem serão enviadas ao Firebase. Todas as abas após a segunda serão ignoradas na nuvem. O arquivo Excel original completo (' + numberLabel(payload.sourceFileSize) + ' bytes), incluindo todas as abas e a formatação, ficará também no armazenamento local deste navegador.</p></div>';
   }
 
   function renderEmptyWorkspace() {
     var emptySections = {
-      home: { title: 'Visão geral', message: 'Nenhuma planilha carregada.' },
-      tur: { title: 'Turmas', message: 'Crie a primeira turma.' },
-      pes: { title: 'Pessoas', message: 'Os cadastros aparecerão aqui após a importação.' },
-      fic: { title: 'Ficha individual', message: 'Selecione uma pessoa.' },
-      ord: { title: 'Ordem do batismo', message: 'A ordem será exibida aqui.' },
-      dia: { title: 'Dia do batismo', message: 'Sem registros.' },
-      pen: { title: 'Pendências', message: 'Sem pendências.' },
-      rep: { title: 'Reposição de aulas', message: 'Sem reposições.' },
-      his: { title: 'Histórico de batizados', message: 'Sem histórico.' }
+      home: { title: 'Visão geral', message: 'Nenhuma planilha foi carregada no banco central. Os números e nomes do arquivo de demonstração não serão exibidos como se fossem dados reais.' },
+      tur: { title: 'Turmas', message: 'Crie a primeira turma para organizar os próximos batismos.' },
+      pes: { title: 'Pessoas', message: 'Os cadastros aparecerão aqui depois que você importar a planilha Excel e confirmar o envio ao Firebase.' },
+      fic: { title: 'Ficha individual', message: 'Selecione uma pessoa depois que os registros reais estiverem carregados.' },
+      ord: { title: 'Ordem do batismo', message: 'A ordem será exibida aqui depois que a aba Ordem da planilha for importada.' },
+      dia: { title: 'Dia do batismo', message: 'A lista de presença e o acompanhamento só ficam disponíveis quando há registros reais carregados.' },
+      pen: { title: 'Pendências', message: 'As pendências serão calculadas a partir dos cadastros importados.' },
+      cam: { title: 'Camisetas', message: 'O resumo de tamanhos e pagamentos será calculado a partir da planilha importada.' },
+      rep: { title: 'Reposição de aulas', message: 'Os registros de reposição aparecerão após a importação da planilha.' },
+      his: { title: 'Histórico de batizados', message: 'O histórico será exibido quando houver registros reais disponíveis.' }
     };
     Object.keys(emptySections).forEach(function (id) {
       var section = document.getElementById(id);
@@ -1709,7 +1839,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     host.innerHTML = (appData.turmas || []).map(function (t) {
       var isDefault = String(appData.turmaPadrao) === String(t.id);
       var peopleCount = (appData.people || []).filter(function (p) { return String(clean(p.turma)) === String(t.number); }).length;
-      return '<div class="data-item"><div class="n">' + esc(display(t.number)) + '</div><div class="item-main"><strong>' + esc(t.name || ('Turma ' + t.number)) + '</strong><div class="item-meta">Identificador: ' + esc(t.id) + ' · Cadastros associados: ' + numberLabel(peopleCount) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-default-turma="' + esc(t.id) + '" ' + (isDefault ? 'disabled' : '') + '>Definir padrão</button></div></div>';
+      return '<div class="data-item"><div class="n">' + esc(display(t.number)) + '</div><div class="item-main"><strong>' + esc(t.name || ('Turma ' + t.number)) + '</strong><div class="item-meta">Identificador: ' + esc(t.id) + ' · Cadastros associados: ' + numberLabel(peopleCount) + ' · Situação: ' + esc(t.status || 'registrada') + '</div><div class="item-badges">' + (isDefault ? chip('Padrão selecionado', 't-ok') : '') + (String(t.id) === '36' ? chip('Base histórica protegida', 't-in') : chip('Cadastro novo', 't-pe')) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-default-turma="' + esc(t.id) + '" ' + (isDefault ? 'disabled' : '') + '>Definir padrão</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhuma turma cadastrada.</div>';
   }
 
@@ -1718,15 +1848,18 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var status = document.getElementById('turma-status');
     var buttons = document.querySelectorAll('[data-create-turma],[data-default-turma]');
     buttons.forEach(function (b) { b.disabled = true; });
-    if (status) { status.className = 'import-status'; status.textContent = 'Salvando no Firebase…'; }
+    if (status) { status.className = 'import-status'; status.textContent = 'Salvando a configuração no Firebase…'; }
     try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
       await window.firebaseSaveWorkspace(draft, true);
-      try { await saveWorkspace(draft, false); } catch (e) {}
+      var localWarning = '';
+      try { await saveWorkspace(draft, false); } catch (e) { localWarning = ' A cópia local não foi atualizada.'; }
       appData = draft;
       buildAll();
       goTo('tur');
+      if (status) { status.className = 'import-status success'; status.textContent = message + ' A versão anterior foi preservada.' + localWarning; }
     } catch (error) {
-      if (status) { status.className = 'import-status error'; status.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido'); }
+      if (status) { status.className = 'import-status error'; status.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido') + '. Nenhuma turma foi confirmada.'; }
     } finally { buttons.forEach(function (b) { b.disabled = false; }); }
   }
 
@@ -1741,16 +1874,19 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     buildOrder();
     buildDay();
     buildPending();
+    buildShirts();
     buildReturns();
     buildHistory();
-    
-    var sourceInfo = 'Arquivo: ' + appData.sourceFileName + ' · importada em ' + new Date(appData.importedAt).toLocaleString('pt-BR');
+    var sourceInfo = 'Arquivo: ' + appData.sourceFileName + ' · importada em ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '. Registros sincronizados pelo Firebase.';
+    if (appData.sourceWorkbook) sourceInfo += ' Excel original disponível neste navegador.';
+    else sourceInfo += ' O Excel formatado fica no navegador usado para importá-lo; os registros estão na nuvem.';
     document.getElementById('config-source').textContent = sourceInfo;
     document.querySelectorAll('[data-download-current="xlsx"]').forEach(function (button) { button.disabled = !appData.sourceWorkbook; });
     document.querySelectorAll('[data-download-current="json"]').forEach(function (button) { button.disabled = false; });
     document.getElementById('download-source').disabled = !appData.sourceWorkbook;
     document.getElementById('download-json').disabled = false;
-    setImportMessage('Dados carregados do Firebase com sucesso.', 'success');
+    setImportMessage('Dados carregados do Firebase. ' + numberLabel(appData.people.length) + ' registros na aba Batismo, ' + numberLabel(appData.order.length) + ' posições na Ordem, ' + numberLabel(appData.order35.length) + ' registros na Ordem Batismo 35 e ' + numberLabel(appData.general.length) + ' pessoas no GERAL.', 'success');
+    document.getElementById('import-preview').innerHTML = '<div class="card"><b>Dados atualmente carregados</b><p class="section-sub">' + esc(appData.sourceFileName) + ' · ' + numberLabel(appData.sourceFileSize) + ' bytes · ' + new Date(appData.importedAt).toLocaleString('pt-BR') + '</p><p class="section-sub">Os registros estão no Firestore, não no repositório público. Para inserir uma versão atualizada, selecione outro Excel e confirme a importação. A versão anterior continua preservada no Firebase.</p></div>';
     refreshBackups();
   }
 
@@ -1767,7 +1903,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   }
   function downloadWorkbook(workspace) {
     if (!workspace || !workspace.sourceWorkbook) {
-      setImportMessage('Arquivo de origem não disponível.', 'error');
+      setImportMessage('O arquivo Excel formatado está salvo localmente no navegador em que a importação foi realizada. Os registros da planilha continuam disponíveis no Firebase; acesse o navegador original para baixar o XLSX.', 'error');
       return;
     }
     downloadBlob(workspace.sourceWorkbook, workspace.sourceFileName || 'backup-batismo.xlsx');
@@ -1778,8 +1914,14 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       exportadoEm: new Date().toISOString(),
       arquivoOriginal: workspace.sourceFileName,
       importadoEm: workspace.importedAt,
+      aviso: 'Para preservar também a formatação e a estrutura exata do Excel, mantenha o arquivo XLSX original. Este JSON preserva as linhas e valores lidos.',
+      rawSheets: workspace.rawSheets,
       people: workspace.people,
       order: workspace.order,
+      order35: workspace.order35,
+      general: workspace.general,
+      generalAll: workspace.generalAll,
+      generalUnmapped: workspace.generalUnmapped,
       turmas: workspace.turmas || [],
       turmaPadrao: workspace.turmaPadrao || '36',
       participantes: workspace.participantes || [],
@@ -1796,16 +1938,16 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     try {
       var snapshots = await getSnapshots();
       if (!snapshots.length) {
-        targets.forEach(function (node) { node.innerHTML = '<div class="data-empty">Nenhum backup local.</div>'; });
+        targets.forEach(function (node) { node.innerHTML = '<div class="data-empty">Nenhuma versão anterior arquivada neste navegador.</div>'; });
         return;
       }
       var content = snapshots.map(function (snapshot) {
         var label = snapshot.snapshotAt ? new Date(snapshot.snapshotAt).toLocaleString('pt-BR') : 'Data não registrada';
-        return '<div class="backup-row"><span><strong>' + esc(snapshot.sourceFileName || 'Planilha') + '</strong><br>' + esc(label) + '</span><div class="backup-actions"><button type="button" class="btn o" data-restore-backup="' + esc(snapshot.id) + '">Restaurar</button></div></div>';
+        return '<div class="backup-row"><span><strong>' + esc(snapshot.sourceFileName || 'Planilha sem nome') + '</strong><br>' + esc(label) + '</span><div class="backup-actions"><button type="button" class="btn o" data-restore-backup="' + esc(snapshot.id) + '">Restaurar</button><button type="button" class="btn o" data-download-backup="' + esc(snapshot.id) + '">Baixar Excel</button><button type="button" class="btn o" data-json-backup="' + esc(snapshot.id) + '">JSON</button></div></div>';
       }).join('');
       targets.forEach(function (node) { node.innerHTML = content; });
     } catch (error) {
-      targets.forEach(function (node) { node.textContent = 'Erro ao listar backups: ' + error.message; });
+      targets.forEach(function (node) { node.textContent = 'Não foi possível listar os backups locais: ' + error.message; });
     }
   }
   async function getSnapshotById(id) {
@@ -1814,106 +1956,67 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   }
 
   var fileInput = document.getElementById('workbook-file');
-  if (fileInput) {
-    fileInput.addEventListener('change', async function () {
-      pendingImport = null;
-      document.getElementById('confirm-import').disabled = true;
-      document.getElementById('import-preview').innerHTML = '';
-      var file = fileInput.files && fileInput.files[0];
-      if (!file) return;
-      if (!/\.(xlsx|xls)$/i.test(file.name)) {
-        setImportMessage('Formato inválido. Selecione um arquivo .xlsx ou .xls.', 'error');
-        return;
-      }
-      setImportMessage('Lendo arquivo...');
-      try {
-        var buffer = await file.arrayBuffer();
-        var payload = normalizeWorkbook(file, buffer);
-        pendingImport = payload;
-        buildImportPreview(payload);
-        document.getElementById('confirm-import').disabled = false;
-        setImportMessage('Arquivo lido com sucesso. Confirme para importar.', 'success');
-      } catch (error) {
-        setImportMessage(error.message || 'Erro ao ler planilha.', 'error');
-      }
-    });
-  }
+  fileInput.addEventListener('change', async function () {
+    pendingImport = null;
+    document.getElementById('confirm-import').disabled = true;
+    document.getElementById('import-preview').innerHTML = '';
+    var file = fileInput.files && fileInput.files[0];
+    if (!file) {
+      setImportMessage('Nenhum arquivo selecionado.');
+      return;
+    }
+    if (!/\.(xlsx|xls)$/i.test(file.name)) {
+      setImportMessage('Formato inválido. Selecione um arquivo .xlsx ou .xls.', 'error');
+      return;
+    }
+    setImportMessage('Lendo as abas e conferindo os registros…');
+    try {
+      var buffer = await file.arrayBuffer();
+      var payload = normalizeWorkbook(file, buffer);
+      pendingImport = payload;
+      buildImportPreview(payload);
+      document.getElementById('confirm-import').disabled = false;
+      setImportMessage('Arquivo conferido. Revise os quantitativos e confirme para enviar os registros ao Firebase.', 'success');
+    } catch (error) {
+      setImportMessage(error.message || 'Não foi possível ler a planilha. Nenhum dado foi substituído.', 'error');
+    }
+  });
 
   document.getElementById('confirm-import').addEventListener('click', async function () {
     if (!pendingImport) return;
-    if (!window.confirm('Confirmar importação para o Firebase?')) return;
+    var message = 'Enviar os dados conferidos das duas primeiras abas (Batismo e Ordem) para o Firebase e guardar uma cópia local?';
+    if (appData) message += '\n\nA versão ativa ficará preservada como uma versão anterior no Firestore antes da substituição.';
+    message += '\n\nO Excel original com a formatação será salvo localmente neste navegador; as linhas e os registros serão armazenados na nuvem.';
+    if (!window.confirm(message)) return;
     var button = document.getElementById('confirm-import');
     button.disabled = true;
-    setImportMessage('Enviando dados ao Firebase...');
+    setImportMessage('Enviando os registros ao Firebase e salvando a cópia local…');
     try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase ainda não está pronta. Recarregue a página e entre novamente.');
       await window.firebaseSaveWorkspace(pendingImport, true);
-      try { await saveWorkspace(pendingImport, true); } catch (localError) {}
+      var localCopyWarning = '';
+      try { await saveWorkspace(pendingImport, true); }
+      catch (localError) { localCopyWarning = ' A sincronização na nuvem foi concluída, mas a cópia local não pôde ser atualizada neste navegador.'; }
       appData = Object.assign({}, pendingImport, { id: 'current' });
       selectedPersonRow = null;
       peopleState = { query: '', turma: '', filter: 'all', page: 1 };
       orderState = { query: '', page: 1 };
       dayState = { query: '', page: 1 };
       pendingState = { query: '', page: 1 };
+      shirtState = { query: '', page: 1 };
       returnState = { query: '', page: 1 };
       historyState = { query: '', source: 'geral', page: 1 };
       buildAll();
       goTo('home');
+      if (localCopyWarning) setImportMessage(localCopyWarning.trim(), 'error');
     } catch (error) {
-      setImportMessage('Erro no envio ao Firebase: ' + (error.message || 'erro desconhecido'), 'error');
+      setImportMessage('Não foi possível concluir o envio ao Firebase: ' + (error.message || 'erro desconhecido') + '. A versão anterior permanece preservada.', 'error');
       button.disabled = false;
     }
   });
 
   document.getElementById('download-source').addEventListener('click', function () { downloadWorkbook(appData); });
   document.getElementById('download-json').addEventListener('click', function () { downloadJson(appData); });
-
-  var draggedOrderKey = null;
-  document.addEventListener('dragstart', function (event) {
-    var item = event.target.closest('.order-item');
-    if (!item) return;
-    draggedOrderKey = item.dataset.orderKey || null;
-    item.classList.add('order-dragging');
-    if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', draggedOrderKey || ''); }
-  });
-  document.addEventListener('dragover', function (event) {
-    var item = event.target.closest('.order-item');
-    if (!item || !draggedOrderKey) return;
-    event.preventDefault();
-    document.querySelectorAll('.order-item.order-drag-over').forEach(function (node) { node.classList.remove('order-drag-over'); });
-    if (item.dataset.orderKey !== draggedOrderKey) item.classList.add('order-drag-over');
-  });
-  document.addEventListener('dragend', function () {
-    document.querySelectorAll('.order-dragging,.order-drag-over').forEach(function (node) { node.classList.remove('order-dragging','order-drag-over'); });
-    draggedOrderKey = null;
-  });
-  document.addEventListener('drop', async function (event) {
-    var target = event.target.closest('.order-item');
-    if (!target || !draggedOrderKey) return;
-    event.preventDefault();
-    var targetKey = target.dataset.orderKey;
-    var turma = selectedOrderTurma();
-    if (!targetKey || targetKey === draggedOrderKey) return;
-    var all = currentOrderItems();
-    var keys = all.map(orderItemKey);
-    var from = keys.indexOf(draggedOrderKey), to = keys.indexOf(targetKey);
-    if (from < 0 || to < 0) return;
-    keys.splice(from, 1); keys.splice(to, 0, draggedOrderKey);
-    var draft = cloneWorkspaceForEdit();
-    if (!draft.ordemSequencia || typeof draft.ordemSequencia !== 'object') draft.ordemSequencia = {};
-    draft.ordemSequencia[String(turma.id)] = keys;
-    try {
-      await window.firebaseSaveWorkspace(draft, true);
-      try { await saveWorkspace(draft, false); } catch (localError) {}
-      appData = draft;
-      buildAll();
-      goTo('ord');
-    } catch (error) {
-      dayToast('Erro ao reordenar.');
-    } finally {
-      document.querySelectorAll('.order-dragging,.order-drag-over').forEach(function (node) { node.classList.remove('order-dragging','order-drag-over'); });
-      draggedOrderKey = null;
-    }
-  });
 
   document.addEventListener('click', async function (event) {
     var addPersonButton = event.target.closest('[data-add-person]');
@@ -1942,15 +2045,17 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       var input = document.getElementById('turma-new-number');
       var number = (input && input.value || '').trim();
       var status = document.getElementById('turma-status');
-      if (!number) { if (status) { status.className = 'import-status error'; status.textContent = 'Informe o número da turma.'; } return; }
+      if (!number) { if (status) { status.className = 'import-status error'; status.textContent = 'Informe o número ou identificação da turma.'; } return; }
       ensureTurmaRegistry(appData);
+      if ((appData.turmas || []).some(function (t) { return normal(t.number) === normal(number) || String(t.id) === number; })) { if (status) { status.className = 'import-status error'; status.textContent = 'Já existe uma turma com essa identificação. Escolha outra.'; } return; }
       var draftTurmas = cloneWorkspaceForEdit();
       if (!Array.isArray(draftTurmas.turmas)) draftTurmas.turmas = [];
       var id = number.replace(/[^a-zA-Z0-9_-]/g, '_');
+      if (draftTurmas.turmas.some(function (t) { return String(t.id) === id; })) { if (status) { status.className = 'import-status error'; status.textContent = 'Essa identificação gera um código já utilizado. Informe outro número.'; } return; }
       draftTurmas.turmas.push({ id: id, number: number, name: 'Turma ' + number, status: 'ativa', createdAt: new Date().toISOString(), source: 'cadastro_manual' });
       draftTurmas.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
       if (input) input.value = '';
-      await persistTurmaRegistry(draftTurmas, 'Turma ' + number + ' criada.');
+      await persistTurmaRegistry(draftTurmas, 'Turma ' + number + ' criada vazia.');
       return;
     }
     var defaultTurmaButton = event.target.closest('[data-default-turma]');
@@ -1972,7 +2077,10 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
         var fallbackRow = Number(sourceRow);
         person = (appData.people || []).find(function (p) { return Number(p.sourceRow) === fallbackRow; });
       }
-      if (!person) return;
+      if (!person) {
+        dayToast('Não foi possível localizar este cadastro. Atualize a lista e tente novamente.');
+        return;
+      }
       selectedPersonRow = Number(person.sourceRow);
       var fichaSection = document.getElementById('fic');
       goTo('pes');
@@ -1987,21 +2095,30 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var pageButton = event.target.closest('[data-page]');
     if (pageButton && !pageButton.disabled) {
       var parts = pageButton.dataset.page.split(':');
-      var stateMap = { people: peopleState, order: orderState, day: dayState, pending: pendingState, return: returnState, history: historyState };
+      var stateMap = { people: peopleState, order: orderState, day: dayState, pending: pendingState, shirt: shirtState, return: returnState, history: historyState };
       var state = stateMap[parts[0]];
       if (state) {
         state.page = Math.max(1, state.page + Number(parts[1]));
-        var drawMap = { people: drawPeopleResults, order: drawOrderResults, day: drawDayResults, pending: drawPendingResults, return: drawReturnResults, history: drawHistoryResults };
+        var drawMap = { people: drawPeopleResults, order: drawOrderResults, day: drawDayResults, pending: drawPendingResults, shirt: drawShirtResults, return: drawReturnResults, history: drawHistoryResults };
         drawMap[parts[0]]();
       }
       return;
     }
 
+    var historyButton = event.target.closest('[data-history-tab]');
+    if (historyButton) {
+      historyState.source = historyButton.dataset.historyTab;
+      historyState.page = 1;
+      drawHistoryResults();
+      return;
+    }
+
     var checkinButton = event.target.closest('[data-checkin][data-checkin-id]');
     if(checkinButton&&appData){
-      if(!window.firebaseToggleDayMark){dayToast('Aguarde a conexão.');return;}
-      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=orderForTurma().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':(kind==='batizado'?'batizadoEm':'eklesiaEm');
+      if(!window.firebaseToggleDayMark){dayToast('Aguarde a conexão com o Firestore.');return;}
+      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=orderForTurma().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':'batizadoEm';
       await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row);
+      dayToast(on?'Marcação salva'+(personForDay(row)&&hasPendingSignal(personForDay(row))?' · confira a pendência':''):'Marcação desfeita',async function(){await window.firebaseToggleDayMark(id,{[kind]:!!prior[kind],[timeKey]:prior[timeKey]||null},row);if(kind==='batizado'&&on&&!prior.presente)await window.firebaseToggleDayMark(id,{presente:false,presenteEm:null},row);});
       return;
     }
     if(event.target.closest('[data-day-print]')){window.print();return;}
@@ -2010,16 +2127,21 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     if (restoreButton) {
       var backupId = restoreButton.dataset.restoreBackup;
       var snapshot = await getSnapshotById(backupId);
-      if (!snapshot) return;
-      if (!window.confirm('Restaurar esta versão local?')) return;
+      if (!snapshot) { setImportMessage('O backup selecionado não foi encontrado.', 'error'); return; }
+      if (!window.confirm('Restaurar esta versão local? A versão ativa atual será arquivada antes da restauração.')) return;
       try {
+        if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
         await window.firebaseSaveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
+        var localRestoreWarning = '';
+        try { await saveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true); }
+        catch (localError) { localRestoreWarning = ' A versão foi restaurada no Firebase, mas a cópia local não foi atualizada.'; }
         appData = Object.assign({}, snapshot, { id: 'current' });
         selectedPersonRow = null;
         buildAll();
         goTo('home');
+        if (localRestoreWarning) setImportMessage(localRestoreWarning.trim(), 'error');
       } catch (error) {
-        setImportMessage('Não foi possível restaurar: ' + error.message, 'error');
+        setImportMessage('Não foi possível restaurar a versão: ' + error.message, 'error');
       }
       return;
     }
@@ -2028,6 +2150,12 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     if (backupDownload) {
       var downloadSnapshot = await getSnapshotById(backupDownload.dataset.downloadBackup);
       downloadWorkbook(downloadSnapshot);
+      return;
+    }
+    var backupJson = event.target.closest('[data-json-backup]');
+    if (backupJson) {
+      var jsonSnapshot = await getSnapshotById(backupJson.dataset.jsonBackup);
+      downloadJson(jsonSnapshot);
       return;
     }
     var currentDownload = event.target.closest('[data-download-current]');
@@ -2042,17 +2170,18 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   });
 
   async function initialize() {
+    importSection.querySelector('#backup-items').innerHTML = '<div class="data-empty">Verificando backups locais…</div>';
     try {
       var existing = await getCurrentWorkspace();
       if (existing && existing.rawSheets && existing.people && existing.order) {
         appData = existing;
         buildAll();
       } else {
-        setImportMessage('Nenhuma planilha importada. Selecione o Excel para importar.');
+        setImportMessage('Nenhuma planilha importada neste navegador. Selecione o Excel para conferir e importar todos os registros.');
         await refreshBackups();
       }
     } catch (error) {
-      setImportMessage('Erro ao abrir armazenamento local: ' + error.message, 'error');
+      setImportMessage('O armazenamento local não pôde ser aberto: ' + error.message, 'error');
     }
   }
 
@@ -2062,6 +2191,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       var remoteWorkspace = detail.workspace || null;
       var localWorkspace = null;
       try { localWorkspace = await getCurrentWorkspace(); } catch (localError) {}
+      window.dispatchEvent(new CustomEvent('day-legacy-marks', { detail: { workspace: localWorkspace || remoteWorkspace || {} } }));
       if (remoteWorkspace) {
         if (localWorkspace && localWorkspace.importedAt === remoteWorkspace.importedAt && localWorkspace.sourceWorkbook) remoteWorkspace.sourceWorkbook = localWorkspace.sourceWorkbook;
         appData = Object.assign({}, remoteWorkspace, { id: 'current' });
@@ -2069,14 +2199,16 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
         buildAll();
         goTo('home');
       } else {
-        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], checkin: {}, turmas: [], ordensTurma: [], turmaPadrao: '', participantes: [] };
+        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Cadastro iniciado no sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], generalAll: [], generalUnmapped: [], checkin: {}, turmas: [], ordensTurma: [], turmaPadrao: '', participantes: [] };
         renderEmptyWorkspace();
         buildAll();
+        setImportMessage('Firebase conectado. Ainda não há uma planilha principal. Você pode criar uma turma vazia e cadastrar os participantes diretamente no sistema.', 'success');
+        document.getElementById('import-preview').innerHTML = '<div class="card"><b>Cadastro iniciado do zero</b><p class="section-sub">Nenhuma planilha foi importada. Crie as turmas e cadastre os participantes no sistema. A turma 36 só será incluída se houver dados históricos carregados.</p></div>';
         await refreshBackups();
         goTo('tur');
       }
     } catch (error) {
-      setImportMessage('Erro ao iniciar: ' + (error.message || 'erro desconhecido'), 'error');
+      setImportMessage('Não foi possível preparar a tela após o login: ' + (error.message || 'erro desconhecido'), 'error');
     } finally {
       window.dispatchEvent(new Event('firebase-ui-ready'));
     }
@@ -2086,7 +2218,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -2124,12 +2256,14 @@ function setLoginStatus(message, isError) {
 }
 function explainAuthError(error) {
   const code = error && error.code ? error.code : '';
-  if (code === 'auth/unauthorized-domain') return 'Este domínio ainda não foi autorizado no Firebase.';
-  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'E-mail ou senha inválidos.';
-  if (code === 'auth/too-many-requests') return 'Muitas tentativas. Aguarde um momento.';
-  if (code === 'auth/popup-blocked') return 'O navegador bloqueou a janela de login Google.';
-  if (code === 'auth/popup-closed-by-user') return 'A janela de autenticação foi fechada.';
-  return 'Erro de conexão ao Firebase (' + (code || 'erro') + ').';
+  if (code === 'auth/unauthorized-domain') return 'Este domínio ainda não foi autorizado. No Firebase, abra Authentication > Configurações > Domínios autorizados e adicione falcaoguitarcrt-blip.github.io.';
+  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'E-mail ou senha inválidos. Confira os dados cadastrados no Firebase Authentication.';
+  if (code === 'auth/too-many-requests') return 'Muitas tentativas de acesso. Aguarde um pouco e tente novamente.';
+  if (code === 'auth/account-exists-with-different-credential') return 'Este e-mail já está cadastrado no Firebase com outro método de login. Não exclua o usuário nem altere as regras; vamos vincular o Google à conta existente com segurança.';
+  if (code === 'auth/popup-blocked') return 'O navegador bloqueou a janela de login Google. Permita pop-ups para este site e tente novamente.';
+  if (code === 'auth/popup-closed-by-user') return 'A janela de autenticação foi fechada antes de concluir. Tente novamente e escolha sua conta Google.';
+  if (code === 'permission-denied' || code === 'firestore/permission-denied') return 'O login foi reconhecido, mas as regras do Firestore não autorizaram a leitura. Confira o UID permitido nas regras.';
+  return 'Não foi possível conectar ao Firebase (' + (code || 'erro de conexão') + '). Verifique a conexão e a configuração do projeto.';
 }
 function safeValue(value) {
   if (value === undefined) return null;
@@ -2167,3 +2301,441 @@ async function writeInBatches(actions) {
   }
 }
 let baseWorkspaceVersionId = null;
+let workspaceVersionConflict = false;
+let savingWorkspaceVersionId = null;
+let workspaceVersionUnsubscribe = null;
+
+function workspaceConflictError() {
+  const error = new Error('Outra pessoa salvou alterações. Atualize os dados antes de continuar');
+  error.code = 'failed-precondition';
+  error.workspaceVersionConflict = true;
+  return error;
+}
+function workspaceNetworkError(error) {
+  return !!(error && ['unavailable', 'deadline-exceeded', 'network-request-failed'].includes(error.code)) || !navigator.onLine;
+}
+function workspaceOfflineError() {
+  const error = new Error('Sem conexão com o Firebase. A versão não foi ativada. Reconecte-se e tente novamente.');
+  error.code = 'unavailable';
+  error.workspaceNetworkError = true;
+  return error;
+}
+function withWorkspaceTimeout(promise, milliseconds) {
+  let timer;
+  const timeout = new Promise(function (_, reject) {
+    timer = setTimeout(function () {
+      const error = new Error('Sem conexão ou tempo limite aguardando o Firebase.');
+      error.code = 'deadline-exceeded';
+      error.workspaceTransactionPending = true;
+      reject(error);
+    }, milliseconds);
+  });
+  return Promise.race([promise, timeout]).finally(function () { clearTimeout(timer); });
+}
+function startWorkspaceVersionListener(user) {
+  if (workspaceVersionUnsubscribe) workspaceVersionUnsubscribe();
+  workspaceVersionUnsubscribe = onSnapshot(rootRef(), function (snap) {
+    const currentVersion = snap.exists() ? (snap.data().currentVersion || null) : null;
+    if (savingWorkspaceVersionId && currentVersion === savingWorkspaceVersionId) {
+      baseWorkspaceVersionId = currentVersion;
+      workspaceVersionConflict = false;
+      window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: currentVersion } }));
+      return;
+    }
+    if (currentVersion !== baseWorkspaceVersionId) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: currentVersion } }));
+    }
+  }, function (error) {
+    console.error('Falha ao acompanhar a versão principal do espaço de trabalho', error);
+  });
+}
+function versionPointerValue(snap) {
+  return snap.exists() ? (snap.data().currentVersion || null) : null;
+}
+function assertWorkspaceVersion(tx, metaRef, expectedVersionId) {
+  return tx.get(metaRef).then(function (snap) {
+    if (versionPointerValue(snap) !== expectedVersionId) throw workspaceConflictError();
+    return snap;
+  });
+}
+function rootRef() { return doc(firestore, 'appData', 'primary'); }
+function versionRef(versionId) { return doc(firestore, 'appData', 'primary', 'versions', versionId); }
+function versionChunksRef(versionId) { return collection(firestore, 'appData', 'primary', 'versions', versionId, 'chunks'); }
+function liveRef() { return doc(firestore, 'appData', 'primary', 'live', 'state'); }
+
+async function saveCloudWorkspace(payload, createVersion) {
+  if (!auth.currentUser) throw new Error('Faça login antes de salvar dados no Firebase.');
+  const metaRef = rootRef();
+  if (!createVersion) {
+    const metaSnap = await getDoc(metaRef);
+    if (!metaSnap.exists() || !metaSnap.data().currentVersion) throw new Error('Ainda não existe uma planilha principal no Firebase. Importe o Excel e confirme a importação primeiro.');
+    await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+    return true;
+  }
+  if (workspaceVersionConflict) throw workspaceConflictError();
+  if (!navigator.onLine) throw workspaceOfflineError();
+
+  const expectedBaseVersionId = baseWorkspaceVersionId;
+  // Confirma conectividade e a versão-base no servidor antes de criar blocos.
+  try {
+    await withWorkspaceTimeout(runTransaction(firestore, async function (tx) {
+      await assertWorkspaceVersion(tx, metaRef, expectedBaseVersionId);
+    }, { maxAttempts: 3 }), 12000);
+  } catch (error) {
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
+    }
+    if (workspaceNetworkError(error)) throw workspaceOfflineError();
+    throw error;
+  }
+
+  const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
+  savingWorkspaceVersionId = versionId;
+  const chunks = [];
+  let pointerTransactionStarted = false;
+  let chunksRef = null;
+  try {
+    ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
+      chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
+    });
+    const rawNames = Object.keys(payload.rawSheets || {});
+    rawNames.forEach(function (sheetName, sheetIndex) {
+      const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
+      // Preserve the existing row-object format to avoid nested arrays in Firestore.
+      const firestoreRows = rows.map(function (row, rowIndex) {
+        const cells = Array.isArray(row) ? row : [];
+        return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
+      });
+      chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
+    });
+    chunksRef = versionChunksRef(versionId);
+    await writeInBatches(chunks.map(function (item) {
+      return { type: 'set', ref: doc(chunksRef, item.id), data: item };
+    }));
+    const versionMeta = {
+      schemaVersion: 1,
+      versionId: versionId,
+      sourceFileName: payload.sourceFileName || 'Cadastro iniciado no sistema',
+      sourceFileSize: Number(payload.sourceFileSize || 0),
+      importedAt: payload.importedAt || new Date().toISOString(),
+      sheetStats: safeValue(payload.sheetStats || []),
+      sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
+      turmaPadrao: String(payload.turmaPadrao || '36'),
+      skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
+      checkin: safeValue(payload.checkin || {}),
+      createdAt: new Date().toISOString(),
+      createdBy: auth.currentUser.uid,
+      counts: {
+        participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
+        people: Array.isArray(payload.people) ? payload.people.length : 0,
+        order: Array.isArray(payload.order) ? payload.order.length : 0,
+        order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
+        general: Array.isArray(payload.general) ? payload.general.length : 0,
+        rawSheets: rawNames.length,
+        chunks: chunks.length
+      }
+    };
+    await setDoc(versionRef(versionId), versionMeta);
+
+    // Compare-and-swap do ponteiro: só publica a nova versão se a base ainda for a mesma.
+    pointerTransactionStarted = true;
+    const pointerPromise = runTransaction(firestore, async function (tx) {
+      const snap = await tx.get(metaRef);
+      if (versionPointerValue(snap) !== expectedBaseVersionId) throw workspaceConflictError();
+      tx.set(metaRef, {
+        schemaVersion: 1,
+        currentVersion: versionId,
+        updatedAt: new Date().toISOString(),
+        updatedBy: auth.currentUser.uid
+      }, { merge: true });
+      tx.set(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+    }, { maxAttempts: 3 });
+    try {
+      await withWorkspaceTimeout(pointerPromise, 12000);
+    } catch (transactionError) {
+      if (transactionError && transactionError.workspaceTransactionPending) {
+        workspaceVersionConflict = true;
+        window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+          detail: { message: 'Sem conexão com o Firebase. A confirmação do salvamento ainda pode chegar. Atualize o estado antes de repetir.' }
+        }));
+        pointerPromise.then(async function () {
+          const refreshedWorkspace = await loadCloudWorkspace();
+          if (refreshedWorkspace) window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: refreshedWorkspace } }));
+          savingWorkspaceVersionId = null;
+          window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+          window.dispatchEvent(new CustomEvent('cloud-version-late-save-settled', { detail: { success: true } }));
+        }).catch(function (lateError) {
+          savingWorkspaceVersionId = null;
+          workspaceVersionConflict = true;
+          console.warn('[workspace] versão possivelmente órfã preservada após confirmação tardia rejeitada:', versionId, lateError);
+          if (lateError && lateError.workspaceVersionConflict) {
+            window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+          } else {
+            window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+              detail: { message: 'O Firebase não confirmou o salvamento. Atualize o estado antes de tentar novamente.' }
+            }));
+          }
+        });
+      }
+      throw transactionError;
+    }
+
+    baseWorkspaceVersionId = versionId;
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+    window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: versionId } }));
+    return true;
+  } catch (error) {
+    if (!(error && error.workspaceTransactionPending)) savingWorkspaceVersionId = null;
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      console.warn('[workspace] versão órfã preservada após conflito:', versionId);
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
+    }
+    if (workspaceNetworkError(error)) {
+      // Nunca apagar versões em falha de rede: a confirmação pode estar indeterminada.
+      if (!(error && error.workspaceTransactionPending)) {
+        console.warn('[workspace] versão possivelmente órfã preservada após falha:', versionId);
+      }
+      const offlineError = error && error.workspaceTransactionPending
+        ? new Error('Sem conexão com o Firebase. A confirmação do salvamento ainda pode chegar. Atualize o estado antes de repetir.')
+        : workspaceOfflineError();
+      offlineError.code = error && error.workspaceTransactionPending ? 'deadline-exceeded' : 'unavailable';
+      if (error && error.workspaceTransactionPending) offlineError.workspaceTransactionPending = true;
+      throw offlineError;
+    }
+    console.warn('[workspace] versão órfã preservada após falha:', versionId);
+    throw error;
+  }
+}
+async function loadCloudWorkspace() {
+  const rootSnap = await getDoc(rootRef());
+  const versionId = versionPointerValue(rootSnap);
+  baseWorkspaceVersionId = versionId;
+  workspaceVersionConflict = false;
+  savingWorkspaceVersionId = null;
+  if (!versionId) return null;
+  const versionSnap = await getDoc(versionRef(versionId));
+  if (!versionSnap.exists()) throw new Error('A versão atual da planilha não foi encontrada no Firestore.');
+  const meta = versionSnap.data();
+  const workspace = {
+    id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
+    sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
+    skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+  };
+  const chunkSnap = await getDocs(versionChunksRef(versionId));
+  const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
+    if (a.section === 'rawSheet' && b.section !== 'rawSheet') return -1;
+    if (b.section === 'rawSheet' && a.section !== 'rawSheet') return 1;
+    if (a.section === 'rawSheet' && b.section === 'rawSheet') return (a.sheetIndex - b.sheetIndex) || (a.part - b.part);
+    return String(a.section).localeCompare(String(b.section)) || (a.part - b.part);
+  });
+  pieces.forEach(function (piece) {
+    if (piece.section === 'rawSheet') {
+      if (!workspace.rawSheets[piece.sheetName]) workspace.rawSheets[piece.sheetName] = [];
+      const rows = (piece.items || []).map(function (item) {
+        // Accept both the row-object format and any older flat-row chunks.
+        if (Array.isArray(item)) return item;
+        if (item && Array.isArray(item.cells)) return item.cells.slice(0, Number.isInteger(item.length) ? item.length : item.cells.length);
+        return [];
+      });
+      workspace.rawSheets[piece.sheetName].push.apply(workspace.rawSheets[piece.sheetName], rows);
+    } else if (Array.isArray(workspace[piece.section])) {
+      workspace[piece.section].push.apply(workspace[piece.section], piece.items || []);
+    }
+  });
+  const liveSnap = await getDoc(liveRef());
+  if (liveSnap.exists() && liveSnap.data().checkin) workspace.checkin = liveSnap.data().checkin;
+  if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
+  if (!Array.isArray(workspace.participantes)) workspace.participantes = [];
+  if (!Array.isArray(workspace.ordensTurma)) workspace.ordensTurma = [];
+  return workspace;
+}
+window.firebaseSaveWorkspace = saveCloudWorkspace;
+window.firebaseRefreshWorkspace = async function () {
+  const workspace = await loadCloudWorkspace();
+  if (!workspace) {
+    workspaceVersionConflict = true;
+    throw new Error('Não foi encontrada uma versão principal para atualizar. A linha de base permanece bloqueada.');
+  }
+  window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: workspace } }));
+  window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+  return workspace;
+};
+let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine;
+window.firebaseIsAdmin=false;
+function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,pending:dayPending.size,ready:!!ready}}));}
+window.addEventListener('online',function(){dayOnline=true;emitDayStatus(!!dayUnsub);});
+window.addEventListener('offline',function(){dayOnline=false;emitDayStatus(!!dayUnsub);});
+window.firebaseToggleDayMark=async function(id,fields,row){
+ if(!auth.currentUser)throw new Error('Faça login para marcar.');
+ const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
+ const turmaId=String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36'));const data=Object.assign({turmaId:turmaId,posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields);
+ dayPending.add(id);emitDayStatus(!!dayUnsub);setDoc(ref,data,{merge:true}).catch(function(error){dayPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message}}));});return true;
+};
+window.addEventListener('day-legacy-marks',async function(event){
+ try {
+  const workspace=event.detail&&event.detail.workspace||{},legacy=workspace.checkin||{},order=workspace.order||[];let imported=0;
+  for(const key of Object.keys(legacy)){
+   const row=order.find(function(r){return String(r.sourceRow)===String(key);}),old=legacy[key]||{};
+   if(!row||(!old.present&&!old.baptized))continue;
+   const id='36_'+String(row.number||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_'),ref=doc(firestore,'marcacoesBatismo',id);
+   const data={turmaId:'36',posicaoOuPessoaId:String(row.number||row.sourceRow),presente:!!old.present,presenteEm:old.present?(old.presenteEm||old.presentAt||null):null,batizado:!!old.baptized,batizadoEm:old.baptized?(old.batizadoEm||old.baptizedAt||null):null,porUid:auth.currentUser.uid,porNome:auth.currentUser.displayName||auth.currentUser.email||'Equipe'};
+   await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
+  }
+  if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
+ } catch(error) {
+  console.error('Falha na migração de marcações antigas',error);
+  window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message||'Falha na migração das marcações antigas.'}}));
+ }
+});
+function startDayListener(user){
+ if(dayUnsub)dayUnsub();
+ const q=query(collection(firestore,'marcacoesBatismo'));
+ dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
+  const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites)dayPending.add(d.id);});
+  dayOnline=navigator.onLine;
+  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,pending:dayPending.size,ready:true}}}));
+ },function(e){console.error(e);});
+ user.getIdTokenResult().then(function(t){window.firebaseIsAdmin=t.claims.admin===true;window.dispatchEvent(new Event('firebase-admin-status'));}).catch(function(){});
+}
+
+
+// Processa um eventual retorno de signInWithRedirect uma única vez durante a inicialização.
+// A ausência de resultado é normal e não impede o carregamento da aplicação.
+const googleRedirectResultPromise = getRedirectResult(auth).then(function (result) {
+  if (result && result.user) {
+    lastAuthError = '';
+  }
+  return result;
+}).catch(function (error) {
+  lastAuthError = explainAuthError(error);
+  setLoginStatus(lastAuthError, true);
+  console.error('Falha ao processar o retorno do login Google por redirect', error);
+  return null;
+});
+
+googleLoginButton.addEventListener('click', async function () {
+  googleLoginButton.disabled = true;
+  loginButton.disabled = true;
+  setLoginStatus('Abrindo a autenticação segura do Google…', false);
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    // Persistência explícita para manter a sessão após o retorno do fluxo Google em navegadores móveis.
+    await setPersistence(auth, browserLocalPersistence);
+    await signInWithPopup(auth, provider);
+    lastAuthError = '';
+  } catch (error) {
+    const code = error && error.code ? error.code : '';
+    // Somente erros que indicam que o popup não pode ser usado acionam o fallback.
+    // Cancelamento/fechamento pelo usuário não inicia redirect automaticamente.
+    if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported') {
+      try {
+        lastAuthError = '';
+        setLoginStatus('O navegador não abriu a janela. Continuando pelo modo seguro de redirecionamento…', false);
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (redirectError) {
+        lastAuthError = explainAuthError(redirectError);
+        setLoginStatus(lastAuthError, true);
+        console.error('Falha no fallback de login Google por redirect', redirectError);
+      }
+    } else {
+      lastAuthError = explainAuthError(error);
+      setLoginStatus(lastAuthError, true);
+    }
+  } finally {
+    googleLoginButton.disabled = false;
+    loginButton.disabled = false;
+  }
+});
+
+loginForm.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const email = document.getElementById('firebase-email').value.trim();
+  const password = document.getElementById('firebase-password').value;
+  loginButton.disabled = true;
+  googleLoginButton.disabled = true;
+  setLoginStatus('Validando acesso e conectando ao banco…', false);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    lastAuthError = '';
+  } catch (error) {
+    lastAuthError = explainAuthError(error);
+    setLoginStatus(lastAuthError, true);
+  } finally {
+    loginButton.disabled = false;
+    googleLoginButton.disabled = false;
+  }
+});
+logoutButton.addEventListener('click', async function () {
+  logoutButton.disabled = true;
+  // Encerra o listener antes do signOut para impedir consultas Firestore
+  // durante a transição para uma sessão não autenticada.
+  if (dayUnsub) {
+    dayUnsub();
+    dayUnsub = null;
+  }
+  dayPending.clear();
+  emitDayStatus(false);
+  try { await signOut(auth); }
+  catch (error) { setLoginStatus(explainAuthError(error), true); }
+  finally { logoutButton.disabled = false; }
+});
+onAuthStateChanged(auth, async function (user) {
+  if (!user) {
+    if (workspaceVersionUnsubscribe) { workspaceVersionUnsubscribe(); workspaceVersionUnsubscribe = null; }
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+    // Encerra o listener de marcações quando a sessão termina para evitar
+    // consultas Firestore sem autenticação após logout ou expiração de sessão.
+    if (dayUnsub) {
+      dayUnsub();
+      dayUnsub = null;
+    }
+    dayPending.clear();
+    emitDayStatus(false);
+    handlingUser = false;
+    document.body.classList.add('auth-pending');
+    loginShell.hidden = false;
+    logoutButton.hidden = true;
+    setLoginStatus(lastAuthError || 'Use o e-mail e a senha cadastrados no Firebase Authentication.', !!lastAuthError);
+    return;
+  }
+  if (handlingUser) return;
+  handlingUser = true;
+  document.body.classList.add('auth-pending');
+  loginShell.hidden = false;
+  setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
+  try {
+    const workspace = await loadCloudWorkspace();
+    startWorkspaceVersionListener(user);
+    startDayListener(user);
+    await new Promise(function (resolve) {
+      const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
+      window.addEventListener('firebase-ui-ready', onReady, { once: true });
+      window.dispatchEvent(new CustomEvent('firebase-authenticated', { detail: { user: { uid: user.uid, email: user.email || '' }, workspace: workspace } }));
+    });
+    loginShell.hidden = true;
+    document.body.classList.remove('auth-pending');
+    logoutButton.hidden = false;
+    logoutButton.title = 'Conectado como ' + (user.email || 'usuário autorizado');
+    lastAuthError = '';
+  } catch (error) {
+    lastAuthError = explainAuthError(error);
+    setLoginStatus(lastAuthError, true);
+    await signOut(auth).catch(function () {});
+  } finally {
+    handlingUser = false;
+  }
+});
+</script>
+
+</body>
+</html>
