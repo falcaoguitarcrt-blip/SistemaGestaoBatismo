@@ -26,7 +26,6 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import re
           import subprocess
 
           GOOD = '5c02803d0996a399055864b87a9bac4cf77cba8d'
@@ -43,89 +42,79 @@ jobs:
           lines = current.splitlines()
           for filename in ('firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'):
               stable_line = import_line(good, filename)
-              replaced = False
               for i, line in enumerate(lines):
                   if filename in line and line.lstrip().startswith('import '):
                       lines[i] = stable_line
-                      replaced = True
                       break
-              if not replaced:
+              else:
                   raise SystemExit('Import atual não encontrado: ' + filename)
           current = '\n'.join(lines) + ('\n' if current.endswith('\n') else '')
 
-          def replace_between(text, start_marker, end_marker, replacement):
-              start = text.find(start_marker)
-              if start < 0:
-                  raise SystemExit('Marcador inicial não encontrado: ' + start_marker)
-              end = text.find(end_marker, start)
-              if end < 0:
-                  raise SystemExit('Marcador final não encontrado: ' + end_marker)
-              return text[:start] + replacement + text[end:]
-
+          # Restaura a mensagem de erro da versão estável sem tocar nas rotinas de dados da V8.
           stable_error_start = good.find('function explainAuthError(error) {')
           stable_error_end = good.find('\nfunction safeValue(value) {', stable_error_start)
           if stable_error_start < 0 or stable_error_end < 0:
               raise SystemExit('Função estável explainAuthError não encontrada.')
-          current = replace_between(
-              current,
-              'function explainAuthError(error) {',
-              '\nfunction safeValue(value) {',
-              good[stable_error_start:stable_error_end]
-          )
+          current_error_start = current.find('function explainAuthError(error) {')
+          current_error_end = current.find('\nfunction safeValue(value) {', current_error_start)
+          if current_error_start < 0 or current_error_end < 0:
+              raise SystemExit('Função atual explainAuthError não encontrada.')
+          current = current[:current_error_start] + good[stable_error_start:stable_error_end] + current[current_error_end:]
 
-          # Remove um eventual bloco redirect já presente.
-          redirect_marker = '// Processa um eventual retorno de signInWithRedirect uma única vez durante a inicialização.'
-          redirect_start = current.find(redirect_marker)
-          if redirect_start >= 0:
-              redirect_end = current.find("\nloginForm.addEventListener('submit'", redirect_start)
-              if redirect_end < 0:
-                  raise SystemExit('Bloco redirect existente sem limite final.')
-              # Mantém o login form e tudo que vem depois.
-              current = current[:redirect_start] + current[redirect_end + 1:]
+          # O código V8 tem um handler Google próprio. Em vez de tentar reescrevê-lo por regex,
+          # interceptamos o clique na fase de captura. Isso mantém o restante da V8 intacto,
+          # mas garante o fluxo estável: popup -> redirect quando o popup é bloqueado.
+          anchor = "const googleLoginButton = document.getElementById('firebase-google-login');"
+          if anchor not in current:
+              raise SystemExit('Âncora do botão Google não encontrada.')
 
-          # Encontra o handler Google mesmo se aspas/espaços mudarem.
-          login_start = current.find("loginForm.addEventListener('submit'")
-          if login_start < 0:
-              login_start = current.find('loginForm.addEventListener("submit"')
-          if login_start < 0:
-              raise SystemExit('Handler do login por e-mail não encontrado.')
+          guard_marker = 'window.__stableGoogleAuthInstalled = true;'
+          if guard_marker not in current:
+              auth_guard = r'''
+window.__stableGoogleAuthInstalled = true;
+const stableGoogleProvider = new GoogleAuthProvider();
+const googleRedirectResultPromise = getRedirectResult(auth).then(async (result) => {
+  if (result && result.user) {
+    setLoginStatus('Autenticação Google concluída. Carregando dados…');
+    await handleAuthenticatedUser(result.user);
+  }
+  return result;
+}).catch((error) => {
+  lastAuthError = explainAuthError(error);
+  if (error?.code !== 'auth/no-auth-event') setLoginStatus(lastAuthError, true);
+  return null;
+});
 
-          google_matches = list(re.finditer(r"googleLoginButton\s*\.\s*addEventListener\s*\(\s*['\"]click['\"]", current[:login_start]))
-          if not google_matches:
-              raise SystemExit('Handler do botão Google não encontrado antes do login por e-mail.')
-          google_match = google_matches[-1]
-          google_start = google_match.start()
-
-          # Localiza o início da função callback e faz balanceamento de chaves.
-          brace = current.find('{', google_match.end())
-          if brace < 0 or brace > login_start:
-              raise SystemExit('Início do callback Google não encontrado.')
-          depth = 0
-          close_brace = -1
-          for i in range(brace, login_start):
-              if current[i] == '{':
-                  depth += 1
-              elif current[i] == '}':
-                  depth -= 1
-                  if depth == 0:
-                      close_brace = i
-                      break
-          if close_brace < 0:
-              raise SystemExit('Fim do callback Google não encontrado.')
-          close_end = current.find(');', close_brace, login_start)
-          if close_end < 0:
-              raise SystemExit('Fechamento do handler Google não encontrado.')
-          current_google_end = close_end + 2
-
-          stable_google_start = good.find("googleLoginButton.addEventListener('click'")
-          stable_login_start = good.find("\nloginForm.addEventListener('submit'", stable_google_start)
-          stable_redirect_start = good.find(redirect_marker)
-          if stable_google_start < 0 or stable_login_start < 0 or stable_redirect_start < 0:
-              raise SystemExit('Fluxo Google estável incompleto.')
-          stable_google_block = good[stable_google_start:stable_login_start]
-          stable_redirect_block = good[stable_redirect_start:stable_google_start]
-
-          current = current[:google_start] + stable_redirect_block + stable_google_block + current[current_google_end:]
+googleLoginButton.addEventListener('click', async function (event) {
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  setLoginStatus('Abrindo Google…');
+  googleLoginButton.disabled = true;
+  try {
+    await googleRedirectResultPromise;
+    const result = await signInWithPopup(auth, stableGoogleProvider);
+    await handleAuthenticatedUser(result.user);
+  } catch (error) {
+    const code = error && error.code ? error.code : '';
+    if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
+      try {
+        setLoginStatus('Redirecionando para o Google…');
+        await signInWithRedirect(auth, stableGoogleProvider);
+        return;
+      } catch (redirectError) {
+        lastAuthError = explainAuthError(redirectError);
+        setLoginStatus(lastAuthError, true);
+      }
+    } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
+      lastAuthError = explainAuthError(error);
+      setLoginStatus(lastAuthError, true);
+    }
+  } finally {
+    googleLoginButton.disabled = false;
+  }
+}, true);
+'''
+              current = current.replace(anchor, anchor + '\n' + auth_guard.strip('\n'), 1)
 
           required = [
               'firebasejs/12.19.0/firebase-app.js',
@@ -133,14 +122,15 @@ jobs:
               'firebasejs/12.19.0/firebase-firestore.js',
               'getRedirectResult',
               'signInWithRedirect',
-              "googleLoginButton.addEventListener('click'"
+              'window.__stableGoogleAuthInstalled = true;',
+              "googleLoginButton.addEventListener('click', async function (event)"
           ]
           missing = [item for item in required if item not in current]
           if missing:
-              raise SystemExit('Correção Google incompleta. Itens ausentes: ' + ', '.join(missing))
+              raise SystemExit('Correção Google incompleta: ' + ', '.join(missing))
 
           path.write_text(current, encoding='utf-8')
-          print('Autenticação Google restaurada a partir de ' + GOOD)
+          print('Google Login restaurado com fallback popup/redirect a partir da versão estável ' + GOOD)
 
       - name: Validar JavaScript
         run: |
