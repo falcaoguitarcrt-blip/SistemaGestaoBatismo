@@ -1,0 +1,143 @@
+name: Fix Google Login
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-google-login:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Restaurar fallback Google
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          auth_import = re.compile(r"import \{([^}]+)\} from 'https://www\.gstatic\.com/firebasejs/[^/]+/firebase-auth\.js';")
+          match = auth_import.search(text)
+          if not match:
+              raise SystemExit('Import do Firebase Auth não encontrado. Nenhuma alteração foi feita.')
+
+          names = [x.strip() for x in match.group(1).split(',') if x.strip()]
+          for needed in ['signInWithRedirect', 'getRedirectResult']:
+              if needed not in names:
+                  names.append(needed)
+          new_import = "import { " + ', '.join(names) + " } from '" + match.group(0).split("from '", 1)[1][:-2] + "';"
+          text = text[:match.start()] + new_import + text[match.end():]
+
+          marker = "googleLoginButton.addEventListener('click'"
+          start = text.find(marker)
+          if start < 0:
+              raise SystemExit('Handler do botão Google não encontrado. Nenhuma alteração foi feita.')
+
+          brace_start = text.find('{', start)
+          if brace_start < 0:
+              raise SystemExit('Início do handler Google inválido.')
+          depth = 0
+          end = None
+          for i in range(brace_start, len(text)):
+              ch = text[i]
+              if ch == '{':
+                  depth += 1
+              elif ch == '}':
+                  depth -= 1
+                  if depth == 0:
+                      semi = text.find(';', i)
+                      if semi < 0:
+                          raise SystemExit('Fim do handler Google inválido.')
+                      end = semi + 1
+                      break
+          if end is None:
+              raise SystemExit('Não foi possível delimitar o handler Google.')
+
+          new_handler = '''async function startGoogleLogin() {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            try {
+              await setPersistence(auth, browserLocalPersistence);
+            } catch (error) {
+              console.warn('Persistência local indisponível; continuando com o login Google.', error);
+            }
+
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isMobile) {
+              setLoginStatus('Redirecionando para o Google…', false);
+              await signInWithRedirect(auth, provider);
+              return;
+            }
+
+            try {
+              await signInWithPopup(auth, provider);
+              lastAuthError = '';
+            } catch (error) {
+              const useRedirect = error && (
+                error.code === 'auth/popup-blocked' ||
+                error.code === 'auth/operation-not-supported-in-this-environment' ||
+                error.code === 'auth/web-storage-unsupported'
+              );
+              if (!useRedirect) throw error;
+              setLoginStatus('O login Google será aberto por redirecionamento…', false);
+              await signInWithRedirect(auth, provider);
+            }
+          }
+
+          getRedirectResult(auth).catch(function (error) {
+            if (!error) return;
+            lastAuthError = explainAuthError(error);
+            setLoginStatus(lastAuthError, true);
+            console.error('Falha no retorno do login Google:', error);
+          });
+
+          googleLoginButton.addEventListener('click', async function () {
+            googleLoginButton.disabled = true;
+            loginButton.disabled = true;
+            setLoginStatus('Abrindo a autenticação segura do Google…', false);
+            try {
+              await startGoogleLogin();
+            } catch (error) {
+              lastAuthError = explainAuthError(error);
+              setLoginStatus(lastAuthError, true);
+              console.error('Falha no login Google:', error);
+            } finally {
+              googleLoginButton.disabled = false;
+              loginButton.disabled = false;
+            }
+          });'''
+
+          text = text[:start] + new_handler + text[end:]
+          path.write_text(text, encoding='utf-8')
+
+      - name: Validar JavaScript
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('index.html').read_text(encoding='utf-8')
+          blocks = re.findall(r'<script type="module">(.*?)</script>', text, re.S)
+          if not blocks:
+              raise SystemExit('Nenhum bloco module encontrado')
+          for n, block in enumerate(blocks):
+              Path(f'/tmp/firebase-module-{n}.js').write_text(block, encoding='utf-8')
+          PY
+          for file in /tmp/firebase-module-*.js; do node --check "$file"; done
+
+      - name: Commitar correção e remover workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/fix-google-login.yml
+          git commit -m "fix: restaurar login Google em celulares e popups bloqueados"
+          git push
