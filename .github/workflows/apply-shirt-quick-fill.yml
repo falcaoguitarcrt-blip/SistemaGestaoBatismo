@@ -1,9 +1,10 @@
 name: Aplicar preenchimento rápido de camisetas
 
 on:
-  push:
+  pull_request:
     branches:
-      - feature/etapa-shirt-quick-fill
+      - main
+    types: [opened, synchronize, reopened]
 permissions:
   contents: write
 
@@ -11,8 +12,11 @@ jobs:
   patch:
     runs-on: ubuntu-latest
     steps:
-      - name: Baixar código
+      - name: Baixar código da branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
       - name: Aplicar preenchimento rápido
         run: |
           python3 <<'PY'
@@ -130,4 +134,4 @@ jobs:
           git rm .github/workflows/apply-shirt-quick-fill.yml
           git add index.html
           git commit -m "feat: adicionar preenchimento rápido de grupo e camiseta"
-          git push
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
