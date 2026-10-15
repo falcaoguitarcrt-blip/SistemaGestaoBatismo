@@ -1,15 +1,20 @@
 name: Publicar Gestão de Batismo no GitHub Pages
+
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: true
+
 jobs:
   deploy:
     environment:
@@ -22,117 +27,11 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restaurar autenticação Google da última versão estável
-        shell: python
-        run: |
-          from pathlib import Path
-          import subprocess
-
-          GOOD = '5c02803d0996a399055864b87a9bac4cf77cba8d'
-          path = Path('index.html')
-          current = path.read_text(encoding='utf-8')
-          good = subprocess.check_output(['git', 'show', GOOD + ':index.html'], text=True)
-
-          def import_line(text, filename):
-              for line in text.splitlines():
-                  if filename in line and line.lstrip().startswith('import '):
-                      return line.strip()
-              raise SystemExit('Import estável não encontrado: ' + filename)
-
-          lines = current.splitlines()
-          for filename in ('firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'):
-              stable_line = import_line(good, filename)
-              for i, line in enumerate(lines):
-                  if filename in line and line.lstrip().startswith('import '):
-                      lines[i] = stable_line
-                      break
-              else:
-                  raise SystemExit('Import atual não encontrado: ' + filename)
-          current = '\n'.join(lines) + ('\n' if current.endswith('\n') else '')
-
-          # Restaura a mensagem de erro da versão estável sem tocar nas rotinas de dados da V8.
-          stable_error_start = good.find('function explainAuthError(error) {')
-          stable_error_end = good.find('\nfunction safeValue(value) {', stable_error_start)
-          if stable_error_start < 0 or stable_error_end < 0:
-              raise SystemExit('Função estável explainAuthError não encontrada.')
-          current_error_start = current.find('function explainAuthError(error) {')
-          current_error_end = current.find('\nfunction safeValue(value) {', current_error_start)
-          if current_error_start < 0 or current_error_end < 0:
-              raise SystemExit('Função atual explainAuthError não encontrada.')
-          current = current[:current_error_start] + good[stable_error_start:stable_error_end] + current[current_error_end:]
-
-          # O código V8 tem um handler Google próprio. Em vez de tentar reescrevê-lo por regex,
-          # interceptamos o clique na fase de captura. Isso mantém o restante da V8 intacto,
-          # mas garante o fluxo estável: popup -> redirect quando o popup é bloqueado.
-          anchor = "const googleLoginButton = document.getElementById('firebase-google-login');"
-          if anchor not in current:
-              raise SystemExit('Âncora do botão Google não encontrada.')
-
-          guard_marker = 'window.__stableGoogleAuthInstalled = true;'
-          if guard_marker not in current:
-              auth_guard = r'''
-window.__stableGoogleAuthInstalled = true;
-const stableGoogleProvider = new GoogleAuthProvider();
-const googleRedirectResultPromise = getRedirectResult(auth).then(async (result) => {
-  if (result && result.user) {
-    setLoginStatus('Autenticação Google concluída. Carregando dados…');
-    await handleAuthenticatedUser(result.user);
-  }
-  return result;
-}).catch((error) => {
-  lastAuthError = explainAuthError(error);
-  if (error?.code !== 'auth/no-auth-event') setLoginStatus(lastAuthError, true);
-  return null;
-});
-
-googleLoginButton.addEventListener('click', async function (event) {
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  setLoginStatus('Abrindo Google…');
-  googleLoginButton.disabled = true;
-  try {
-    await googleRedirectResultPromise;
-    const result = await signInWithPopup(auth, stableGoogleProvider);
-    await handleAuthenticatedUser(result.user);
-  } catch (error) {
-    const code = error && error.code ? error.code : '';
-    if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
-      try {
-        setLoginStatus('Redirecionando para o Google…');
-        await signInWithRedirect(auth, stableGoogleProvider);
-        return;
-      } catch (redirectError) {
-        lastAuthError = explainAuthError(redirectError);
-        setLoginStatus(lastAuthError, true);
-      }
-    } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
-      lastAuthError = explainAuthError(error);
-      setLoginStatus(lastAuthError, true);
-    }
-  } finally {
-    googleLoginButton.disabled = false;
-  }
-}, true);
-'''
-              current = current.replace(anchor, anchor + '\n' + auth_guard.strip('\n'), 1)
-
-          required = [
-              'firebasejs/12.19.0/firebase-app.js',
-              'firebasejs/12.19.0/firebase-auth.js',
-              'firebasejs/12.19.0/firebase-firestore.js',
-              'getRedirectResult',
-              'signInWithRedirect',
-              'window.__stableGoogleAuthInstalled = true;',
-              "googleLoginButton.addEventListener('click', async function (event)"
-          ]
-          missing = [item for item in required if item not in current]
-          if missing:
-              raise SystemExit('Correção Google incompleta: ' + ', '.join(missing))
-
-          path.write_text(current, encoding='utf-8')
-          print('Google Login restaurado com fallback popup/redirect a partir da versão estável ' + GOOD)
+      - name: Restaurar Google Login da versão estável
+        run: python scripts/restore-google-login.py
 
       - name: Validar JavaScript
+        shell: bash
         run: |
           python - <<'PY'
           import re
@@ -150,10 +49,12 @@ googleLoginButton.addEventListener('click', async function (event) {
         uses: actions/configure-pages@v5
         with:
           enablement: true
+
       - name: Preparar arquivos estáticos
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
+
       - name: Publicar página
         id: deployment
         uses: actions/deploy-pages@v4
