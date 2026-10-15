@@ -34,12 +34,25 @@ jobs:
           current = path.read_text(encoding='utf-8')
           good = subprocess.check_output(['git', 'show', GOOD + ':index.html'], text=True)
 
-          auth_re = re.compile(r"import\s+\{[^}]+\}\s+from\s+['\"]https://www\.gstatic\.com/firebasejs/[^'\"]+/firebase-auth\.js['\"]\s*;")
-          good_import = auth_re.search(good)
-          current_import = auth_re.search(current)
-          if not good_import or not current_import:
-              raise SystemExit('Import do Firebase Auth não encontrado nas versões comparadas.')
-          current = current[:current_import.start()] + good_import.group(0) + current[current_import.end():]
+          # Restaura a mesma versão do SDK usada pelo login estável sem
+          # depender do formato exato do import no index atual.
+          good_auth_url = re.search(r'https://www\.gstatic\.com/firebasejs/[^\s\"\']+/firebase-auth\.js', good)
+          if not good_auth_url:
+              raise SystemExit('URL do Firebase Auth não encontrada na versão estável.')
+          auth_url = good_auth_url.group(0)
+          current_auth = re.search(r'https://www\.gstatic\.com/firebasejs/[^\s\"\']+/firebase-auth\.js', current)
+          if current_auth:
+              current = current[:current_auth.start()] + auth_url + current[current_auth.end():]
+          else:
+              # Caso a V8 tenha removido o import, reinsere exatamente o import
+              # de autenticação da versão estável antes do primeiro uso do auth.
+              good_import = re.search(r'import\s+\{[^}]+\}\s+from\s+[\"\']' + re.escape(auth_url) + r'[\"\']\s*;', good)
+              if not good_import:
+                  raise SystemExit('Import do Firebase Auth não encontrado na versão estável.')
+              anchor = re.search(r'initializeApp\s*\(', current)
+              if not anchor:
+                  raise SystemExit('Ponto de inserção do Firebase Auth não encontrado.')
+              current = current[:anchor.start()] + good_import.group(0) + '\n' + current[anchor.start():]
 
           def listener_end(text, start):
               brace = text.find('{', start)
@@ -68,7 +81,7 @@ jobs:
           current_end = listener_end(current, current_listener)
           good_start = good.rfind('// Processa um eventual retorno de signInWithRedirect', 0, good_listener)
           if good_start < 0:
-              good_start = good.find('async function startGoogleLogin()', 0, good_listener)
+              good_start = good.rfind('async function startGoogleLogin()', 0, good_listener)
           if good_start < 0:
               good_start = good_listener
 
