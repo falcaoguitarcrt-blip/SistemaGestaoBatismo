@@ -316,6 +316,16 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   .person-shirt-controls { grid-template-columns: 1fr; }
 }
 </style>
+
+<style id="batizantes-order-operacional-v1">
+.order-kpi-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin-top:10px}
+.order-kpi{background:var(--card);border:1px solid var(--ln);border-radius:13px;padding:12px;min-width:0}
+.order-kpi span{display:block;color:var(--mut);font-size:11px;line-height:1.35}
+.order-kpi strong{display:block;font-size:24px;line-height:1.1;margin-top:5px;font-variant-numeric:tabular-nums}
+.order-kpi.is-present strong{color:#49b86b}.order-kpi.is-baptized strong{color:#4d8dff}.order-kpi.is-eklesia strong{color:#a98aff}.order-kpi.is-unbaptized strong{color:var(--pe)}.order-kpi.is-pending strong{color:var(--er)}
+@media(max-width:1050px){.order-kpi-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.order-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.order-kpi{padding:10px}.order-kpi strong{font-size:21px}.order-status-actions{width:100%}}
+</style>
 </head>
 <body class="auth-pending">
 
@@ -365,7 +375,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <div class="f"><span>Inscritos</span><div class="bar"><b style="width:100%"></b></div><em>57</em></div>
 <div class="f"><span>Aulas 1–4</span><div class="bar"><b style="width:95%"></b></div><em>54</em></div>
 <div class="f"><span>Jornada</span><div class="bar"><b style="width:86%"></b></div><em>49</em></div>
-<div class="f"><span>Ekklesia</span><div class="bar"><b style="width:81%"></b></div><em>46</em></div>
+<div class="f"><span>Eklesia</span><div class="bar"><b style="width:81%"></b></div><em>46</em></div>
 <div class="f"><span>Camiseta</span><div class="bar"><b style="width:70%"></b></div><em>40</em></div></div>
 <div class="card"><h2 class="t">Atenção agora</h2>
 <div class="row"><span class="tag t-er">Urgente</span><div class="m">3 menores sem responsável cadastrado</div></div>
@@ -375,11 +385,11 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 
 <section id="pes">
 <input type="search" placeholder="🔍 Buscar por nome ou telefone…" aria-label="Buscar pessoas por nome ou telefone">
-<div class="chips"><span class="a">Turma 36</span><span>Pendentes</span><span>Sem Ekklesia</span><span>Menores</span><span>+ Filtro</span></div>
+<div class="chips"><span class="a">Turma 36</span><span>Pendentes</span><span>Sem Eklesia</span><span>Menores</span><span>+ Filtro</span></div>
 <div class="card">
 <div class="row"><div class="av">MS</div><div class="m"><b>Marina Souza</b><div>Turma 36 · 34 anos</div></div><span class="tag t-ok">Pronta</span></div>
 <div class="row"><div class="av">JL</div><div class="m"><b>João Lima</b><div>Turma 36 · 12 anos</div></div><span class="tag t-er">Sem responsável</span></div>
-<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Turma 36 · 41 anos</div></div><span class="tag t-pe">Ekklesia</span></div>
+<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Turma 36 · 41 anos</div></div><span class="tag t-pe">Eklesia</span></div>
 <div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36 · 28 anos</div></div><span class="tag t-pe">Aula 3</span></div>
 <div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Turma 36 · 50 anos</div></div><span class="tag t-ok">Pronto</span></div></div>
 <p id="pes-empty" class="note" style="display:none">Nenhuma pessoa encontrada com esse termo.</p>
@@ -392,7 +402,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <div class="card"><b>Aulas da jornada</b><div class="dots" style="margin-top:8px"><span class="t-ok">Aula 1 ✓</span><span class="t-ok">Aula 2 ✓</span><span class="t-pe">Aula 3 ✗</span><span class="t-ok">Aula 4 ✓</span></div>
 <p style="font-size:13px;color:var(--mut);margin:8px 0 0">Reposição: aulão 14/11 · inscrita</p></div>
 <div class="card"><b>Preparação</b>
-<div class="row"><div class="m">Cadastro no Ekklesia</div><span class="tag t-ok">OK</span></div>
+<div class="row"><div class="m">Cadastro no Eklesia</div><span class="tag t-ok">OK</span></div>
 <div class="row"><div class="m">Camiseta<div>Optou por ter · tamanho M</div></div><span class="tag t-pe">A pagar</span></div>
 <div class="row"><div class="m">Entrou no grupo</div><span class="tag t-ok">Sim</span></div>
 <div class="row"><div class="m">Verificação de perfil 🔒</div><span class="tag t-ok">OK</span></div></div>
@@ -423,7 +433,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <section id="pen">
 <h2 class="t">Pendências</h2>
 <div class="k">
-<div class="card"><h3>Abertas · 9</h3><div class="i"><b>Ekklesia</b><br>Carlos Ferreira<br><span class="tag t-er">vencida</span></div><div class="i"><b>Aula 3</b><br>Ana Paula Reis</div></div>
+<div class="card"><h3>Abertas · 9</h3><div class="i"><b>Eklesia</b><br>Carlos Ferreira<br><span class="tag t-er">vencida</span></div><div class="i"><b>Aula 3</b><br>Ana Paula Reis</div></div>
 <div class="card"><h3>Em contato · 4</h3><div class="i"><b>Responsável</b><br>João Lima<br><span class="tag t-pe">vence amanhã</span></div></div>
 <div class="card"><h3>Resolvidas · 22</h3><div class="i"><b>Camiseta G</b><br>Rafael Torres ✓</div></div></div>
 </section>
@@ -480,8 +490,8 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 <section id="cfg"><h2 class="t">Configurações</h2>
 <div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
 <div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
-<div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
-<div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Ekklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
+<div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Eklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
+<div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Eklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
 </main>
 <div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1493,7 +1503,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 
   function buildOrder() {
     var section=document.getElementById('ord');
-    section.innerHTML='<h2 class="t">Batizantes · Ordem do batismo</h2><div class="card order-operation-card"><b>Operação do batismo</b><p class="section-sub">Arraste para reorganizar. Marque Presente, Batizado e Incluído no Ekklesia diretamente nesta lista.</p></div><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
+    section.innerHTML='<h2 class="t">Batizantes · Ordem do batismo</h2><div class="card order-operation-card"><b>Operação do batismo</b><p class="section-sub">Arraste para reorganizar. Marque Presente, Batizado e Incluído no Eklesia diretamente nesta lista.</p><div id="order-kpis" class="order-kpi-grid" aria-label="Resumo operacional da turma"></div></div><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
     
     document.getElementById('order-turma-select').onchange=function(){orderState.turmaId=this.value;orderState.page=1;manualOrderEditingId='';buildOrder();};
     document.getElementById('order-search').addEventListener('input',function(){orderState.query=this.value;orderState.page=1;drawOrderResults();});
@@ -1528,21 +1538,23 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var pages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));orderState.page=Math.min(Math.max(1,orderState.page),pages);var start=(orderState.page-1)*PAGE_SIZE,view=items.slice(start,start+PAGE_SIZE),named=currentOrderItems().filter(function(r){return !!r.name;}).length;
     var allOrder=currentOrderItems().filter(function(r){return !!r.name;}), total=allOrder.length, present=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).presente;}).length, baptized=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).batizado;}).length, eklesia=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).eklesia || !isBlank(r.eklesiaStatus) && normal(r.eklesiaStatus)==='ok';}).length;
     
-    document.getElementById('order-count').innerHTML='<span>'+numberLabel(items.length)+' posições · '+numberLabel(named)+' com nome</span><span class="order-live-summary"><b>'+present+'</b> presentes · <b>'+baptized+'</b> batizados · <b>'+eklesia+'</b> no Ekklesia</span>';
+    var pending=allOrder.filter(function(r){var p=personForDay(r);return p&&hasPendingSignal(p);}).length;
+    var unbaptized=Math.max(0,total-baptized);
+    var kpiHost=document.getElementById('order-kpis');
+    if(kpiHost){kpiHost.innerHTML='<div class="order-kpi"><span>Total de batizantes</span><strong>'+numberLabel(total)+'</strong></div><div class="order-kpi is-present"><span>Presentes</span><strong>'+numberLabel(present)+'</strong></div><div class="order-kpi is-baptized"><span>Batizados</span><strong>'+numberLabel(baptized)+'</strong></div><div class="order-kpi is-eklesia"><span>Incluídos no Eklesia</span><strong>'+numberLabel(eklesia)+'</strong></div><div class="order-kpi is-unbaptized"><span>Não batizados</span><strong>'+numberLabel(unbaptized)+'</strong></div><div class="order-kpi is-pending"><span>Pendências</span><strong>'+numberLabel(pending)+'</strong></div>';}
+    document.getElementById('order-count').innerHTML='<span>'+numberLabel(items.length)+' posições · '+numberLabel(named)+' com nome</span>';
     
     document.getElementById('order-results').innerHTML=view.map(function(r){
       var key=orderItemKey(r), marks=dayMarks[dayId(r)]||{}, eklesiaMarked=!!marks.eklesia || (!isBlank(r.eklesiaStatus)&&normal(r.eklesiaStatus)==='ok');
       
-      // Removidos os botões "Não batizado" e "Editar origem", mantendo Presente, Batizado (quando selecionado) e Incluído no Ekklesia conforme solicitado
+      // Removidos os botões "Não batizado" e "Editar origem", mantendo Presente, Batizado (quando selecionado) e Incluído no Eklesia conforme solicitado
       var statusActions = '';
       if (r.name) {
         statusActions += '<button class="btn ' + (marks.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (marks.presente ? '✓ Presente' : 'Presente') + '</button>';
         
-        if (marks.batizado) {
-          statusActions += '<button class="btn g" data-checkin="batizado" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">✓ Batizado</button>';
-        }
+        statusActions += '<button class="btn ' + (marks.batizado ? 'g' : 'o') + '" data-checkin="batizado" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (marks.batizado ? '✓ Batizado' : 'Não batizado') + '</button>';
         
-        statusActions += '<button class="btn ' + (eklesiaMarked ? 'g' : 'o') + '" data-checkin="eklesia" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (eklesiaMarked ? '✓ Incluído no Ekklesia' : 'Incluído no Ekklesia') + '</button>';
+        statusActions += '<button class="btn ' + (eklesiaMarked ? 'g' : 'o') + '" data-checkin="eklesia" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (eklesiaMarked ? '✓ Incluído no Eklesia' : 'Incluído no Eklesia') + '</button>';
       }
 
       return '<div class="data-item order-item" draggable="true" data-order-key="'+esc(key)+'"><div class="order-drag-handle" title="Arrastar para reorganizar" aria-label="Arrastar para reorganizar">☷</div><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.note?'Observação: '+esc(r.note):'Sem observação')+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+(marks.presente?chip('Presente','t-ok'):'')+(marks.batizado?chip('Batizado','t-ok'):'')+(eklesiaMarked?chip('Incluído no Eklesia','t-in'):'')+(dayBadges(r,personForDay(r))||'')+'</div></div><div class="item-actions order-status-actions">'+statusActions+'</div></div>';
