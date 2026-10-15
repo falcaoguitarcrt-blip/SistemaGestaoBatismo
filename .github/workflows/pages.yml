@@ -4,7 +4,7 @@ on:
     branches: [main]
   workflow_dispatch:
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 concurrency:
@@ -22,71 +22,96 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restaurar login Google da versão estável
+      - name: Restaurar autenticação Google da última versão estável
         shell: python
         run: |
           from pathlib import Path
-          import re
           import subprocess
 
-          GOOD = '1866477c39550edf420557f2d31b32e34b5b1041'
+          GOOD = '5c02803d0996a399055864b87a9bac4cf77cba8d'
           path = Path('index.html')
           current = path.read_text(encoding='utf-8')
           good = subprocess.check_output(['git', 'show', GOOD + ':index.html'], text=True)
 
-          # Restaura a mesma versão do SDK usada pelo login estável sem
-          # depender do formato exato do import no index atual.
-          good_auth_url = re.search(r'https://www\.gstatic\.com/firebasejs/[^\s\"\']+/firebase-auth\.js', good)
-          if not good_auth_url:
-              raise SystemExit('URL do Firebase Auth não encontrada na versão estável.')
-          auth_url = good_auth_url.group(0)
-          current_auth = re.search(r'https://www\.gstatic\.com/firebasejs/[^\s\"\']+/firebase-auth\.js', current)
-          if current_auth:
-              current = current[:current_auth.start()] + auth_url + current[current_auth.end():]
-          else:
-              # Caso a V8 tenha removido o import, reinsere exatamente o import
-              # de autenticação da versão estável antes do primeiro uso do auth.
-              good_import = re.search(r'import\s+\{[^}]+\}\s+from\s+[\"\']' + re.escape(auth_url) + r'[\"\']\s*;', good)
-              if not good_import:
-                  raise SystemExit('Import do Firebase Auth não encontrado na versão estável.')
-              anchor = re.search(r'initializeApp\s*\(', current)
-              if not anchor:
-                  raise SystemExit('Ponto de inserção do Firebase Auth não encontrado.')
-              current = current[:anchor.start()] + good_import.group(0) + '\n' + current[anchor.start():]
+          def import_line(text, filename):
+              for line in text.splitlines():
+                  if filename in line and line.lstrip().startswith('import '):
+                      return line.strip()
+              raise SystemExit('Import estável não encontrado: ' + filename)
 
-          def listener_end(text, start):
-              brace = text.find('{', start)
-              if brace < 0:
-                  raise SystemExit('Início do handler Google não encontrado.')
-              depth = 0
-              for i in range(brace, len(text)):
-                  if text[i] == '{':
-                      depth += 1
-                  elif text[i] == '}':
-                      depth -= 1
-                      if depth == 0:
-                          semi = text.find(';', i)
-                          if semi < 0:
-                              raise SystemExit('Fim do handler Google não encontrado.')
-                          return semi + 1
-              raise SystemExit('Handler Google sem fechamento.')
+          # A V8 preserva a aplicação e seus dados. Restauramos apenas os três
+          # imports Firebase para a versão que estava funcionando antes da V8.
+          for filename in ('firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'):
+              stable_line = import_line(good, filename)
+              lines = current.splitlines()
+              replaced = False
+              for i, line in enumerate(lines):
+                  if filename in line and line.lstrip().startswith('import '):
+                      lines[i] = stable_line
+                      replaced = True
+                      break
+              if not replaced:
+                  raise SystemExit('Import atual não encontrado: ' + filename)
+              current = '\n'.join(lines) + ('\n' if current.endswith('\n') else '')
 
-          marker = "googleLoginButton.addEventListener('click'"
-          good_listener = good.find(marker)
-          current_listener = current.find(marker)
-          if good_listener < 0 or current_listener < 0:
-              raise SystemExit('Listener do botão Google não encontrado nas versões comparadas.')
+          # Restaura a explicação de erros de autenticação estável, incluindo
+          # domínio não autorizado, conta existente e fallback de popup.
+          def replace_between(text, start_marker, end_marker, replacement):
+              start = text.find(start_marker)
+              if start < 0:
+                  raise SystemExit('Marcador inicial não encontrado: ' + start_marker)
+              end = text.find(end_marker, start)
+              if end < 0:
+                  raise SystemExit('Marcador final não encontrado: ' + end_marker)
+              return text[:start] + replacement + text[end:]
 
-          good_end = listener_end(good, good_listener)
-          current_end = listener_end(current, current_listener)
-          good_start = good.rfind('// Processa um eventual retorno de signInWithRedirect', 0, good_listener)
-          if good_start < 0:
-              good_start = good.rfind('async function startGoogleLogin()', 0, good_listener)
-          if good_start < 0:
-              good_start = good_listener
+          stable_error_start = good.find('function explainAuthError(error) {')
+          stable_error_end = good.find('\nfunction safeValue(value) {', stable_error_start)
+          if stable_error_start < 0 or stable_error_end < 0:
+              raise SystemExit('Função estável explainAuthError não encontrada.')
+          stable_error_fn = good[stable_error_start:stable_error_end]
+          current = replace_between(current, 'function explainAuthError(error) {', '\nfunction safeValue(value) {', stable_error_fn)
 
-          current = current[:current_listener] + good[good_start:good_end] + current[current_end:]
+          # Evita duplicação se o arquivo já tiver recebido parte da correção.
+          redirect_start_marker = '// Processa um eventual retorno de signInWithRedirect uma única vez durante a inicialização.'
+          redirect_start = current.find(redirect_start_marker)
+          if redirect_start >= 0:
+              redirect_end = current.find("\ngoogleLoginButton.addEventListener('click'", redirect_start)
+              if redirect_end < 0:
+                  raise SystemExit('Bloco redirect existente sem fim identificável.')
+              current = current[:redirect_start] + current[redirect_end + 1:]
+
+          stable_redirect_start = good.find(redirect_start_marker)
+          stable_google_start = good.find("googleLoginButton.addEventListener('click'", stable_redirect_start)
+          if stable_redirect_start < 0 or stable_google_start < 0:
+              raise SystemExit('Bloco Google estável não encontrado.')
+          stable_redirect_block = good[stable_redirect_start:stable_google_start]
+
+          # Substitui somente o handler do botão Google, preservando todo o
+          # restante da V8, inclusive drag-and-drop, camisetas e Firestore.
+          current_google_start = current.find("googleLoginButton.addEventListener('click'")
+          current_login_start = current.find("\nloginForm.addEventListener('submit'", current_google_start)
+          stable_login_start = good.find("\nloginForm.addEventListener('submit'", stable_google_start)
+          if current_google_start < 0 or current_login_start < 0 or stable_login_start < 0:
+              raise SystemExit('Limites do fluxo Google não encontrados.')
+          stable_google_block = good[stable_google_start:stable_login_start]
+          current = current[:current_google_start] + stable_redirect_block + stable_google_block + current[current_login_start + 1:]
+
+          # Guardas finais: não publica se a correção não estiver realmente no artefato.
+          required = [
+              "firebasejs/12.19.0/firebase-app.js",
+              "firebasejs/12.19.0/firebase-auth.js",
+              "firebasejs/12.19.0/firebase-firestore.js",
+              'getRedirectResult',
+              'signInWithRedirect',
+              "googleLoginButton.addEventListener('click'"
+          ]
+          missing = [item for item in required if item not in current]
+          if missing:
+              raise SystemExit('Correção Google incompleta. Itens ausentes: ' + ', '.join(missing))
+
           path.write_text(current, encoding='utf-8')
+          print('Autenticação Google restaurada a partir de ' + GOOD)
 
       - name: Validar JavaScript
         run: |
@@ -113,5 +138,3 @@ jobs:
       - name: Publicar página
         id: deployment
         uses: actions/deploy-pages@v4
-
-# Correção do login Google baseada na versão estável, preservando a V8.
