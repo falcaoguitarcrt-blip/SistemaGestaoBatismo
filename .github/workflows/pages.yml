@@ -26,6 +26,7 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
+          import re
           import subprocess
 
           GOOD = '5c02803d0996a399055864b87a9bac4cf77cba8d'
@@ -39,11 +40,9 @@ jobs:
                       return line.strip()
               raise SystemExit('Import estável não encontrado: ' + filename)
 
-          # A V8 preserva a aplicação e seus dados. Restauramos apenas os três
-          # imports Firebase para a versão que estava funcionando antes da V8.
+          lines = current.splitlines()
           for filename in ('firebase-app.js', 'firebase-auth.js', 'firebase-firestore.js'):
               stable_line = import_line(good, filename)
-              lines = current.splitlines()
               replaced = False
               for i, line in enumerate(lines):
                   if filename in line and line.lstrip().startswith('import '):
@@ -52,10 +51,8 @@ jobs:
                       break
               if not replaced:
                   raise SystemExit('Import atual não encontrado: ' + filename)
-              current = '\n'.join(lines) + ('\n' if current.endswith('\n') else '')
+          current = '\n'.join(lines) + ('\n' if current.endswith('\n') else '')
 
-          # Restaura a explicação de erros de autenticação estável, incluindo
-          # domínio não autorizado, conta existente e fallback de popup.
           def replace_between(text, start_marker, end_marker, replacement):
               start = text.find(start_marker)
               if start < 0:
@@ -69,39 +66,71 @@ jobs:
           stable_error_end = good.find('\nfunction safeValue(value) {', stable_error_start)
           if stable_error_start < 0 or stable_error_end < 0:
               raise SystemExit('Função estável explainAuthError não encontrada.')
-          stable_error_fn = good[stable_error_start:stable_error_end]
-          current = replace_between(current, 'function explainAuthError(error) {', '\nfunction safeValue(value) {', stable_error_fn)
+          current = replace_between(
+              current,
+              'function explainAuthError(error) {',
+              '\nfunction safeValue(value) {',
+              good[stable_error_start:stable_error_end]
+          )
 
-          # Evita duplicação se o arquivo já tiver recebido parte da correção.
-          redirect_start_marker = '// Processa um eventual retorno de signInWithRedirect uma única vez durante a inicialização.'
-          redirect_start = current.find(redirect_start_marker)
+          # Remove um eventual bloco redirect já presente.
+          redirect_marker = '// Processa um eventual retorno de signInWithRedirect uma única vez durante a inicialização.'
+          redirect_start = current.find(redirect_marker)
           if redirect_start >= 0:
-              redirect_end = current.find("\ngoogleLoginButton.addEventListener('click'", redirect_start)
+              redirect_end = current.find("\nloginForm.addEventListener('submit'", redirect_start)
               if redirect_end < 0:
-                  raise SystemExit('Bloco redirect existente sem fim identificável.')
+                  raise SystemExit('Bloco redirect existente sem limite final.')
+              # Mantém o login form e tudo que vem depois.
               current = current[:redirect_start] + current[redirect_end + 1:]
 
-          stable_redirect_start = good.find(redirect_start_marker)
-          stable_google_start = good.find("googleLoginButton.addEventListener('click'", stable_redirect_start)
-          if stable_redirect_start < 0 or stable_google_start < 0:
-              raise SystemExit('Bloco Google estável não encontrado.')
+          # Encontra o handler Google mesmo se aspas/espaços mudarem.
+          login_start = current.find("loginForm.addEventListener('submit'")
+          if login_start < 0:
+              login_start = current.find('loginForm.addEventListener("submit"')
+          if login_start < 0:
+              raise SystemExit('Handler do login por e-mail não encontrado.')
+
+          google_matches = list(re.finditer(r"googleLoginButton\s*\.\s*addEventListener\s*\(\s*['\"]click['\"]", current[:login_start]))
+          if not google_matches:
+              raise SystemExit('Handler do botão Google não encontrado antes do login por e-mail.')
+          google_match = google_matches[-1]
+          google_start = google_match.start()
+
+          # Localiza o início da função callback e faz balanceamento de chaves.
+          brace = current.find('{', google_match.end())
+          if brace < 0 or brace > login_start:
+              raise SystemExit('Início do callback Google não encontrado.')
+          depth = 0
+          close_brace = -1
+          for i in range(brace, login_start):
+              if current[i] == '{':
+                  depth += 1
+              elif current[i] == '}':
+                  depth -= 1
+                  if depth == 0:
+                      close_brace = i
+                      break
+          if close_brace < 0:
+              raise SystemExit('Fim do callback Google não encontrado.')
+          close_end = current.find(');', close_brace, login_start)
+          if close_end < 0:
+              raise SystemExit('Fechamento do handler Google não encontrado.')
+          current_google_end = close_end + 2
+
+          stable_google_start = good.find("googleLoginButton.addEventListener('click'")
+          stable_login_start = good.find("\nloginForm.addEventListener('submit'", stable_google_start)
+          stable_redirect_start = good.find(redirect_marker)
+          if stable_google_start < 0 or stable_login_start < 0 or stable_redirect_start < 0:
+              raise SystemExit('Fluxo Google estável incompleto.')
+          stable_google_block = good[stable_google_start:stable_login_start]
           stable_redirect_block = good[stable_redirect_start:stable_google_start]
 
-          # Substitui somente o handler do botão Google, preservando todo o
-          # restante da V8, inclusive drag-and-drop, camisetas e Firestore.
-          current_google_start = current.find("googleLoginButton.addEventListener('click'")
-          current_login_start = current.find("\nloginForm.addEventListener('submit'", current_google_start)
-          stable_login_start = good.find("\nloginForm.addEventListener('submit'", stable_google_start)
-          if current_google_start < 0 or current_login_start < 0 or stable_login_start < 0:
-              raise SystemExit('Limites do fluxo Google não encontrados.')
-          stable_google_block = good[stable_google_start:stable_login_start]
-          current = current[:current_google_start] + stable_redirect_block + stable_google_block + current[current_login_start + 1:]
+          current = current[:google_start] + stable_redirect_block + stable_google_block + current[current_google_end:]
 
-          # Guardas finais: não publica se a correção não estiver realmente no artefato.
           required = [
-              "firebasejs/12.19.0/firebase-app.js",
-              "firebasejs/12.19.0/firebase-auth.js",
-              "firebasejs/12.19.0/firebase-firestore.js",
+              'firebasejs/12.19.0/firebase-app.js',
+              'firebasejs/12.19.0/firebase-auth.js',
+              'firebasejs/12.19.0/firebase-firestore.js',
               'getRedirectResult',
               'signInWithRedirect',
               "googleLoginButton.addEventListener('click'"
