@@ -161,7 +161,9 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .record-editor-head h2{font-size:23px}
 .record-editor-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
 .record-editor-field{display:block;min-width:0;font-size:12px;font-weight:700;color:var(--mut)}
-.record-editor-field input,.record-editor-field textarea{display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-weight:400}
+.record-editor-field input,.record-editor-field textarea,.record-editor-field select{display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-weight:400;min-height:44px}
+.record-editor-field select{appearance:auto;cursor:pointer}
+.record-editor-field input:focus,.record-editor-field textarea:focus,.record-editor-field select:focus{outline:3px solid color-mix(in srgb,var(--pri) 24%,transparent);outline-offset:1px;border-color:var(--pri)}
 .record-editor-field textarea{min-height:78px;resize:vertical}
 .record-editor-field.wide{grid-column:1/-1}
 .record-editor-status{min-height:20px;font-size:13px;color:var(--mut);margin:10px 0}
@@ -268,6 +270,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 @media(prefers-reduced-motion:reduce){section.on{animation:none}}
 
 </style>
+<!-- editor-camiseta-labels-v1 -->
 </head>
 <body class="auth-pending">
 
@@ -1311,9 +1314,30 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     recordEditorFields.innerHTML = labels.map(function (label, index) {
       var value = fields[index] === null || fields[index] === undefined ? '' : String(fields[index]);
       var wide = [5, 6, 11, 13].indexOf(index) >= 0;
-      var content = (kind === 'person' && [11, 13].indexOf(index) >= 0)
-        ? '<textarea data-editor-index="' + index + '" aria-label="' + esc(label) + '">' + esc(value) + '</textarea>'
-        : '<input type="text" data-editor-index="' + index + '" aria-label="' + esc(label) + '" value="' + esc(value) + '"' + (isNew && kind === 'person' && index === 0 ? ' required' : (isNew && kind === 'order' && index === 1 ? ' required' : '')) + '>';
+      var content;
+      if (kind === 'person' && index === 7) {
+        content = '<select data-editor-index="7" aria-label="Entrou no grupo?">' +
+          '<option value=""' + (value === '' ? ' selected' : '') + '>Não informado</option>' +
+          '<option value="true"' + (value.toLowerCase() === 'true' ? ' selected' : '') + '>Sim</option>' +
+          '<option value="false"' + (value.toLowerCase() === 'false' ? ' selected' : '') + '>Não</option>' +
+          '</select>';
+        label = 'Entrou no grupo?';
+      } else if (kind === 'person' && index === 8) {
+        content = '<input type="text" data-editor-index="8" aria-label="Tamanho da camiseta" value="' + esc(value) + '" placeholder="Ex.: P, M, G, GG, G3">';
+        label = 'Tamanho da camiseta';
+      } else if (kind === 'person' && index === 9) {
+        var paymentValue = value.toLowerCase();
+        content = '<select data-editor-index="9" aria-label="Pagamento camiseta">' +
+          '<option value=""' + (value === '' ? ' selected' : '') + '>Não informado</option>' +
+          '<option value="true"' + (paymentValue === 'true' ? ' selected' : '') + '>Pago</option>' +
+          '<option value="false"' + (paymentValue === 'false' ? ' selected' : '') + '>Não pago</option>' +
+          '</select>';
+        label = 'Pagamento camiseta';
+      } else {
+        content = (kind === 'person' && [11, 13].indexOf(index) >= 0)
+          ? '<textarea data-editor-index="' + index + '" aria-label="' + esc(label) + '">' + esc(value) + '</textarea>'
+          : '<input type="text" data-editor-index="' + index + '" aria-label="' + esc(label) + '" value="' + esc(value) + '"' + (isNew && kind === 'person' && index === 0 ? ' required' : (isNew && kind === 'order' && index === 1 ? ' required' : '')) + '>';
+      }
       return '<label class="record-editor-field' + (wide ? ' wide' : '') + '">' + esc(label) + content + '</label>';
     }).join('');
     recordEditorShell.hidden = false;
