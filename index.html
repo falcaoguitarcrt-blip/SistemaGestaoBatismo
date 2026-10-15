@@ -55,7 +55,6 @@ h2.t{font-size:22px;margin:4px 0 12px}
 @media print{body{background:#fff;color:#111}header,.bb,.note,.demo-toast,#tm{display:none!important}main{max-width:none;padding:0}.card{box-shadow:none;break-inside:avoid}section{display:none!important}section.on{display:block!important}.bar{border:1px solid #bbb}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 
-/* Importação local: nenhuma linha da planilha é enviada ao servidor. */
 .security-callout{border-color:#d9c58d;background:color-mix(in srgb,var(--gold) 9%,var(--card))}
 .security-callout p{font-size:13px;color:var(--mut);margin:8px 0 0;line-height:1.6}
 .import-status{font-size:13px;line-height:1.55;padding:10px 12px;border-radius:10px;background:var(--bg);border:1px solid var(--ln);margin:10px 0}
@@ -136,7 +135,6 @@ h2.t{font-size:22px;margin:4px 0 12px}
  .import-actions .btn{width:100%}
 }
 
-/* Acesso autenticado ao sistema */
 body.auth-pending{overflow:hidden}
 body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 #auth-shell{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:22px;background:var(--bg);color:var(--tx)}
@@ -170,7 +168,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .record-editor-actions .btn{min-width:120px}
 @media(max-width:600px){.record-editor-fields{grid-template-columns:1fr}.record-editor-card{padding:14px}.record-editor-field.wide{grid-column:auto}.record-editor-actions{flex-direction:column-reverse}.record-editor-actions .btn{width:100%}}
 
-/* Check-in do Dia do Batismo */
 .day-sync{position:sticky;top:0;z-index:4;padding:10px 12px;margin:-14px -14px 12px;background:#fff0e9;color:#a83a12;font-weight:700;border-bottom:1px solid var(--ln)}
 .day-tools{display:grid;gap:8px}.day-tools input{width:100%;min-height:48px;padding:12px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit}
 .day-filters,.day-tools-actions{display:flex;gap:6px;flex-wrap:wrap}.day-filters button{min-height:48px;padding:8px 12px;border:1px solid var(--ln);border-radius:99px;background:var(--card);color:var(--tx);font:inherit}.day-filters button.active{background:var(--pri);color:white}
@@ -179,7 +176,6 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
 @media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
 
-/* ===== Identidade visual premium ===== */
 :root{--bg:#111315;--tx:#f4f5f6;--mut:#b6b9bd;--card:#1b1d20;--ln:#35383d;--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--ok:#ff8155;--pe:#d5a64a;--er:#e06464;--in:#ff8155;color-scheme:dark}
 :root[data-theme="light"]{--bg:#f4f6fa;--tx:#f4f5f6;--mut:#637187;--card:#fff;--ln:#dce3ed;--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--ok:#ff8155;--pe:#a96700;--er:#c0394b;--in:#ff8155;color-scheme:light}
 body{background:var(--bg);color:var(--tx);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
@@ -268,7 +264,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 @media(max-width:390px){.data-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-grid{grid-template-columns:minmax(0,1fr)}.hero h2{font-size:26px}.brand{font-size:14px}}
 @media(prefers-reduced-motion:reduce){section.on{animation:none}}
 
-/* ===== Fluxo operacional simplificado ===== */
 .order-item { align-items: center; cursor: grab; transition: transform .16s ease, border-color .16s ease, background .16s ease, opacity .16s ease; }
 .order-item:active { cursor: grabbing; }
 .order-item.order-dragging { opacity: .42; transform: scale(.99); border-color: var(--pri); }
@@ -293,7 +288,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   .order-drag-handle { flex-basis: 24px; width: 24px; }
 }
 
-/* ===== Batizantes concentrados na Ordem e Camisetas ===== */
 #dia[hidden], #cam[hidden] { display:none !important; }
 .order-operation-card { background: linear-gradient(135deg, color-mix(in srgb, var(--pri) 10%, var(--card)), var(--card)); }
 .order-live-summary { display:block; margin-top:6px; color:var(--mut); }
@@ -302,7 +296,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 .order-status-actions .btn { min-height:38px; padding:8px 9px; font-size:11px; }
 @media(max-width:760px){.order-status-actions{width:100%;max-width:none}.order-status-actions .btn{flex:1;min-width:0}.order-live-summary{margin-top:8px}}
 
-/* Estilo integrado para seletores de camiseta na lista de Batizantes */
 .person-shirt-controls {
   display: grid;
   grid-template-columns: repeat(3, minmax(110px, 1fr));
@@ -429,7 +422,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 </section>
 
 <section id="cam" hidden>
-<!-- Secção oculta pois a gestão de camisetas foi unificada em Batizantes -->
 </section>
 
 <style>.cert{border:3px double var(--gold);border-radius:14px;padding:22px 14px;text-align:center;background:var(--card)}.cert h2{font-size:24px;color:var(--pri)}.cert .s{width:60%;margin:22px auto 4px;border-top:1px solid var(--mut)}.st{display:flex;gap:6px;margin-bottom:12px}.st span{flex:1;text-align:center;font-size:11px;padding:8px 2px;border-radius:99px;background:var(--ln);color:var(--mut)}.st .d{background:var(--ok);color:#fff}.st .c{background:var(--pri);color:#fff}.sw{width:40px;height:22px;border-radius:99px;background:var(--ok);position:relative;flex:none}.sw:after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}</style>
@@ -1040,7 +1032,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     return '<div class="data-metric"><span>' + esc(label) + '</span><strong>' + esc(numberLabel(value)) + '</strong><span class="item-meta">' + esc(foot || '') + '</span></div>';
   }
 
-  // --- Funções para gerenciar o estado da Camiseta diretamente na pessoa ---
   function shirtChoiceLabel(person) {
     var saved = normal(person && person.shirtChoice);
     if (saved === 'sim' || saved === 'quer camiseta') return 'Sim';
@@ -1156,7 +1147,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
 
-    // Listener para delegação de alteração nos seletores de camiseta dos batizantes
     document.getElementById('people-results').addEventListener('change', function (event) {
       var node = event.target;
       if (!node || !node.matches('select[data-shirt-field]')) return;
@@ -1242,10 +1232,8 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       var mark = link ? (dayMarks[dayId(link)] || {}) : null;
       var attendance = link ? chip(mark && mark.presente ? 'Presente' : 'Não marcado presente', mark && mark.presente ? 't-ok' : 't-pe') + chip(mark && mark.batizado ? 'Batizado' : 'Não marcado batizado', mark && mark.batizado ? 't-ok' : 't-in') : chip('Ordem sem vínculo seguro', 't-in');
       
-      // Apenas botão Marcar Presente retido (botão Marcar Batizado e Ficha Completa removidos conforme imagem)
       var checkinActions = link ? '<button type="button" class="btn ' + (mark && mark.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(dayId(link)) + '" data-order-row="' + esc(link.sourceRow) + '">' + (mark && mark.presente ? '✓ Presente' : 'Marcar presente') + '</button>' : '';
       
-      // Controlos de camiseta integrados diretamente no card do Batizante
       var choice = shirtChoiceLabel(p);
       var size = shirtSizeValue(p);
       var payment = shirtPaymentChoice(p);
@@ -1533,7 +1521,6 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     document.getElementById('order-results').innerHTML=view.map(function(r){
       var key=orderItemKey(r), marks=dayMarks[dayId(r)]||{}, eklesiaMarked=!!marks.eklesia || (!isBlank(r.eklesiaStatus)&&normal(r.eklesiaStatus)==='ok');
       
-      // Removidos os botões "Não batizado" e "Editar origem", mantendo Presente, Batizado (quando selecionado) e Incluído no Ekklesia conforme solicitado
       var statusActions = '';
       if (r.name) {
         statusActions += '<button class="btn ' + (marks.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (marks.presente ? '✓ Presente' : 'Presente') + '</button>';
@@ -1876,294 +1863,4 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', draggedOrderKey || ''); }
   });
   document.addEventListener('dragover', function (event) {
-    var item = event.target.closest('.order-item');
-    if (!item || !draggedOrderKey) return;
-    event.preventDefault();
-    document.querySelectorAll('.order-item.order-drag-over').forEach(function (node) { node.classList.remove('order-drag-over'); });
-    if (item.dataset.orderKey !== draggedOrderKey) item.classList.add('order-drag-over');
-  });
-  document.addEventListener('dragend', function () {
-    document.querySelectorAll('.order-dragging,.order-drag-over').forEach(function (node) { node.classList.remove('order-dragging','order-drag-over'); });
-    draggedOrderKey = null;
-  });
-  document.addEventListener('drop', async function (event) {
-    var target = event.target.closest('.order-item');
-    if (!target || !draggedOrderKey) return;
-    event.preventDefault();
-    var targetKey = target.dataset.orderKey;
-    var turma = selectedOrderTurma();
-    if (!targetKey || targetKey === draggedOrderKey) return;
-    var all = currentOrderItems();
-    var keys = all.map(orderItemKey);
-    var from = keys.indexOf(draggedOrderKey), to = keys.indexOf(targetKey);
-    if (from < 0 || to < 0) return;
-    keys.splice(from, 1); keys.splice(to, 0, draggedOrderKey);
-    var draft = cloneWorkspaceForEdit();
-    if (!draft.ordemSequencia || typeof draft.ordemSequencia !== 'object') draft.ordemSequencia = {};
-    draft.ordemSequencia[String(turma.id)] = keys;
-    try {
-      await window.firebaseSaveWorkspace(draft, true);
-      try { await saveWorkspace(draft, false); } catch (localError) {}
-      appData = draft;
-      buildAll();
-      goTo('ord');
-    } catch (error) {
-      dayToast('Erro ao reordenar.');
-    } finally {
-      document.querySelectorAll('.order-dragging,.order-drag-over').forEach(function (node) { node.classList.remove('order-dragging','order-drag-over'); });
-      draggedOrderKey = null;
-    }
-  });
-
-  document.addEventListener('click', async function (event) {
-    var addPersonButton = event.target.closest('[data-add-person]');
-    if (addPersonButton) { openRecordEditor('person', null); return; }
-    var editPersonButton = event.target.closest('[data-edit-person]');
-    if (editPersonButton && appData) {
-      var editPerson = appData.people.find(function (item) { return Number(item.sourceRow) === Number(editPersonButton.dataset.editPerson); });
-      if (editPerson) openRecordEditor('person', editPerson);
-      return;
-    }
-    var editManualOrderButton=event.target.closest('[data-edit-manual-order]');if(editManualOrderButton){editManualOrder(editManualOrderButton.dataset.editManualOrder);return;}
-    var addOrderButton = event.target.closest('[data-add-order]');
-    if (addOrderButton) { openRecordEditor('order', null); return; }
-    var editOrderButton = event.target.closest('[data-edit-order]');
-    if (editOrderButton && appData) {
-      var editOrder = appData.order.find(function (item) { return Number(item.sourceRow) === Number(editOrderButton.dataset.editOrder); });
-      if (editOrder) openRecordEditor('order', editOrder);
-      return;
-    }
-
-    var editManualButton = event.target.closest('[data-edit-manual-person]');
-    if(editManualButton){editManualPerson(editManualButton.dataset.editManualPerson);return;}
-
-    var createTurmaButton = event.target.closest('[data-create-turma]');
-    if (createTurmaButton && appData) {
-      var input = document.getElementById('turma-new-number');
-      var number = (input && input.value || '').trim();
-      var status = document.getElementById('turma-status');
-      if (!number) { if (status) { status.className = 'import-status error'; status.textContent = 'Informe o número da turma.'; } return; }
-      ensureTurmaRegistry(appData);
-      var draftTurmas = cloneWorkspaceForEdit();
-      if (!Array.isArray(draftTurmas.turmas)) draftTurmas.turmas = [];
-      var id = number.replace(/[^a-zA-Z0-9_-]/g, '_');
-      draftTurmas.turmas.push({ id: id, number: number, name: 'Turma ' + number, status: 'ativa', createdAt: new Date().toISOString(), source: 'cadastro_manual' });
-      draftTurmas.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
-      if (input) input.value = '';
-      await persistTurmaRegistry(draftTurmas, 'Turma ' + number + ' criada.');
-      return;
-    }
-    var defaultTurmaButton = event.target.closest('[data-default-turma]');
-    if (defaultTurmaButton && appData) {
-      var draftDefault = cloneWorkspaceForEdit();
-      draftDefault.turmaPadrao = String(defaultTurmaButton.dataset.defaultTurma);
-      await persistTurmaRegistry(draftDefault, 'Turma padrão alterada.');
-      return;
-    }
-
-    var goButton = event.target.closest('[data-go]');
-    if (goButton) { goTo(goButton.dataset.go); return; }
-
-    var openPersonButton = event.target.closest('[data-open-person]');
-    if (openPersonButton && appData) {
-      var sourceRow = String(openPersonButton.dataset.openPerson || '');
-      var person = (appData.people || []).find(function (p) { return String(p.sourceRow) === sourceRow; });
-      if (!person) {
-        var fallbackRow = Number(sourceRow);
-        person = (appData.people || []).find(function (p) { return Number(p.sourceRow) === fallbackRow; });
-      }
-      if (!person) return;
-      selectedPersonRow = Number(person.sourceRow);
-      var fichaSection = document.getElementById('fic');
-      goTo('pes');
-      buildFiche(person);
-      fichaSection.removeAttribute('hidden');
-      fichaSection.hidden = false;
-      fichaSection.classList.add('on');
-      fichaSection.scrollIntoView({ behavior: 'auto', block: 'start' });
-      return;
-    }
-
-    var pageButton = event.target.closest('[data-page]');
-    if (pageButton && !pageButton.disabled) {
-      var parts = pageButton.dataset.page.split(':');
-      var stateMap = { people: peopleState, order: orderState, day: dayState, pending: pendingState, return: returnState, history: historyState };
-      var state = stateMap[parts[0]];
-      if (state) {
-        state.page = Math.max(1, state.page + Number(parts[1]));
-        var drawMap = { people: drawPeopleResults, order: drawOrderResults, day: drawDayResults, pending: drawPendingResults, return: drawReturnResults, history: drawHistoryResults };
-        drawMap[parts[0]]();
-      }
-      return;
-    }
-
-    var checkinButton = event.target.closest('[data-checkin][data-checkin-id]');
-    if(checkinButton&&appData){
-      if(!window.firebaseToggleDayMark){dayToast('Aguarde a conexão.');return;}
-      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=orderForTurma().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':(kind==='batizado'?'batizadoEm':'eklesiaEm');
-      await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row);
-      return;
-    }
-    if(event.target.closest('[data-day-print]')){window.print();return;}
-
-    var restoreButton = event.target.closest('[data-restore-backup]');
-    if (restoreButton) {
-      var backupId = restoreButton.dataset.restoreBackup;
-      var snapshot = await getSnapshotById(backupId);
-      if (!snapshot) return;
-      if (!window.confirm('Restaurar esta versão local?')) return;
-      try {
-        await window.firebaseSaveWorkspace(Object.assign({}, snapshot, { id: 'current' }), true);
-        appData = Object.assign({}, snapshot, { id: 'current' });
-        selectedPersonRow = null;
-        buildAll();
-        goTo('home');
-      } catch (error) {
-        setImportMessage('Não foi possível restaurar: ' + error.message, 'error');
-      }
-      return;
-    }
-
-    var backupDownload = event.target.closest('[data-download-backup]');
-    if (backupDownload) {
-      var downloadSnapshot = await getSnapshotById(backupDownload.dataset.downloadBackup);
-      downloadWorkbook(downloadSnapshot);
-      return;
-    }
-    var currentDownload = event.target.closest('[data-download-current]');
-    if (currentDownload && appData) {
-      if (currentDownload.dataset.downloadCurrent === 'xlsx') downloadWorkbook(appData);
-      else downloadJson(appData);
-      return;
-    }
-    if (event.target.closest('[data-print]')) {
-      window.print();
-    }
-  });
-
-  async function initialize() {
-    try {
-      var existing = await getCurrentWorkspace();
-      if (existing && existing.rawSheets && existing.people && existing.order) {
-        appData = existing;
-        buildAll();
-      } else {
-        setImportMessage('Nenhuma planilha importada. Selecione o Excel para importar.');
-        await refreshBackups();
-      }
-    } catch (error) {
-      setImportMessage('Erro ao abrir armazenamento local: ' + error.message, 'error');
-    }
-  }
-
-  window.addEventListener('firebase-authenticated', async function (event) {
-    try {
-      var detail = event.detail || {};
-      var remoteWorkspace = detail.workspace || null;
-      var localWorkspace = null;
-      try { localWorkspace = await getCurrentWorkspace(); } catch (localError) {}
-      if (remoteWorkspace) {
-        if (localWorkspace && localWorkspace.importedAt === remoteWorkspace.importedAt && localWorkspace.sourceWorkbook) remoteWorkspace.sourceWorkbook = localWorkspace.sourceWorkbook;
-        appData = Object.assign({}, remoteWorkspace, { id: 'current' });
-        selectedPersonRow = null;
-        buildAll();
-        goTo('home');
-      } else {
-        appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], checkin: {}, turmas: [], ordensTurma: [], turmaPadrao: '', participantes: [] };
-        renderEmptyWorkspace();
-        buildAll();
-        await refreshBackups();
-        goTo('tur');
-      }
-    } catch (error) {
-      setImportMessage('Erro ao iniciar: ' + (error.message || 'erro desconhecido'), 'error');
-    } finally {
-      window.dispatchEvent(new Event('firebase-ui-ready'));
-    }
-  });
-})();
-</script>
-
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',
-  authDomain: 'batismo-8c5f8.firebaseapp.com',
-  projectId: 'batismo-8c5f8',
-  storageBucket: 'batismo-8c5f8.firebasestorage.app',
-  messagingSenderId: '295480263009',
-  appId: '1:295480263009:web:248a3e15c577eadbcac520'
-};
-const firebaseApp = initializeApp(firebaseConfig);
-const auth = getAuth(firebaseApp);
-let firestore;
-try { firestore = initializeFirestore(firebaseApp, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); } catch(e) { firestore = getFirestore(firebaseApp); }
-const loginShell = document.getElementById('auth-shell');
-const loginForm = document.getElementById('firebase-login');
-const loginStatus = document.getElementById('firebase-status');
-const loginButton = document.getElementById('firebase-login-submit');
-const googleLoginButton = document.getElementById('firebase-google-login');
-const logoutButton = document.createElement('button');
-let lastAuthError = '';
-let handlingUser = false;
-
-logoutButton.id = 'fb-logout';
-logoutButton.type = 'button';
-logoutButton.textContent = 'Sair';
-logoutButton.hidden = true;
-logoutButton.setAttribute('aria-label', 'Sair da conta do sistema');
-const brand = document.querySelector('header .brand');
-if (brand) brand.insertBefore(logoutButton, document.getElementById('tm'));
-
-function setLoginStatus(message, isError) {
-  loginStatus.textContent = message;
-  loginStatus.classList.toggle('error', !!isError);
-}
-function explainAuthError(error) {
-  const code = error && error.code ? error.code : '';
-  if (code === 'auth/unauthorized-domain') return 'Este domínio ainda não foi autorizado no Firebase.';
-  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'E-mail ou senha inválidos.';
-  if (code === 'auth/too-many-requests') return 'Muitas tentativas. Aguarde um momento.';
-  if (code === 'auth/popup-blocked') return 'O navegador bloqueou a janela de login Google.';
-  if (code === 'auth/popup-closed-by-user') return 'A janela de autenticação foi fechada.';
-  return 'Erro de conexão ao Firebase (' + (code || 'erro') + ').';
-}
-function safeValue(value) {
-  if (value === undefined) return null;
-  if (value === null || typeof value !== 'object') return value;
-  if (value instanceof Date) return value.toISOString();
-  if (Array.isArray(value)) return value.map(safeValue);
-  const result = {};
-  Object.keys(value).forEach(function (key) {
-    if (key !== 'sourceWorkbook' && value[key] !== undefined) result[key] = safeValue(value[key]);
-  });
-  return result;
-}
-function chunkItems(section, items, chunkSize, extra) {
-  const result = [];
-  for (let start = 0, part = 0; start < items.length; start += chunkSize, part++) {
-    result.push({
-      id: (extra && extra.idPrefix ? extra.idPrefix : 's_' + section + '_') + String(part).padStart(4, '0'),
-      section: section,
-      part: part,
-      sheetName: extra && extra.sheetName ? extra.sheetName : null,
-      sheetIndex: extra && Number.isInteger(extra.sheetIndex) ? extra.sheetIndex : -1,
-      items: safeValue(items.slice(start, start + chunkSize))
-    });
-  }
-  return result;
-}
-async function writeInBatches(actions) {
-  for (let start = 0; start < actions.length; start += 400) {
-    const batch = writeBatch(firestore);
-    actions.slice(start, start + 400).forEach(function (action) {
-      if (action.type === 'delete') batch.delete(action.ref);
-      else batch.set(action.ref, action.data);
-    });
-    await batch.commit();
-  }
-}
-let baseWorkspaceVersionId = null;
+    var item = event.target.closest
