@@ -34,7 +34,7 @@ jobs:
           current = path.read_text(encoding='utf-8')
           good = subprocess.check_output(['git', 'show', GOOD + ':index.html'], text=True)
 
-          auth_re = re.compile(r"import \{[^}]+\} from 'https://www\.gstatic\.com/firebasejs/[^/]+/firebase-auth\.js';")
+          auth_re = re.compile(r"import\s+\{[^}]+\}\s+from\s+['\"]https://www\.gstatic\.com/firebasejs/[^'\"]+/firebase-auth\.js['\"]\s*;")
           good_import = auth_re.search(good)
           current_import = auth_re.search(current)
           if not good_import or not current_import:
@@ -101,4 +101,4 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# Disparo intencional para publicar a correção do login Google.
+# Correção do login Google baseada na versão estável, preservando a V8.
