@@ -30,21 +30,8 @@ jobs:
       - name: Restaurar Google Login da versão estável
         run: python scripts/restore-google-login.py
 
-      - name: Validar JavaScript
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          text = Path('index.html').read_text(encoding='utf-8')
-          marker = '<script type="module">'
-          start = text.find(marker)
-          end = text.find('</script>', start + len(marker)) if start >= 0 else -1
-          if start < 0 or end < 0:
-              raise SystemExit('Bloco Firebase module não encontrado')
-          Path('/tmp/firebase-module.js').write_text(text[start + len(marker):end], encoding='utf-8')
-          print('Bloco Firebase module encontrado e extraído para validação.')
-          PY
-          node --check /tmp/firebase-module.js
+      - name: Validar scripts inline
+        run: node scripts/check-inline-scripts.mjs
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
