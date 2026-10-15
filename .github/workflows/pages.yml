@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -27,11 +27,23 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restaurar Google Login da versão estável
+      - name: Restaurar Google Login e módulo Firebase da versão estável
         run: python scripts/restore-google-login.py
 
       - name: Validar scripts inline
         run: node scripts/check-inline-scripts.mjs
+
+      - name: Persistir correção no index.html
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "index.html já está consolidado."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add index.html
+            git commit -m "fix: consolidar módulo Firebase e Google Login [skip ci]"
+            git push origin HEAD:main
+          fi
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
