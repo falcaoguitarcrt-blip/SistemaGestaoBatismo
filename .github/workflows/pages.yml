@@ -1,0 +1,102 @@
+name: Publicar Gestão de Batismo no GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restaurar login Google da versão estável
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import subprocess
+
+          GOOD = '1866477c39550edf420557f2d31b32e34b5b1041'
+          path = Path('index.html')
+          current = path.read_text(encoding='utf-8')
+          good = subprocess.check_output(['git', 'show', GOOD + ':index.html'], text=True)
+
+          auth_re = re.compile(r"import \{[^}]+\} from 'https://www\.gstatic\.com/firebasejs/[^/]+/firebase-auth\.js';")
+          good_import = auth_re.search(good)
+          current_import = auth_re.search(current)
+          if not good_import or not current_import:
+              raise SystemExit('Import do Firebase Auth não encontrado nas versões comparadas.')
+          current = current[:current_import.start()] + good_import.group(0) + current[current_import.end():]
+
+          def listener_end(text, start):
+              brace = text.find('{', start)
+              if brace < 0:
+                  raise SystemExit('Início do handler Google não encontrado.')
+              depth = 0
+              for i in range(brace, len(text)):
+                  if text[i] == '{':
+                      depth += 1
+                  elif text[i] == '}':
+                      depth -= 1
+                      if depth == 0:
+                          semi = text.find(';', i)
+                          if semi < 0:
+                              raise SystemExit('Fim do handler Google não encontrado.')
+                          return semi + 1
+              raise SystemExit('Handler Google sem fechamento.')
+
+          marker = "googleLoginButton.addEventListener('click'"
+          good_listener = good.find(marker)
+          current_listener = current.find(marker)
+          if good_listener < 0 or current_listener < 0:
+              raise SystemExit('Listener do botão Google não encontrado nas versões comparadas.')
+
+          good_end = listener_end(good, good_listener)
+          current_end = listener_end(current, current_listener)
+          good_start = good.rfind('// Processa um eventual retorno de signInWithRedirect', 0, good_listener)
+          if good_start < 0:
+              good_start = good.find('async function startGoogleLogin()', 0, good_listener)
+          if good_start < 0:
+              good_start = good_listener
+
+          current = current[:current_listener] + good[good_start:good_end] + current[current_end:]
+          path.write_text(current, encoding='utf-8')
+
+      - name: Validar JavaScript
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('index.html').read_text(encoding='utf-8')
+          blocks = re.findall(r'<script type="module">(.*?)</script>', text, re.S)
+          if not blocks:
+              raise SystemExit('Nenhum bloco module encontrado')
+          for n, block in enumerate(blocks):
+              Path(f'/tmp/firebase-module-{n}.js').write_text(block, encoding='utf-8')
+          PY
+          for file in /tmp/firebase-module-*.js; do node --check "$file"; done
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+      - name: Preparar arquivos estáticos
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - name: Publicar página
+        id: deployment
+        uses: actions/deploy-pages@v4
