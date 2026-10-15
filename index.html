@@ -91,6 +91,18 @@ h2.t{font-size:22px;margin:4px 0 12px}
 @media(max-width:760px){.shirt-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.shirt-person{grid-column:1/-1;border-bottom:1px solid var(--ln);padding-bottom:10px}.shirt-control select{min-height:40px}}
 @media(max-width:380px){.shirt-row{grid-template-columns:minmax(0,1fr)}.shirt-person{grid-column:auto}}
 
+/* Controles rápidos da lista de pessoas */
+.people-quick-controls{display:grid;grid-template-columns:repeat(3,minmax(145px,1fr));gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid var(--ln)}
+.people-quick-control{min-width:0}
+.people-quick-control label{display:block;font-size:10px;font-weight:700;color:var(--mut);margin:0 0 4px}
+.people-quick-control select{width:100%;min-height:42px;padding:8px 30px 8px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-size:12px}
+.people-quick-control select:focus{outline:2px solid var(--pri);outline-offset:1px}
+.people-quick-status{font-size:11px;min-height:15px;margin-top:4px;color:var(--mut);grid-column:1/-1}
+.people-quick-status.is-saving{color:var(--pri)}
+.people-quick-status.is-saved{color:var(--ok)}
+.people-quick-status.is-error{color:var(--er)}
+@media(max-width:760px){.people-quick-controls{grid-template-columns:1fr;gap:7px}.people-quick-control select{min-height:44px}}
+
 .data-item strong{overflow-wrap:anywhere}
 .data-item .item-meta{font-size:12px;color:var(--mut);margin-top:4px;line-height:1.5;overflow-wrap:anywhere}
 .data-item .item-badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
@@ -1171,6 +1183,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
+    document.getElementById('people-results').addEventListener('change', function (event) { var node = event.target; if (!node || !node.matches('select[data-person-quick-field]')) return; updatePersonQuickField(node.getAttribute('data-person-quick-row'), node.getAttribute('data-person-quick-field'), node.value, node); });
     drawPeopleResults();
     drawManualPeople();
     document.getElementById('manual-person-form').addEventListener('submit', saveManualPerson);
@@ -1226,6 +1239,70 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       metric('Presentes', present, knownLinks.length + ' associações seguras com a ordem') +
       metric('Batizados', baptized, 'Marcações registradas');
   }
+  function personQuickSelect(label, value, options, sourceRow, field) {
+    return '<div class="people-quick-control"><label>' + esc(label) + '</label><select aria-label="' + esc(label + ' · participante') + '" data-person-quick-row="' + esc(sourceRow) + '" data-person-quick-field="' + esc(field) + '">' +
+      options.map(function (option) { return '<option value="' + esc(option.value) + '" ' + (String(value) === String(option.value) ? 'selected' : '') + '>' + esc(option.label) + '</option>'; }).join('') +
+      '</select></div>';
+  }
+  function personQuickGroupValue(person) {
+    var value = person && person.group;
+    if (value === true || normal(value) === 'true' || normal(value) === 'sim') return 'true';
+    if (value === false || normal(value) === 'false' || normal(value) === 'nao' || normal(value) === 'não') return 'false';
+    return '';
+  }
+  function personQuickPaymentValue(person) {
+    var value = person && person.shirtPaid;
+    if (value === true || normal(value) === 'true' || normal(value) === 'pago' || normal(value) === 'sim') return 'true';
+    if (value === false || normal(value) === 'false' || normal(value) === 'pendente' || normal(value) === 'nao pago' || normal(value) === 'não pago') return 'false';
+    return '';
+  }
+  function personQuickSizeValue(person) {
+    var value = person && person.shirtSize != null ? person.shirtSize : person && person.shirt;
+    var normalized = normal(value);
+    if (!normalized || normalized === 'pendente' || normalized === 'nao informado' || normalized === 'não informado') return '';
+    return clean(value);
+  }
+  async function updatePersonQuickField(sourceRow, field, value, selectNode) {
+    if (!appData) return;
+    var draft = cloneWorkspaceForEdit();
+    var personIndex = draft.people.findIndex(function (p) { return String(p.sourceRow) === String(sourceRow); });
+    if (personIndex < 0) return;
+    var person = draft.people[personIndex];
+    var fields = (person.fields || []).slice();
+    while (fields.length < 14) fields.push(null);
+    var sheetName = Object.keys(draft.rawSheets || {}).find(function (name) { return normal(name) === 'batismo'; });
+    var rowIndex = Number(sourceRow) - 1;
+    var sourceRows = sheetName ? draft.rawSheets[sheetName] : null;
+    if (!sourceRows || rowIndex < 1 || rowIndex >= sourceRows.length) return;
+    var row = (sourceRows[rowIndex] || []).slice();
+    var nextValue = (field === 'group' || field === 'payment') ? (value === '' ? null : value === 'true') : (value === '' ? null : value);
+    var fieldIndex = field === 'group' ? 7 : (field === 'size' ? 8 : 9);
+    fields[fieldIndex] = nextValue;
+    row[fieldIndex] = nextValue;
+    person.fields = fields;
+    person.group = fields[7];
+    person.shirt = fields[8];
+    person.shirtPaid = fields[9];
+    draft.people[personIndex] = person;
+    sourceRows[rowIndex] = row;
+    var container = selectNode && selectNode.closest('.data-item');
+    var status = container && container.querySelector('.people-quick-status');
+    if (status) { status.className = 'people-quick-status is-saving'; status.textContent = 'Salvando…'; }
+    if (container) container.querySelectorAll('select[data-person-quick-field]').forEach(function (node) { node.disabled = true; });
+    try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
+      await window.firebaseSaveWorkspace(draft, true);
+      try { await saveWorkspace(draft, false); } catch (localError) {}
+      appData = draft;
+      drawPeopleResults();
+      drawPeopleOpsSummary((appData.people || []).filter(function (p) { return matchesTurmaFilter(p, peopleState.turma); }));
+    } catch (error) {
+      if (status) { status.className = 'people-quick-status is-error'; status.textContent = 'Não salvo'; }
+      setImportMessage('Não foi possível salvar esta alteração: ' + (error.message || 'erro desconhecido'), 'error');
+      if (container) container.querySelectorAll('select[data-person-quick-field]').forEach(function (node) { node.disabled = false; });
+    }
+  }
+
   function drawPeopleResults() {
     if (!appData || !document.getElementById('people-results')) return;
     var query = normal(peopleState.query);

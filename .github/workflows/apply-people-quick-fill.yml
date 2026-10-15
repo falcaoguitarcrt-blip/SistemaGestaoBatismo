@@ -1,0 +1,143 @@
+name: Aplicar preenchimento rápido na lista de pessoas
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código da branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Aplicar controles rápidos
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          if '.people-quick-controls{' not in s:
+              anchor = '.data-item strong{overflow-wrap:anywhere}'
+              css = '''/* Controles rápidos da lista de pessoas */
+          .people-quick-controls{display:grid;grid-template-columns:repeat(3,minmax(145px,1fr));gap:7px;margin-top:10px;padding-top:10px;border-top:1px solid var(--ln)}
+          .people-quick-control{min-width:0}
+          .people-quick-control label{display:block;font-size:10px;font-weight:700;color:var(--mut);margin:0 0 4px}
+          .people-quick-control select{width:100%;min-height:42px;padding:8px 30px 8px 10px;border:1px solid var(--ln);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-size:12px}
+          .people-quick-control select:focus{outline:2px solid var(--pri);outline-offset:1px}
+          .people-quick-status{font-size:11px;min-height:15px;margin-top:4px;color:var(--mut);grid-column:1/-1}
+          .people-quick-status.is-saving{color:var(--pri)}
+          .people-quick-status.is-saved{color:var(--ok)}
+          .people-quick-status.is-error{color:var(--er)}
+          @media(max-width:760px){.people-quick-controls{grid-template-columns:1fr;gap:7px}.people-quick-control select{min-height:44px}}
+          
+          '''
+              if anchor not in s: raise SystemExit('Âncora CSS não encontrada')
+              s = s.replace(anchor, css + anchor, 1)
+
+          marker = '  function drawPeopleResults() {'
+          helpers = r'''  function personQuickSelect(label, value, options, sourceRow, field) {
+              return '<div class="people-quick-control"><label>' + esc(label) + '</label><select aria-label="' + esc(label + ' · participante') + '" data-person-quick-row="' + esc(sourceRow) + '" data-person-quick-field="' + esc(field) + '">' +
+                options.map(function (option) { return '<option value="' + esc(option.value) + '" ' + (String(value) === String(option.value) ? 'selected' : '') + '>' + esc(option.label) + '</option>'; }).join('') +
+                '</select></div>';
+            }
+            function personQuickGroupValue(person) {
+              var value = person && person.group;
+              if (value === true || normal(value) === 'true' || normal(value) === 'sim') return 'true';
+              if (value === false || normal(value) === 'false' || normal(value) === 'nao' || normal(value) === 'não') return 'false';
+              return '';
+            }
+            function personQuickPaymentValue(person) {
+              var value = person && person.shirtPaid;
+              if (value === true || normal(value) === 'true' || normal(value) === 'pago' || normal(value) === 'sim') return 'true';
+              if (value === false || normal(value) === 'false' || normal(value) === 'pendente' || normal(value) === 'nao pago' || normal(value) === 'não pago') return 'false';
+              return '';
+            }
+            function personQuickSizeValue(person) {
+              var value = person && person.shirtSize != null ? person.shirtSize : person && person.shirt;
+              var normalized = normal(value);
+              if (!normalized || normalized === 'pendente' || normalized === 'nao informado' || normalized === 'não informado') return '';
+              return clean(value);
+            }
+            async function updatePersonQuickField(sourceRow, field, value, selectNode) {
+              if (!appData) return;
+              var draft = cloneWorkspaceForEdit();
+              var personIndex = draft.people.findIndex(function (p) { return String(p.sourceRow) === String(sourceRow); });
+              if (personIndex < 0) return;
+              var person = draft.people[personIndex];
+              var fields = (person.fields || []).slice();
+              while (fields.length < 14) fields.push(null);
+              var sheetName = Object.keys(draft.rawSheets || {}).find(function (name) { return normal(name) === 'batismo'; });
+              var rowIndex = Number(sourceRow) - 1;
+              var sourceRows = sheetName ? draft.rawSheets[sheetName] : null;
+              if (!sourceRows || rowIndex < 1 || rowIndex >= sourceRows.length) return;
+              var row = (sourceRows[rowIndex] || []).slice();
+              var nextValue = (field === 'group' || field === 'payment') ? (value === '' ? null : value === 'true') : (value === '' ? null : value);
+              var fieldIndex = field === 'group' ? 7 : (field === 'size' ? 8 : 9);
+              fields[fieldIndex] = nextValue;
+              row[fieldIndex] = nextValue;
+              person.fields = fields;
+              person.group = fields[7];
+              person.shirt = fields[8];
+              person.shirtPaid = fields[9];
+              draft.people[personIndex] = person;
+              sourceRows[rowIndex] = row;
+              var container = selectNode && selectNode.closest('.data-item');
+              var status = container && container.querySelector('.people-quick-status');
+              if (status) { status.className = 'people-quick-status is-saving'; status.textContent = 'Salvando…'; }
+              if (container) container.querySelectorAll('select[data-person-quick-field]').forEach(function (node) { node.disabled = true; });
+              try {
+                if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
+                await window.firebaseSaveWorkspace(draft, true);
+                try { await saveWorkspace(draft, false); } catch (localError) {}
+                appData = draft;
+                drawPeopleResults();
+                drawPeopleOpsSummary((appData.people || []).filter(function (p) { return matchesTurmaFilter(p, peopleState.turma); }));
+              } catch (error) {
+                if (status) { status.className = 'people-quick-status is-error'; status.textContent = 'Não salvo'; }
+                setImportMessage('Não foi possível salvar esta alteração: ' + (error.message || 'erro desconhecido'), 'error');
+                if (container) container.querySelectorAll('select[data-person-quick-field]').forEach(function (node) { node.disabled = false; });
+              }
+            }
+          '''
+          if 'function personQuickSelect(' not in s:
+              if marker not in s: raise SystemExit('Âncora drawPeopleResults não encontrada')
+              s = s.replace(marker, helpers + '\n' + marker, 1)
+
+          old = "</div></div><div class=\"item-actions\">' + checkinActions + '<button type=\"button\" class=\"btn o\" data-open-person=\"' + esc(p.sourceRow)"
+          new = "</div><div class=\"people-quick-controls\">' + personQuickSelect('Entrou no grupo?', personQuickGroupValue(p), [{label:'Não informado',value:''},{label:'Sim',value:'true'},{label:'Não',value:'false'}], p.sourceRow, 'group') + personQuickSelect('Tamanho da camiseta', personQuickSizeValue(p), [{label:'Não informado',value:''},{label:'PP',value:'PP'},{label:'P',value:'P'},{label:'M',value:'M'},{label:'G',value:'G'},{label:'GG',value:'GG'},{label:'G1',value:'G1'},{label:'G2',value:'G2'},{label:'G3',value:'G3'},{label:'XGG',value:'XGG'},{label:'Já possui',value:'Já possui'}], p.sourceRow, 'size') + personQuickSelect('Pagamento camiseta', personQuickPaymentValue(p), [{label:'Não informado',value:''},{label:'Não pago',value:'false'},{label:'Pago',value:'true'}], p.sourceRow, 'payment') + '<div class=\"people-quick-status\" aria-live=\"polite\"></div></div></div><div class=\"item-actions\">' + checkinActions + '<button type=\"button\" class=\"btn o\" data-open-person=\"' + esc(p.sourceRow)"
+          if 'data-person-quick-field' not in s:
+              if old not in s: raise SystemExit('Linha da pessoa não encontrada')
+              s = s.replace(old, new, 1)
+
+          listener = "    document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });\n"
+          listener2 = listener + "    document.getElementById('people-results').addEventListener('change', function (event) { var node = event.target; if (!node || !node.matches('select[data-person-quick-field]')) return; updatePersonQuickField(node.getAttribute('data-person-quick-row'), node.getAttribute('data-person-quick-field'), node.value, node); });\n"
+          if 'select[data-person-quick-field]' not in s[s.find('function buildPeople'):s.find('function drawManualPeople')]:
+              if listener not in s: raise SystemExit('Listener de pessoas não encontrado')
+              s = s.replace(listener, listener2, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+
+      - name: Validar JavaScript inline
+        run: node scripts/check-inline-scripts.mjs
+
+      - name: Commit da alteração
+        run: |
+          if git diff --quiet; then
+            echo "Nenhuma alteração necessária."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "feat: preenchimento rápido de grupo e camiseta na lista"
+          git push
