@@ -1,0 +1,131 @@
+name: Fix Google Login
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-google-login:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Corrigir login Google
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          old_import = "import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';"
+          new_import = "import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';"
+
+          if old_import not in text:
+              raise SystemExit('Import do Firebase Auth não encontrado. Nenhuma alteração foi feita.')
+
+          old_handler = """googleLoginButton.addEventListener('click', async function () {
+            googleLoginButton.disabled = true;
+            loginButton.disabled = true;
+            setLoginStatus('Abrindo a autenticação segura do Google…', false);
+            try {
+              const provider = new GoogleAuthProvider();
+              provider.setCustomParameters({ prompt: 'select_account' });
+              await setPersistence(auth, browserLocalPersistence);
+              await signInWithPopup(auth, provider);
+              lastAuthError = '';
+            } catch (error) {
+              lastAuthError = explainAuthError(error);
+              setLoginStatus(lastAuthError, true);
+            } finally {
+              googleLoginButton.disabled = false;
+              loginButton.disabled = false;
+            }
+          });"""
+
+          new_handler = """async function startGoogleLogin() {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            try {
+              await setPersistence(auth, browserLocalPersistence);
+            } catch (error) {
+              console.warn('Persistência local indisponível; continuando com o login Google.', error);
+            }
+
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (isMobile) {
+              setLoginStatus('Redirecionando para o Google…', false);
+              await signInWithRedirect(auth, provider);
+              return;
+            }
+
+            try {
+              await signInWithPopup(auth, provider);
+              lastAuthError = '';
+            } catch (error) {
+              const useRedirect = error && (
+                error.code === 'auth/popup-blocked' ||
+                error.code === 'auth/operation-not-supported-in-this-environment' ||
+                error.code === 'auth/web-storage-unsupported'
+              );
+              if (!useRedirect) throw error;
+              setLoginStatus('O login Google será aberto por redirecionamento…', false);
+              await signInWithRedirect(auth, provider);
+            }
+          }
+
+          getRedirectResult(auth).catch(function (error) {
+            if (!error) return;
+            lastAuthError = explainAuthError(error);
+            setLoginStatus(lastAuthError, true);
+            console.error('Falha no retorno do login Google:', error);
+          });
+
+          googleLoginButton.addEventListener('click', async function () {
+            googleLoginButton.disabled = true;
+            loginButton.disabled = true;
+            setLoginStatus('Abrindo a autenticação segura do Google…', false);
+            try {
+              await startGoogleLogin();
+            } catch (error) {
+              lastAuthError = explainAuthError(error);
+              setLoginStatus(lastAuthError, true);
+              console.error('Falha no login Google:', error);
+            } finally {
+              googleLoginButton.disabled = false;
+              loginButton.disabled = false;
+            }
+          });"""
+
+          if old_handler not in text:
+              raise SystemExit('Bloco do botão Google não encontrado. Nenhuma alteração foi feita.')
+
+          text = text.replace(old_import, new_import, 1)
+          text = text.replace(old_handler, new_handler, 1)
+          path.write_text(text, encoding='utf-8')
+
+      - name: Validar JavaScript
+        run: |
+          python - <<'PY'
+          import re
+          from pathlib import Path
+          text = Path('index.html').read_text(encoding='utf-8')
+          block = re.search(r'<script type="module">(.*?)</script>', text, re.S)
+          if not block:
+              raise SystemExit('Bloco module não encontrado')
+          Path('/tmp/firebase-module.js').write_text(block.group(1), encoding='utf-8')
+          PY
+          node --check /tmp/firebase-module.js
+
+      - name: Commitar correção e remover workflow temporário
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git rm .github/workflows/fix-google-login.yml
+          git commit -m "fix: restaurar login Google em celulares e popups bloqueados"
+          git push
