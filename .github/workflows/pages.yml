@@ -100,3 +100,5 @@ jobs:
       - name: Publicar página
         id: deployment
         uses: actions/deploy-pages@v4
+
+# Disparo intencional para publicar a correção do login Google.
