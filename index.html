@@ -2085,9 +2085,9 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 </script>
 
 <script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
-import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyBtwizcr_LXQQIPcZrhWRDr_yOMBIf5--I',
@@ -2124,12 +2124,14 @@ function setLoginStatus(message, isError) {
 }
 function explainAuthError(error) {
   const code = error && error.code ? error.code : '';
-  if (code === 'auth/unauthorized-domain') return 'Este domínio ainda não foi autorizado no Firebase.';
-  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'E-mail ou senha inválidos.';
-  if (code === 'auth/too-many-requests') return 'Muitas tentativas. Aguarde um momento.';
-  if (code === 'auth/popup-blocked') return 'O navegador bloqueou a janela de login Google.';
-  if (code === 'auth/popup-closed-by-user') return 'A janela de autenticação foi fechada.';
-  return 'Erro de conexão ao Firebase (' + (code || 'erro') + ').';
+  if (code === 'auth/unauthorized-domain') return 'Este domínio ainda não foi autorizado. No Firebase, abra Authentication > Configurações > Domínios autorizados e adicione falcaoguitarcrt-blip.github.io.';
+  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'E-mail ou senha inválidos. Confira os dados cadastrados no Firebase Authentication.';
+  if (code === 'auth/too-many-requests') return 'Muitas tentativas de acesso. Aguarde um pouco e tente novamente.';
+  if (code === 'auth/account-exists-with-different-credential') return 'Este e-mail já está cadastrado no Firebase com outro método de login. Não exclua o usuário nem altere as regras; vamos vincular o Google à conta existente com segurança.';
+  if (code === 'auth/popup-blocked') return 'O navegador bloqueou a janela de login Google. Permita pop-ups para este site e tente novamente.';
+  if (code === 'auth/popup-closed-by-user') return 'A janela de autenticação foi fechada antes de concluir. Tente novamente e escolha sua conta Google.';
+  if (code === 'permission-denied' || code === 'firestore/permission-denied') return 'O login foi reconhecido, mas as regras do Firestore não autorizaram a leitura. Confira o UID permitido nas regras.';
+  return 'Não foi possível conectar ao Firebase (' + (code || 'erro de conexão') + '). Verifique a conexão e a configuração do projeto.';
 }
 function safeValue(value) {
   if (value === undefined) return null;
@@ -2167,3 +2169,441 @@ async function writeInBatches(actions) {
   }
 }
 let baseWorkspaceVersionId = null;
+let workspaceVersionConflict = false;
+let savingWorkspaceVersionId = null;
+let workspaceVersionUnsubscribe = null;
+
+function workspaceConflictError() {
+  const error = new Error('Outra pessoa salvou alterações. Atualize os dados antes de continuar');
+  error.code = 'failed-precondition';
+  error.workspaceVersionConflict = true;
+  return error;
+}
+function workspaceNetworkError(error) {
+  return !!(error && ['unavailable', 'deadline-exceeded', 'network-request-failed'].includes(error.code)) || !navigator.onLine;
+}
+function workspaceOfflineError() {
+  const error = new Error('Sem conexão com o Firebase. A versão não foi ativada. Reconecte-se e tente novamente.');
+  error.code = 'unavailable';
+  error.workspaceNetworkError = true;
+  return error;
+}
+function withWorkspaceTimeout(promise, milliseconds) {
+  let timer;
+  const timeout = new Promise(function (_, reject) {
+    timer = setTimeout(function () {
+      const error = new Error('Sem conexão ou tempo limite aguardando o Firebase.');
+      error.code = 'deadline-exceeded';
+      error.workspaceTransactionPending = true;
+      reject(error);
+    }, milliseconds);
+  });
+  return Promise.race([promise, timeout]).finally(function () { clearTimeout(timer); });
+}
+function startWorkspaceVersionListener(user) {
+  if (workspaceVersionUnsubscribe) workspaceVersionUnsubscribe();
+  workspaceVersionUnsubscribe = onSnapshot(rootRef(), function (snap) {
+    const currentVersion = snap.exists() ? (snap.data().currentVersion || null) : null;
+    if (savingWorkspaceVersionId && currentVersion === savingWorkspaceVersionId) {
+      baseWorkspaceVersionId = currentVersion;
+      workspaceVersionConflict = false;
+      window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: currentVersion } }));
+      return;
+    }
+    if (currentVersion !== baseWorkspaceVersionId) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: currentVersion } }));
+    }
+  }, function (error) {
+    console.error('Falha ao acompanhar a versão principal do espaço de trabalho', error);
+  });
+}
+function versionPointerValue(snap) {
+  return snap.exists() ? (snap.data().currentVersion || null) : null;
+}
+function assertWorkspaceVersion(tx, metaRef, expectedVersionId) {
+  return tx.get(metaRef).then(function (snap) {
+    if (versionPointerValue(snap) !== expectedVersionId) throw workspaceConflictError();
+    return snap;
+  });
+}
+function rootRef() { return doc(firestore, 'appData', 'primary'); }
+function versionRef(versionId) { return doc(firestore, 'appData', 'primary', 'versions', versionId); }
+function versionChunksRef(versionId) { return collection(firestore, 'appData', 'primary', 'versions', versionId, 'chunks'); }
+function liveRef() { return doc(firestore, 'appData', 'primary', 'live', 'state'); }
+
+async function saveCloudWorkspace(payload, createVersion) {
+  if (!auth.currentUser) throw new Error('Faça login antes de salvar dados no Firebase.');
+  const metaRef = rootRef();
+  if (!createVersion) {
+    const metaSnap = await getDoc(metaRef);
+    if (!metaSnap.exists() || !metaSnap.data().currentVersion) throw new Error('Ainda não existe uma planilha principal no Firebase. Importe o Excel e confirme a importação primeiro.');
+    await setDoc(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+    return true;
+  }
+  if (workspaceVersionConflict) throw workspaceConflictError();
+  if (!navigator.onLine) throw workspaceOfflineError();
+
+  const expectedBaseVersionId = baseWorkspaceVersionId;
+  // Confirma conectividade e a versão-base no servidor antes de criar blocos.
+  try {
+    await withWorkspaceTimeout(runTransaction(firestore, async function (tx) {
+      await assertWorkspaceVersion(tx, metaRef, expectedBaseVersionId);
+    }, { maxAttempts: 3 }), 12000);
+  } catch (error) {
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
+    }
+    if (workspaceNetworkError(error)) throw workspaceOfflineError();
+    throw error;
+  }
+
+  const versionId = new Date().toISOString().replace(/[:.]/g, '-') + '-' + Math.random().toString(36).slice(2, 8);
+  savingWorkspaceVersionId = versionId;
+  const chunks = [];
+  let pointerTransactionStarted = false;
+  let chunksRef = null;
+  try {
+    ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
+      chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
+    });
+    const rawNames = Object.keys(payload.rawSheets || {});
+    rawNames.forEach(function (sheetName, sheetIndex) {
+      const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
+      // Preserve the existing row-object format to avoid nested arrays in Firestore.
+      const firestoreRows = rows.map(function (row, rowIndex) {
+        const cells = Array.isArray(row) ? row : [];
+        return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
+      });
+      chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
+    });
+    chunksRef = versionChunksRef(versionId);
+    await writeInBatches(chunks.map(function (item) {
+      return { type: 'set', ref: doc(chunksRef, item.id), data: item };
+    }));
+    const versionMeta = {
+      schemaVersion: 1,
+      versionId: versionId,
+      sourceFileName: payload.sourceFileName || 'Cadastro iniciado no sistema',
+      sourceFileSize: Number(payload.sourceFileSize || 0),
+      importedAt: payload.importedAt || new Date().toISOString(),
+      sheetStats: safeValue(payload.sheetStats || []),
+      sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
+      turmaPadrao: String(payload.turmaPadrao || '36'),
+      skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
+      checkin: safeValue(payload.checkin || {}),
+      createdAt: new Date().toISOString(),
+      createdBy: auth.currentUser.uid,
+      counts: {
+        participantes: Array.isArray(payload.participantes) ? payload.participantes.length : 0,
+        people: Array.isArray(payload.people) ? payload.people.length : 0,
+        order: Array.isArray(payload.order) ? payload.order.length : 0,
+        order35: Array.isArray(payload.order35) ? payload.order35.length : 0,
+        general: Array.isArray(payload.general) ? payload.general.length : 0,
+        rawSheets: rawNames.length,
+        chunks: chunks.length
+      }
+    };
+    await setDoc(versionRef(versionId), versionMeta);
+
+    // Compare-and-swap do ponteiro: só publica a nova versão se a base ainda for a mesma.
+    pointerTransactionStarted = true;
+    const pointerPromise = runTransaction(firestore, async function (tx) {
+      const snap = await tx.get(metaRef);
+      if (versionPointerValue(snap) !== expectedBaseVersionId) throw workspaceConflictError();
+      tx.set(metaRef, {
+        schemaVersion: 1,
+        currentVersion: versionId,
+        updatedAt: new Date().toISOString(),
+        updatedBy: auth.currentUser.uid
+      }, { merge: true });
+      tx.set(liveRef(), { checkin: safeValue(payload.checkin || {}), updatedAt: new Date().toISOString(), updatedBy: auth.currentUser.uid });
+    }, { maxAttempts: 3 });
+    try {
+      await withWorkspaceTimeout(pointerPromise, 12000);
+    } catch (transactionError) {
+      if (transactionError && transactionError.workspaceTransactionPending) {
+        workspaceVersionConflict = true;
+        window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+          detail: { message: 'Sem conexão com o Firebase. A confirmação do salvamento ainda pode chegar. Atualize o estado antes de repetir.' }
+        }));
+        pointerPromise.then(async function () {
+          const refreshedWorkspace = await loadCloudWorkspace();
+          if (refreshedWorkspace) window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: refreshedWorkspace } }));
+          savingWorkspaceVersionId = null;
+          window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+          window.dispatchEvent(new CustomEvent('cloud-version-late-save-settled', { detail: { success: true } }));
+        }).catch(function (lateError) {
+          savingWorkspaceVersionId = null;
+          workspaceVersionConflict = true;
+          console.warn('[workspace] versão possivelmente órfã preservada após confirmação tardia rejeitada:', versionId, lateError);
+          if (lateError && lateError.workspaceVersionConflict) {
+            window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+          } else {
+            window.dispatchEvent(new CustomEvent('cloud-version-offline', {
+              detail: { message: 'O Firebase não confirmou o salvamento. Atualize o estado antes de tentar novamente.' }
+            }));
+          }
+        });
+      }
+      throw transactionError;
+    }
+
+    baseWorkspaceVersionId = versionId;
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+    window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: versionId } }));
+    return true;
+  } catch (error) {
+    if (!(error && error.workspaceTransactionPending)) savingWorkspaceVersionId = null;
+    if (error && error.workspaceVersionConflict) {
+      workspaceVersionConflict = true;
+      console.warn('[workspace] versão órfã preservada após conflito:', versionId);
+      window.dispatchEvent(new CustomEvent('cloud-version-conflict', { detail: { currentVersion: null } }));
+      throw error;
+    }
+    if (workspaceNetworkError(error)) {
+      // Nunca apagar versões em falha de rede: a confirmação pode estar indeterminada.
+      if (!(error && error.workspaceTransactionPending)) {
+        console.warn('[workspace] versão possivelmente órfã preservada após falha:', versionId);
+      }
+      const offlineError = error && error.workspaceTransactionPending
+        ? new Error('Sem conexão com o Firebase. A confirmação do salvamento ainda pode chegar. Atualize o estado antes de repetir.')
+        : workspaceOfflineError();
+      offlineError.code = error && error.workspaceTransactionPending ? 'deadline-exceeded' : 'unavailable';
+      if (error && error.workspaceTransactionPending) offlineError.workspaceTransactionPending = true;
+      throw offlineError;
+    }
+    console.warn('[workspace] versão órfã preservada após falha:', versionId);
+    throw error;
+  }
+}
+async function loadCloudWorkspace() {
+  const rootSnap = await getDoc(rootRef());
+  const versionId = versionPointerValue(rootSnap);
+  baseWorkspaceVersionId = versionId;
+  workspaceVersionConflict = false;
+  savingWorkspaceVersionId = null;
+  if (!versionId) return null;
+  const versionSnap = await getDoc(versionRef(versionId));
+  if (!versionSnap.exists()) throw new Error('A versão atual da planilha não foi encontrada no Firestore.');
+  const meta = versionSnap.data();
+  const workspace = {
+    id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
+    sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
+    skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+  };
+  const chunkSnap = await getDocs(versionChunksRef(versionId));
+  const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
+    if (a.section === 'rawSheet' && b.section !== 'rawSheet') return -1;
+    if (b.section === 'rawSheet' && a.section !== 'rawSheet') return 1;
+    if (a.section === 'rawSheet' && b.section === 'rawSheet') return (a.sheetIndex - b.sheetIndex) || (a.part - b.part);
+    return String(a.section).localeCompare(String(b.section)) || (a.part - b.part);
+  });
+  pieces.forEach(function (piece) {
+    if (piece.section === 'rawSheet') {
+      if (!workspace.rawSheets[piece.sheetName]) workspace.rawSheets[piece.sheetName] = [];
+      const rows = (piece.items || []).map(function (item) {
+        // Accept both the row-object format and any older flat-row chunks.
+        if (Array.isArray(item)) return item;
+        if (item && Array.isArray(item.cells)) return item.cells.slice(0, Number.isInteger(item.length) ? item.length : item.cells.length);
+        return [];
+      });
+      workspace.rawSheets[piece.sheetName].push.apply(workspace.rawSheets[piece.sheetName], rows);
+    } else if (Array.isArray(workspace[piece.section])) {
+      workspace[piece.section].push.apply(workspace[piece.section], piece.items || []);
+    }
+  });
+  const liveSnap = await getDoc(liveRef());
+  if (liveSnap.exists() && liveSnap.data().checkin) workspace.checkin = liveSnap.data().checkin;
+  if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
+  if (!Array.isArray(workspace.participantes)) workspace.participantes = [];
+  if (!Array.isArray(workspace.ordensTurma)) workspace.ordensTurma = [];
+  return workspace;
+}
+window.firebaseSaveWorkspace = saveCloudWorkspace;
+window.firebaseRefreshWorkspace = async function () {
+  const workspace = await loadCloudWorkspace();
+  if (!workspace) {
+    workspaceVersionConflict = true;
+    throw new Error('Não foi encontrada uma versão principal para atualizar. A linha de base permanece bloqueada.');
+  }
+  window.dispatchEvent(new CustomEvent('firebase-workspace-refresh', { detail: { workspace: workspace } }));
+  window.dispatchEvent(new CustomEvent('cloud-version-current', { detail: { currentVersion: baseWorkspaceVersionId } }));
+  return workspace;
+};
+let dayUnsub=null, dayPending=new Set(), dayOnline=navigator.onLine;
+window.firebaseIsAdmin=false;
+function emitDayStatus(ready){window.dispatchEvent(new CustomEvent('day-checkin-status',{detail:{online:dayOnline,pending:dayPending.size,ready:!!ready}}));}
+window.addEventListener('online',function(){dayOnline=true;emitDayStatus(!!dayUnsub);});
+window.addEventListener('offline',function(){dayOnline=false;emitDayStatus(!!dayUnsub);});
+window.firebaseToggleDayMark=async function(id,fields,row){
+ if(!auth.currentUser)throw new Error('Faça login para marcar.');
+ const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
+ const turmaId=String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36'));const data=Object.assign({turmaId:turmaId,posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields);
+ dayPending.add(id);emitDayStatus(!!dayUnsub);setDoc(ref,data,{merge:true}).catch(function(error){dayPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message}}));});return true;
+};
+window.addEventListener('day-legacy-marks',async function(event){
+ try {
+  const workspace=event.detail&&event.detail.workspace||{},legacy=workspace.checkin||{},order=workspace.order||[];let imported=0;
+  for(const key of Object.keys(legacy)){
+   const row=order.find(function(r){return String(r.sourceRow)===String(key);}),old=legacy[key]||{};
+   if(!row||(!old.present&&!old.baptized))continue;
+   const id='36_'+String(row.number||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_'),ref=doc(firestore,'marcacoesBatismo',id);
+   const data={turmaId:'36',posicaoOuPessoaId:String(row.number||row.sourceRow),presente:!!old.present,presenteEm:old.present?(old.presenteEm||old.presentAt||null):null,batizado:!!old.baptized,batizadoEm:old.baptized?(old.batizadoEm||old.baptizedAt||null):null,porUid:auth.currentUser.uid,porNome:auth.currentUser.displayName||auth.currentUser.email||'Equipe'};
+   await runTransaction(firestore,async function(tx){const snap=await tx.get(ref);if(!snap.exists()){tx.set(ref,data);imported++;}});
+  }
+  if(imported)window.alert(imported+' marcações antigas foram copiadas para o Firestore e agora sincronizam entre celulares.');
+ } catch(error) {
+  console.error('Falha na migração de marcações antigas',error);
+  window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message||'Falha na migração das marcações antigas.'}}));
+ }
+});
+function startDayListener(user){
+ if(dayUnsub)dayUnsub();
+ const q=query(collection(firestore,'marcacoesBatismo'));
+ dayUnsub=onSnapshot(q,{includeMetadataChanges:true},function(snap){
+  const marks={};dayPending.clear();snap.forEach(function(d){const data=d.data();marks[d.id]=data;if(d.metadata.hasPendingWrites)dayPending.add(d.id);});
+  dayOnline=navigator.onLine;
+  window.dispatchEvent(new CustomEvent('day-checkins-updated',{detail:{marks:marks,status:{online:dayOnline,pending:dayPending.size,ready:true}}}));
+ },function(e){console.error(e);});
+ user.getIdTokenResult().then(function(t){window.firebaseIsAdmin=t.claims.admin===true;window.dispatchEvent(new Event('firebase-admin-status'));}).catch(function(){});
+}
+
+
+// Processa um eventual retorno de signInWithRedirect uma única vez durante a inicialização.
+// A ausência de resultado é normal e não impede o carregamento da aplicação.
+const googleRedirectResultPromise = getRedirectResult(auth).then(function (result) {
+  if (result && result.user) {
+    lastAuthError = '';
+  }
+  return result;
+}).catch(function (error) {
+  lastAuthError = explainAuthError(error);
+  setLoginStatus(lastAuthError, true);
+  console.error('Falha ao processar o retorno do login Google por redirect', error);
+  return null;
+});
+
+googleLoginButton.addEventListener('click', async function () {
+  googleLoginButton.disabled = true;
+  loginButton.disabled = true;
+  setLoginStatus('Abrindo a autenticação segura do Google…', false);
+  try {
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    // Persistência explícita para manter a sessão após o retorno do fluxo Google em navegadores móveis.
+    await setPersistence(auth, browserLocalPersistence);
+    await signInWithPopup(auth, provider);
+    lastAuthError = '';
+  } catch (error) {
+    const code = error && error.code ? error.code : '';
+    // Somente erros que indicam que o popup não pode ser usado acionam o fallback.
+    // Cancelamento/fechamento pelo usuário não inicia redirect automaticamente.
+    if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported') {
+      try {
+        lastAuthError = '';
+        setLoginStatus('O navegador não abriu a janela. Continuando pelo modo seguro de redirecionamento…', false);
+        await signInWithRedirect(auth, provider);
+        return;
+      } catch (redirectError) {
+        lastAuthError = explainAuthError(redirectError);
+        setLoginStatus(lastAuthError, true);
+        console.error('Falha no fallback de login Google por redirect', redirectError);
+      }
+    } else {
+      lastAuthError = explainAuthError(error);
+      setLoginStatus(lastAuthError, true);
+    }
+  } finally {
+    googleLoginButton.disabled = false;
+    loginButton.disabled = false;
+  }
+});
+
+loginForm.addEventListener('submit', async function (event) {
+  event.preventDefault();
+  const email = document.getElementById('firebase-email').value.trim();
+  const password = document.getElementById('firebase-password').value;
+  loginButton.disabled = true;
+  googleLoginButton.disabled = true;
+  setLoginStatus('Validando acesso e conectando ao banco…', false);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    lastAuthError = '';
+  } catch (error) {
+    lastAuthError = explainAuthError(error);
+    setLoginStatus(lastAuthError, true);
+  } finally {
+    loginButton.disabled = false;
+    googleLoginButton.disabled = false;
+  }
+});
+logoutButton.addEventListener('click', async function () {
+  logoutButton.disabled = true;
+  // Encerra o listener antes do signOut para impedir consultas Firestore
+  // durante a transição para uma sessão não autenticada.
+  if (dayUnsub) {
+    dayUnsub();
+    dayUnsub = null;
+  }
+  dayPending.clear();
+  emitDayStatus(false);
+  try { await signOut(auth); }
+  catch (error) { setLoginStatus(explainAuthError(error), true); }
+  finally { logoutButton.disabled = false; }
+});
+onAuthStateChanged(auth, async function (user) {
+  if (!user) {
+    if (workspaceVersionUnsubscribe) { workspaceVersionUnsubscribe(); workspaceVersionUnsubscribe = null; }
+    workspaceVersionConflict = false;
+    savingWorkspaceVersionId = null;
+    // Encerra o listener de marcações quando a sessão termina para evitar
+    // consultas Firestore sem autenticação após logout ou expiração de sessão.
+    if (dayUnsub) {
+      dayUnsub();
+      dayUnsub = null;
+    }
+    dayPending.clear();
+    emitDayStatus(false);
+    handlingUser = false;
+    document.body.classList.add('auth-pending');
+    loginShell.hidden = false;
+    logoutButton.hidden = true;
+    setLoginStatus(lastAuthError || 'Use o e-mail e a senha cadastrados no Firebase Authentication.', !!lastAuthError);
+    return;
+  }
+  if (handlingUser) return;
+  handlingUser = true;
+  document.body.classList.add('auth-pending');
+  loginShell.hidden = false;
+  setLoginStatus('Acesso reconhecido. Conferindo as permissões e os dados…', false);
+  try {
+    const workspace = await loadCloudWorkspace();
+    startWorkspaceVersionListener(user);
+    startDayListener(user);
+    await new Promise(function (resolve) {
+      const onReady = function () { window.removeEventListener('firebase-ui-ready', onReady); resolve(); };
+      window.addEventListener('firebase-ui-ready', onReady, { once: true });
+      window.dispatchEvent(new CustomEvent('firebase-authenticated', { detail: { user: { uid: user.uid, email: user.email || '' }, workspace: workspace } }));
+    });
+    loginShell.hidden = true;
+    document.body.classList.remove('auth-pending');
+    logoutButton.hidden = false;
+    logoutButton.title = 'Conectado como ' + (user.email || 'usuário autorizado');
+    lastAuthError = '';
+  } catch (error) {
+    lastAuthError = explainAuthError(error);
+    setLoginStatus(lastAuthError, true);
+    await signOut(auth).catch(function () {});
+  } finally {
+    handlingUser = false;
+  }
+});
+</script>
+
+</body>
+</html>
