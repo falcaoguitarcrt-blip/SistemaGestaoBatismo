@@ -270,76 +270,29 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 @media(prefers-reduced-motion:reduce){section.on{animation:none}}
 
 
-/* ===== Redesign visual da agenda — camada de apresentação, sem alteração de comportamento ===== */
-:root {
-  --surface-0: #0d1117;
-  --surface-1: #151b23;
-  --surface-2: #1c2530;
-  --surface-3: #222e3b;
-  --line-soft: rgba(148, 163, 184, .16);
-  --line-strong: rgba(148, 163, 184, .28);
-  --text-main: #f4f7fb;
-  --text-muted: #94a3b8;
-  --accent: #f06432;
-  --accent-soft: rgba(240, 100, 50, .14);
-}
-
-body { letter-spacing: -.008em; }
-header {
-  background: linear-gradient(180deg, #11161d 0%, #0d1117 100%);
-  border-right-color: var(--line-soft);
-  box-shadow: 12px 0 34px rgba(0,0,0,.12);
-}
-.brand { font-weight: 750; letter-spacing: -.025em; }
-.brand i { box-shadow: 0 8px 22px rgba(240,100,50,.24); }
-#tm, #fb-logout { transition: background .18s ease, border-color .18s ease, transform .18s ease; }
-#tm:hover, #fb-logout:hover { background: #27313d !important; border-color: var(--line-strong) !important; transform: translateY(-1px); }
-nav#nav { gap: 4px; }
-nav#nav button { color: #aeb9c7; border-left: 3px solid transparent; border-radius: 10px; padding: 10px 12px 10px 13px; }
-nav#nav button.on { border-left-color: #ffb18f; background: linear-gradient(90deg, rgba(240,100,50,.96), rgba(206,72,28,.92)); box-shadow: 0 7px 18px rgba(240,100,50,.18); }
-nav#nav button:hover:not(.on) { background: rgba(255,255,255,.055); border-left-color: rgba(240,100,50,.55); }
-nav#nav .nav-more-label { margin-top: 12px; padding-top: 15px; border-top: 1px solid var(--line-soft); }
-nav#nav select { box-shadow: inset 0 1px 0 rgba(255,255,255,.035); }
-main { padding-top: 34px; }
-section.on { animation: dashboard-in .2s ease-out; }
-.card { border-color: var(--line-soft); box-shadow: 0 7px 24px rgba(0,0,0,.08); }
-.card:hover { border-color: rgba(240,100,50,.2); }
-.hero { border-color: rgba(255,255,255,.08); box-shadow: 0 18px 38px rgba(0,0,0,.16); }
-.hero h2 { max-width: 680px; }
-.hero p { max-width: 650px; font-size: 14px; }
-.btn { box-shadow: 0 5px 12px rgba(0,0,0,.12); }
-.btn.o { background: transparent; }
-.btn.o:hover { background: rgba(255,255,255,.055); border-color: rgba(240,100,50,.55); }
-.data-metrics .card, .data-metrics>.metric-card, .kpi, .data-metric { border-color: var(--line-soft); box-shadow: none; }
-.kpi::before, .data-metric::before { content: ''; display: block; width: 28px; height: 3px; margin-bottom: 12px; border-radius: 99px; background: var(--accent); opacity: .85; }
-.kpi b, .data-metric b, .data-metric strong { font-variant-numeric: tabular-nums; }
-.quick-action { border-color: var(--line-soft); transition: border-color .18s ease, background .18s ease, transform .18s ease; }
-.quick-action:hover { transform: translateY(-2px); }
-.section-sub { max-width: 760px; }
-.data-toolbar input, .data-toolbar select, input[type=search], .day-tools input { border-color: var(--line-soft); box-shadow: inset 0 1px 0 rgba(255,255,255,.025); }
-.data-toolbar input:focus, .data-toolbar select:focus, input[type=search]:focus, .day-tools input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,100,50,.14); outline: none; }
-.data-item { border-color: var(--line-soft); transition: border-color .18s ease, background .18s ease; }
-.data-item:hover { border-color: rgba(240,100,50,.32); background: color-mix(in srgb, var(--card) 94%, var(--accent)); }
-.data-item .item-actions .btn { box-shadow: none; }
-.history-tabs button, .day-filters button { transition: background .18s ease, border-color .18s ease; }
-.history-tabs button:hover, .day-filters button:hover { border-color: var(--accent); }
-.record-editor-card, .auth-card { box-shadow: 0 22px 80px rgba(0,0,0,.35); }
-.note { max-width: 760px; margin-left: auto; margin-right: auto; }
+/* ===== Fluxo operacional simplificado: ordem arrastável e dia do batismo ===== */
+.order-item { align-items: center; cursor: grab; transition: transform .16s ease, border-color .16s ease, background .16s ease, opacity .16s ease; }
+.order-item:active { cursor: grabbing; }
+.order-item.order-dragging { opacity: .42; transform: scale(.99); border-color: var(--pri); }
+.order-item.order-drag-over { border-color: var(--pri); background: color-mix(in srgb, var(--card) 90%, var(--pri)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--pri) 22%, transparent); }
+.order-drag-handle { flex: 0 0 28px; width: 28px; height: 34px; display: grid; place-items: center; border-radius: 8px; color: var(--mut); font-size: 22px; letter-spacing: -5px; cursor: grab; user-select: none; }
+.order-drag-handle:hover { color: var(--pri); background: color-mix(in srgb, var(--pri) 10%, transparent); }
+#ord .card:first-of-type { background: linear-gradient(135deg, color-mix(in srgb, var(--card) 94%, var(--pri)), var(--card)); }
+#ord .card:first-of-type .section-sub { margin-bottom: 0; }
+#ord .data-toolbar { grid-template-columns: minmax(0,1fr) minmax(150px,.55fr) auto; }
+#ord .data-summary { padding: 8px 10px; border-radius: 9px; background: color-mix(in srgb, var(--pri) 8%, var(--card)); }
+#dia .day-sync { border-radius: 10px; margin: 0 0 12px; }
+#dia .day-filters button { min-height: 42px; }
+#dia .day-row .btn, #dia .data-item .btn { font-weight: 750; }
+#dia .day-row .item-actions [data-checkin="presente"] { border-color: color-mix(in srgb, var(--ok) 50%, var(--ln)); }
+#dia .day-row .item-actions [data-checkin="batizado"] { background: var(--ok); color: #fff; }
 @media (min-width: 901px) {
-  header::after { content: 'Gestão operacional'; display: block; margin-top: auto; padding: 12px 12px 0; border-top: 1px solid var(--line-soft); color: #718096; font-size: 11px; letter-spacing: .04em; }
-  main > section > h2.t { display: flex; align-items: center; gap: 10px; font-size: 24px; }
-  main > section > h2.t::after { content: ''; height: 1px; flex: 1; background: var(--line-soft); }
+  header nav#nav button[data-s="home"], header nav#nav button[data-s="pes"], header nav#nav button[data-s="ord"], header nav#nav button[data-s="dia"] { font-weight: 700; }
 }
-@media (max-width: 900px) {
-  header { box-shadow: 0 8px 24px rgba(0,0,0,.13); }
-  main { padding-top: 20px; }
-  nav#nav button.on { box-shadow: none; }
-  .hero { box-shadow: 0 12px 26px rgba(0,0,0,.14); }
-}
-@media (max-width: 600px) {
-  .card { box-shadow: 0 4px 15px rgba(0,0,0,.08); }
-  .hero h2 { line-height: 1.16; }
-  .hero p { font-size: 13px; }
+@media (max-width: 760px) {
+  #ord .data-toolbar { grid-template-columns: 1fr; }
+  .order-item { align-items: flex-start; }
+  .order-drag-handle { flex-basis: 24px; width: 24px; }
 }
 
 </style>
@@ -1079,6 +1032,7 @@ section.on { animation: dashboard-in .2s ease-out; }
       generalUnmapped: generalUnmapped,
       skippedDuplicateHeaders: skippedDuplicateHeaders,
       checkin: {},
+      ordemSequencia: {},
       turmas: (appData && Array.isArray(appData.turmas) ? appData.turmas : []),
       ordensTurma: (appData && Array.isArray(appData.ordensTurma) ? appData.ordensTurma : []),
       turmaPadrao: appData && appData.turmaPadrao ? appData.turmaPadrao : '',
@@ -1431,7 +1385,8 @@ section.on { animation: dashboard-in .2s ease-out; }
       turmas: (appData.turmas || []).map(function (item) { return Object.assign({}, item); }),
       ordensTurma: (appData.ordensTurma || []).map(function(item){return Object.assign({},item);}),
       participantes: (appData.participantes || []).map(function (item) { return Object.assign({}, item, { historicoTurmas: (item.historicoTurmas || []).map(function(h){return Object.assign({},h);}), participacoes: (item.participacoes || []).map(function(h){return Object.assign({},h);}) }); }),
-      checkin: Object.assign({}, appData.checkin || {})
+      checkin: Object.assign({}, appData.checkin || {}),
+      ordemSequencia: Object.keys(appData.ordemSequencia || {}).reduce(function (all, key) { all[key] = (appData.ordemSequencia[key] || []).slice(); return all; }, {})
     });
   }
   function updateSheetStats(workspace, sheetName, rows) {
@@ -1554,7 +1509,9 @@ section.on { animation: dashboard-in .2s ease-out; }
   });
 
   function selectedOrderTurma(){var id=String(orderState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
-  function currentOrderItems(){var t=selectedOrderTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__manual:true});});if(String(t.id)==='36')return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual);return manual;}
+  function orderItemKey(row){return row&&row.__manual?'manual_'+String(row.id):'imported_'+String(row.sourceRow||row.id||row.number);}
+  function sortOrderItems(items,turmaId){var sequence=(appData.ordemSequencia&&appData.ordemSequencia[String(turmaId)])||[];if(!sequence.length)return items;var rank={};sequence.forEach(function(key,index){rank[String(key)]=index;});return items.slice().sort(function(a,b){var ar=rank[orderItemKey(a)];var br=rank[orderItemKey(b)];if(ar===undefined&&br===undefined)return 0;if(ar===undefined)return 1;if(br===undefined)return -1;return ar-br;});}
+  function currentOrderItems(){var t=selectedOrderTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__manual:true,__turmaId:String(t.id)});});var imported=String(t.id)==='36'?(appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}):[];return sortOrderItems(imported.concat(manual),t.id);}
   function buildOrder() {
     var section=document.getElementById('ord');
     section.innerHTML='<h2 class="t">Ordem de batismo</h2><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select><p class="section-sub">A ordem histórica importada da turma 36 é preservada. As demais turmas têm posições independentes.</p></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
@@ -1585,7 +1542,7 @@ section.on { animation: dashboard-in .2s ease-out; }
     var queryText=normal(orderState.query),items=currentOrderItems().filter(function(r){if(orderState.filter==='named'&&isBlank(r.name))return false;if(orderState.filter==='unnamed'&&!isBlank(r.name))return false;return !queryText||normal([r.number,r.name,r.note,r.removed,r.sourceRow].join(' ')).indexOf(queryText)>=0;});
     var pages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));orderState.page=Math.min(Math.max(1,orderState.page),pages);var start=(orderState.page-1)*PAGE_SIZE,view=items.slice(start,start+PAGE_SIZE),named=currentOrderItems().filter(function(r){return !!r.name;}).length;
     document.getElementById('order-count').textContent=numberLabel(items.length)+' posições encontradas · '+numberLabel(named)+' com nome · '+numberLabel(currentOrderItems().length-named)+' reservadas/sem nome';
-    document.getElementById('order-results').innerHTML=view.map(function(r){return '<div class="data-item"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.__manual?'Posição cadastrada no sistema':'Registro da planilha original')+' · '+(r.note?'Observação: '+esc(r.note):'Sem observação')+(isBlank(r.eklesiaStatus)?'':' · Batizado no Eklesia: '+esc(display(r.eklesiaStatus)))+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+'</div></div><div class="item-actions">'+(r.__manual?'<button type="button" class="btn o" data-edit-manual-order="'+esc(r.id)+'">Editar posição</button>':'<button type="button" class="btn o" data-edit-order="'+esc(r.sourceRow)+'">Editar origem</button>')+'</div></div>';}).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
+    document.getElementById('order-results').innerHTML=view.map(function(r){var key=orderItemKey(r);return '<div class="data-item order-item" draggable="true" data-order-key="'+esc(key)+'"><div class="order-drag-handle" title="Arrastar para reorganizar" aria-label="Arrastar para reorganizar">☷</div><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.__manual?'Posição cadastrada no sistema':'Registro da planilha original')+' · '+(r.note?'Observação: '+esc(r.note):'Sem observação')+(isBlank(r.eklesiaStatus)?'':' · Batizado no Eklesia: '+esc(display(r.eklesiaStatus)))+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+'</div></div><div class="item-actions">'+(r.__manual?'<button type="button" class="btn o" data-edit-manual-order="'+esc(r.id)+'">Editar posição</button>':'<button type="button" class="btn o" data-edit-order="'+esc(r.sourceRow)+'">Editar origem</button>')+'</div></div>';}).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
     document.getElementById('order-pager').innerHTML='<button type="button" class="btn o" data-page="order:-1" '+(orderState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+orderState.page+' de '+pages+'</span><button type="button" class="btn o" data-page="order:1" '+(orderState.page>=pages?'disabled':'')+'>Próxima →</button>';
   }
 
@@ -1593,7 +1550,7 @@ section.on { animation: dashboard-in .2s ease-out; }
   function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
   function personForDay(row){if(row&&row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
   function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
-  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});if(String(t.id)==='36')return (appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual);return manual;}
+  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});if(String(t.id)==='36')return sortOrderItems((appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual),t.id);return sortOrderItems(manual,t.id);}
   function dayId(row){var t=String(row.__turmaId||'36'),pos=String(clean(row.id)||clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');return t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos;}
   function dayBadges(row,p){var b='';if(normal(row.note||'').includes('prioridade'))b+=chip('Prioridade','t-er');if(p&&Number(p.age)>0&&Number(p.age)<18)b+=chip('Menor','t-pe');if(p&&hasPendingSignal(p))b+=chip('Pendência','t-pe');return b;}
   function buildDay(){
@@ -1997,6 +1954,7 @@ section.on { animation: dashboard-in .2s ease-out; }
       generalUnmapped: workspace.generalUnmapped,
       turmas: workspace.turmas || [],
       turmaPadrao: workspace.turmaPadrao || '36',
+      ordemSequencia: workspace.ordemSequencia || {},
       participantes: workspace.participantes || [],
       ordensTurma: workspace.ordensTurma || [],
       checkin: workspace.checkin || {},
@@ -2090,6 +2048,60 @@ section.on { animation: dashboard-in .2s ease-out; }
 
   document.getElementById('download-source').addEventListener('click', function () { downloadWorkbook(appData); });
   document.getElementById('download-json').addEventListener('click', function () { downloadJson(appData); });
+
+
+  var draggedOrderKey = null;
+  document.addEventListener('dragstart', function (event) {
+    var item = event.target.closest('.order-item');
+    if (!item) return;
+    draggedOrderKey = item.dataset.orderKey || null;
+    item.classList.add('order-dragging');
+    if (event.dataTransfer) { event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', draggedOrderKey || ''); }
+  });
+  document.addEventListener('dragover', function (event) {
+    var item = event.target.closest('.order-item');
+    if (!item || !draggedOrderKey) return;
+    event.preventDefault();
+    document.querySelectorAll('.order-item.order-drag-over').forEach(function (node) { node.classList.remove('order-drag-over'); });
+    if (item.dataset.orderKey !== draggedOrderKey) item.classList.add('order-drag-over');
+  });
+  document.addEventListener('dragend', function () {
+    document.querySelectorAll('.order-dragging,.order-drag-over').forEach(function (node) { node.classList.remove('order-dragging','order-drag-over'); });
+    draggedOrderKey = null;
+  });
+  document.addEventListener('drop', async function (event) {
+    var target = event.target.closest('.order-item');
+    if (!target || !draggedOrderKey) return;
+    event.preventDefault();
+    var targetKey = target.dataset.orderKey;
+    var turma = selectedOrderTurma();
+    if (!targetKey || targetKey === draggedOrderKey) return;
+    var all = currentOrderItems();
+    var keys = all.map(orderItemKey);
+    var from = keys.indexOf(draggedOrderKey), to = keys.indexOf(targetKey);
+    if (from < 0 || to < 0) return;
+    keys.splice(from, 1); keys.splice(to, 0, draggedOrderKey);
+    var draft = cloneWorkspaceForEdit();
+    if (!draft.ordemSequencia || typeof draft.ordemSequencia !== 'object') draft.ordemSequencia = {};
+    draft.ordemSequencia[String(turma.id)] = keys;
+    var status = document.getElementById('order-count');
+    if (status) status.textContent = 'Salvando nova ordem…';
+    try {
+      if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A conexão com o Firebase não está disponível.');
+      await window.firebaseSaveWorkspace(draft, true);
+      try { await saveWorkspace(draft, false); } catch (localError) {}
+      appData = draft;
+      buildAll();
+      goTo('ord');
+      setImportMessage('Ordem atualizada e salva. A versão anterior foi preservada.', 'success');
+    } catch (error) {
+      if (status) status.textContent = 'Não foi possível salvar a nova ordem: ' + (error.message || 'erro desconhecido');
+      dayToast('A ordem não foi alterada. Verifique a conexão e tente novamente.');
+    } finally {
+      document.querySelectorAll('.order-dragging,.order-drag-over').forEach(function (node) { node.classList.remove('order-dragging','order-drag-over'); });
+      draggedOrderKey = null;
+    }
+  });
 
   document.addEventListener('click', async function (event) {
     var addPersonButton = event.target.closest('[data-add-person]');
@@ -2498,6 +2510,7 @@ async function saveCloudWorkspace(payload, createVersion) {
       sourceSheetNames: safeValue(payload.sourceSheetNames || rawNames),
       turmaPadrao: String(payload.turmaPadrao || '36'),
       skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
+      ordemSequencia: safeValue(payload.ordemSequencia || {}),
       checkin: safeValue(payload.checkin || {}),
       createdAt: new Date().toISOString(),
       createdBy: auth.currentUser.uid,
@@ -2599,7 +2612,7 @@ async function loadCloudWorkspace() {
     id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
     sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
-    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), ordemSequencia: meta.ordemSequencia || {}, checkin: meta.checkin || {}
   };
   const chunkSnap = await getDocs(versionChunksRef(versionId));
   const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
@@ -2627,6 +2640,7 @@ async function loadCloudWorkspace() {
   if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
   if (!Array.isArray(workspace.participantes)) workspace.participantes = [];
   if (!Array.isArray(workspace.ordensTurma)) workspace.ordensTurma = [];
+  if (!workspace.ordemSequencia || typeof workspace.ordemSequencia !== 'object') workspace.ordemSequencia = {};
   return workspace;
 }
 window.firebaseSaveWorkspace = saveCloudWorkspace;
