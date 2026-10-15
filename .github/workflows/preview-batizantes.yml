@@ -27,14 +27,17 @@ jobs:
       - name: Validar proteção do Google Login
         run: python scripts/assert-google-unchanged.py
 
+      - name: Remover gatilho temporário
+        run: rm -f .preview-trigger
+
       - name: Commit da prévia na branch
         run: |
-          if git diff --quiet -- index.html; then
+          if git diff --quiet -- index.html .preview-trigger; then
             echo "Nenhuma alteração pendente."
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add index.html
+            git add index.html .preview-trigger
             git commit -m "feat: consolida presença batismo e eklesia na ordem dos batizantes [skip ci]"
             git push origin HEAD:feature/batizantes-ordem-operacional-v1
           fi
