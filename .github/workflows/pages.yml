@@ -34,16 +34,17 @@ jobs:
         shell: bash
         run: |
           python - <<'PY'
-          import re
           from pathlib import Path
           text = Path('index.html').read_text(encoding='utf-8')
-          blocks = re.findall(r'<script type="module">(.*?)</script>', text, re.S)
-          if not blocks:
-              raise SystemExit('Nenhum bloco module encontrado')
-          for n, block in enumerate(blocks):
-              Path(f'/tmp/firebase-module-{n}.js').write_text(block, encoding='utf-8')
+          marker = '<script type="module">'
+          start = text.find(marker)
+          end = text.find('</script>', start + len(marker)) if start >= 0 else -1
+          if start < 0 or end < 0:
+              raise SystemExit('Bloco Firebase module não encontrado')
+          Path('/tmp/firebase-module.js').write_text(text[start + len(marker):end], encoding='utf-8')
+          print('Bloco Firebase module encontrado e extraído para validação.')
           PY
-          for file in /tmp/firebase-module-*.js; do node --check "$file"; done
+          node --check /tmp/firebase-module.js
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
