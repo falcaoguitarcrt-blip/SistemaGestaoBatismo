@@ -38,8 +38,11 @@ jobs:
           }
           for old, new in replacements.items():
               s = s.replace(old, new)
-          p.write_text(s, encoding='utf-8')
-          print('Modo de substituição corrigido.')
+          lines = s.splitlines()
+          if lines and lines[-1].strip() == 'PY':
+              lines.pop()
+          p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
+          print('Modo de substituição corrigido e marcador residual removido.')
           PY
 
       - name: Aplicar V1 e validar Auth antes/depois
