@@ -25,6 +25,23 @@ jobs:
       - name: Garantir referência da main
         run: git fetch origin main --depth=1
 
+      - name: Corrigir modo de substituição segura do script
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/apply-batizantes-v1.py')
+          s = p.read_text(encoding='utf-8')
+          replacements = {
+              "pattern_build.subn('  ' + new_build_people + '\\n  function drawManualPeople', text, count=1)": "pattern_build.subn(lambda m: '  ' + new_build_people + '\\n  function drawManualPeople', text, count=1)",
+              "pattern_draw.subn('  ' + new_draw + '\\n  function buildFiche', text, count=1)": "pattern_draw.subn(lambda m: '  ' + new_draw + '\\n  function buildFiche', text, count=1)",
+              "pattern_fiche.subn('  ' + new_fiche + '\\n  function openRecordEditor', text, count=1)": "pattern_fiche.subn(lambda m: '  ' + new_fiche + '\\n  function openRecordEditor', text, count=1)",
+          }
+          for old, new in replacements.items():
+              s = s.replace(old, new)
+          p.write_text(s, encoding='utf-8')
+          print('Modo de substituição corrigido.')
+          PY
+
       - name: Aplicar V1 e validar Auth antes/depois
         run: python scripts/apply-batizantes-v1.py
 
@@ -38,7 +55,6 @@ jobs:
           print(f'Scripts inline encontrados: {len(blocks)}')
           if not blocks:
               raise SystemExit('Nenhum script inline encontrado')
-          # Checagem simples de equilíbrio de chaves/parênteses nos blocos JS.
           for i, block in enumerate(blocks, 1):
               if block.count('{') != block.count('}'):
                   raise SystemExit(f'Bloco JS {i}: chaves desequilibradas')
