@@ -2678,19 +2678,5 @@ onAuthStateChanged(auth, async function (user) {
 });
 </script>
 
-
-<script id="batizantes-v1-keyboard">
-(function(){
-  document.addEventListener('keydown', function(event){
-    var item = event.target.closest && event.target.closest('#pes .batizante-item[data-open-person]');
-    if (!item || (event.key !== 'Enter' && event.key !== ' ')) return;
-    if (event.target.closest('button')) return;
-    event.preventDefault();
-    var button = item.querySelector('[data-open-person]');
-    if (button) button.click();
-  });
-})();
-</script>
-
 </body>
 </html>
