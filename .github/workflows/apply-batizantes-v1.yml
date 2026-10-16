@@ -1,95 +1,98 @@
-name: Aplicar V1 Batizantes com proteção Auth
+name: Validar V1 Batizantes em modo somente leitura
 
 on:
-  push:
+  pull_request:
     branches:
-      - preview/batizantes-ficha-v1-2026-10-16
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  apply:
+  validate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout completo
+      - name: Checkout do commit avaliado
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
-      - name: Configurar Python
-        uses: actions/setup-python@v5
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.x'
+          node-version: '20'
 
       - name: Garantir referência da main
         run: git fetch origin main --depth=1
 
-      - name: Corrigir modo de substituição segura do script
+      - name: Validar proteção do módulo Google/Firebase Auth
+        env:
+          EXPECTED_AUTH_SHA256: 43bfc9e147335813a55e8dc5ab24eb0603932ab301cf82f1957636b67e635dda
         run: |
           python - <<'PY'
           from pathlib import Path
-          p = Path('scripts/apply-batizantes-v1.py')
-          s = p.read_text(encoding='utf-8')
-          replacements = {
-              "pattern_build.subn('  ' + new_build_people + '\\n  function drawManualPeople', text, count=1)": "pattern_build.subn(lambda m: '  ' + new_build_people + '\\n  function drawManualPeople', text, count=1)",
-              "pattern_draw.subn('  ' + new_draw + '\\n  function buildFiche', text, count=1)": "pattern_draw.subn(lambda m: '  ' + new_draw + '\\n  function buildFiche', text, count=1)",
-              "pattern_fiche.subn('  ' + new_fiche + '\\n  function openRecordEditor', text, count=1)": "pattern_fiche.subn(lambda m: '  ' + new_fiche + '\\n  function openRecordEditor', text, count=1)",
-          }
-          for old, new in replacements.items():
-              s = s.replace(old, new)
-          lines = s.splitlines()
-          if lines and lines[-1].strip() == 'PY':
-              lines.pop()
-          p.write_text('\n'.join(lines) + '\n', encoding='utf-8')
-          print('Modo de substituição corrigido e marcador residual removido.')
-          PY
-
-      - name: Aplicar V1 e validar Auth antes/depois
-        run: python scripts/apply-batizantes-v1.py
-
-      - name: Validar JavaScript embutido
-        run: |
-          python - <<'PY'
-          from pathlib import Path
+          import hashlib
           import re
-          s = Path('index.html').read_text(encoding='utf-8')
-          blocks = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', s, re.S)
-          print(f'Scripts inline encontrados: {len(blocks)}')
-          if not blocks:
-              raise SystemExit('Nenhum script inline encontrado')
-          for i, block in enumerate(blocks, 1):
-              if block.count('{') != block.count('}'):
-                  raise SystemExit(f'Bloco JS {i}: chaves desequilibradas')
-              if block.count('(') != block.count(')'):
-                  raise SystemExit(f'Bloco JS {i}: parênteses desequilibrados')
-          print('Validação estrutural JS: OK')
+          import subprocess
+          import os
+
+          pattern = re.compile(r'<script\s+type="module">.*?</script>', re.S)
+          current = Path('index.html').read_text(encoding='utf-8')
+          stable = subprocess.check_output(['git', 'show', 'origin/main:index.html'], text=True)
+          current_blocks = pattern.findall(current)
+          stable_blocks = pattern.findall(stable)
+
+          if len(current_blocks) != 1 or len(stable_blocks) != 1:
+              raise SystemExit('FALHA CRÍTICA: não foi possível identificar exatamente um módulo Auth na PR e na main.')
+          if current_blocks[0] != stable_blocks[0]:
+              raise SystemExit('FALHA CRÍTICA: módulo Google/Firebase Auth difere da main.')
+
+          digest = hashlib.sha256(current_blocks[0].encode('utf-8')).hexdigest()
+          print('Auth SHA256:', digest)
+          if digest != os.environ['EXPECTED_AUTH_SHA256']:
+              raise SystemExit('FALHA CRÍTICA: hash do Auth diferente do esperado.')
+          print('Proteção Auth: OK, byte a byte idêntico à main e hash esperado confirmado.')
           PY
 
-      - name: Verificar proteção do módulo Auth
+      - name: Validar sintaxe dos scripts inline
+        run: node scripts/check-inline-scripts.mjs
+
+      - name: Validar contratos multi-turma
+        run: node scripts/check-multiturma-contract.mjs
+
+      - name: Validar importação das duas abas
+        run: node scripts/check-two-sheet-import-contract.mjs
+
+      - name: Validar preservação de dados
+        run: node scripts/check-data-preservation-contract.mjs
+
+      - name: Confirmar árvore somente leitura
+        run: |
+          if ! git diff --quiet; then
+            echo 'FALHA: o workflow modificou arquivos durante a validação.'
+            git status --short
+            exit 1
+          fi
+          echo 'OK: nenhuma modificação foi criada durante a validação.'
+
+      - name: Confirmar ausência de operações de escrita no workflow
         run: |
           python - <<'PY'
           from pathlib import Path
-          import re, subprocess, hashlib
-          pat = re.compile(r'<script\s+type="module">.*?</script>', re.S)
-          current = Path('index.html').read_text(encoding='utf-8')
-          stable = subprocess.check_output(['git','show','origin/main:index.html'], text=True)
-          a = pat.findall(current)
-          b = pat.findall(stable)
-          if len(a) != 1 or len(b) != 1 or a[0] != b[0]:
-              raise SystemExit('FALHA CRÍTICA: módulo Google/Firebase Auth foi alterado.')
-          print('Auth SHA256:', hashlib.sha256(a[0].encode()).hexdigest())
-          print('Proteção Auth: OK, módulo idêntico à main.')
+          workflow = Path('.github/workflows/apply-batizantes-v1.yml').read_text(encoding='utf-8')
+          forbidden = [
+              'contents:' + ' write',
+              'git ' + 'commit',
+              'git ' + 'push',
+              'scripts/' + 'apply-batizantes-v1.py',
+          ]
+          found = [item for item in forbidden if item in workflow]
+          if found:
+              raise SystemExit('FALHA: operação de escrita/aplicação encontrada no workflow: ' + ', '.join(found))
+          if 'contents: read' not in workflow:
+              raise SystemExit('FALHA: workflow sem permissions: contents: read.')
+          print('OK: workflow somente leitura, sem commit, push ou script de aplicação.')
           PY
-
-      - name: Commitar V1 na branch de prévia
-        run: |
-          if git diff --quiet -- index.html; then
-            echo 'Nenhuma alteração no index.html.'
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add index.html
-          git commit -m 'feat: compacta preparacao e adiciona ficha completa dos batizantes'
-          git push origin HEAD:preview/batizantes-ficha-v1-2026-10-16
