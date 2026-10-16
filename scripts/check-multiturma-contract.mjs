@@ -10,7 +10,7 @@ const requiredContracts = [
   ['cadastros manuais de participantes', 'function saveManualPerson(event)'],
   ['histórico de transferência', 'historicoTurmas.push'],
   ['filtro de turma em Pendências', 'id="pending-turma"'],
-  ['filtro de turma em Camisetas', 'id="shirt-turma"'],
+  ['filtro de turma em Camisetas', 'function shirtSummary(turmaFilter)'],
   ['filtro de turma em Reposição', 'id="return-turma"'],
   ['histórico de transferências visível', 'Transferências entre turmas'],
   ['backup com cadastros manuais', 'participantes: workspace.participantes || []'],
