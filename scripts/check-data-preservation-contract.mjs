@@ -13,7 +13,7 @@ function section(start, end) {
 
 // Contrato de importação: preservar linhas com dados mesmo quando o nome está vazio.
 // Existem 30 posições sem nome conhecidas no histórico; não podem desaparecer por filtro de nome.
-const importCode = section('function normalizeWorkbook(file, buffer)', 'function namedPeople()');
+const importCode = section('function normalizeWorkbook(file, buffer)', 'function buildPeople()');
 assert.ok(importCode.includes('if (!hasData(row)) continue;'), 'Importação deve ignorar apenas linhas totalmente vazias.');
 assert.ok(importCode.includes('people.push({'), 'Importação deve manter registros com dados, inclusive linhas sem nome.');
 assert.ok(!/if\s*\(!\s*clean\(fields\[0\]\)\s*\)\s*continue/.test(importCode),

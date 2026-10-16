@@ -1,0 +1,98 @@
+name: Validar V1 Batizantes em modo somente leitura
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do commit avaliado
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Garantir referência da main
+        run: git fetch origin main --depth=1
+
+      - name: Validar proteção do módulo Google/Firebase Auth
+        env:
+          EXPECTED_AUTH_SHA256: 43bfc9e147335813a55e8dc5ab24eb0603932ab301cf82f1957636b67e635dda
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import re
+          import subprocess
+          import os
+
+          pattern = re.compile(r'<script\s+type="module">.*?</script>', re.S)
+          current = Path('index.html').read_text(encoding='utf-8')
+          stable = subprocess.check_output(['git', 'show', 'origin/main:index.html'], text=True)
+          current_blocks = pattern.findall(current)
+          stable_blocks = pattern.findall(stable)
+
+          if len(current_blocks) != 1 or len(stable_blocks) != 1:
+              raise SystemExit('FALHA CRÍTICA: não foi possível identificar exatamente um módulo Auth na PR e na main.')
+          if current_blocks[0] != stable_blocks[0]:
+              raise SystemExit('FALHA CRÍTICA: módulo Google/Firebase Auth difere da main.')
+
+          digest = hashlib.sha256(current_blocks[0].encode('utf-8')).hexdigest()
+          print('Auth SHA256:', digest)
+          if digest != os.environ['EXPECTED_AUTH_SHA256']:
+              raise SystemExit('FALHA CRÍTICA: hash do Auth diferente do esperado.')
+          print('Proteção Auth: OK, byte a byte idêntico à main e hash esperado confirmado.')
+          PY
+
+      - name: Validar sintaxe dos scripts inline
+        run: node scripts/check-inline-scripts.mjs
+
+      - name: Validar contratos multi-turma
+        run: node scripts/check-multiturma-contract.mjs
+
+      - name: Validar importação das duas abas
+        run: node scripts/check-two-sheet-import-contract.mjs
+
+      - name: Validar preservação de dados
+        run: node scripts/check-data-preservation-contract.mjs
+
+      - name: Confirmar árvore somente leitura
+        run: |
+          if ! git diff --quiet; then
+            echo 'FALHA: o workflow modificou arquivos durante a validação.'
+            git status --short
+            exit 1
+          fi
+          echo 'OK: nenhuma modificação foi criada durante a validação.'
+
+      - name: Confirmar ausência de operações de escrita no workflow
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          workflow = Path('.github/workflows/apply-batizantes-v1.yml').read_text(encoding='utf-8')
+          forbidden = [
+              'contents:' + ' write',
+              'git ' + 'commit',
+              'git ' + 'push',
+              'scripts/' + 'apply-batizantes-v1.py',
+          ]
+          found = [item for item in forbidden if item in workflow]
+          if found:
+              raise SystemExit('FALHA: operação de escrita/aplicação encontrada no workflow: ' + ', '.join(found))
+          if 'contents: read' not in workflow:
+              raise SystemExit('FALHA: workflow sem permissions: contents: read.')
+          print('OK: workflow somente leitura, sem commit, push ou script de aplicação.')
+          PY

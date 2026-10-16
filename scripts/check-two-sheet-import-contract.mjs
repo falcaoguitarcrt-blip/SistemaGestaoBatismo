@@ -16,8 +16,10 @@ includes('sourceSheetNames: selectedSheetNames.slice()', 'A prévia deve registr
 // Compatibilidade com a planilha pós-batismo: "Ordem Batismo 36" e status Eklesia.
 includes("header.indexOf('batizado no eklesia') >= 0", 'O cabeçalho BATIZADO NO EKLESIA deve ser identificado.');
 includes('eklesiaStatus: eklesiaIndex >= 0 ? row[eklesiaIndex] : null', 'O status Eklesia deve ser preservado como campo próprio.');
+includes('rawSheets: rawSheets', 'Os dados originais das abas selecionadas devem permanecer preservados em rawSheets.');
+includes('fields: values', 'Os campos originais da linha devem permanecer preservados no registro da ordem.');
 includes("key.indexOf('ordem') === 0", 'A prévia deve reconhecer nomes específicos de abas de ordem.');
-includes('Batizado no Eklesia:', 'A ordem deve exibir o status Eklesia quando estiver preenchido.');
+includes("!isBlank(r.eklesiaStatus)&&normal(r.eklesiaStatus)==='ok'", 'A renderização da Ordem deve utilizar o status Eklesia preservado.');
 
 // Editar os quatro campos operacionais não pode apagar colunas adicionais da planilha original.
 includes('var preservedRow = (rows[rowIndex] || []).slice();', 'A edição da ordem deve partir da linha original.');
@@ -26,5 +28,7 @@ includes('normalizedName.indexOf(\'ordem\') === 0', 'A edição deve localizar a
 
 console.log('OK: importação limitada às duas primeiras abas.');
 console.log('OK: ordem "Ordem Batismo 36" e status Eklesia reconhecidos.');
+console.log('OK: status Eklesia preservado em eklesiaStatus, rawSheets e fields.');
+console.log('OK: renderização da Ordem usa o status Eklesia preservado.');
 console.log('OK: edição preserva colunas originais adicionais.');
-console.log('Contratos da planilha pós-batismo verificados: 3.');
+console.log('Contratos da planilha pós-batismo verificados: 5.');
