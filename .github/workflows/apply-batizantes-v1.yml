@@ -1,0 +1,76 @@
+name: Aplicar V1 Batizantes com proteção Auth
+
+on:
+  push:
+    branches:
+      - preview/batizantes-ficha-v1-2026-10-16
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout completo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Garantir referência da main
+        run: git fetch origin main --depth=1
+
+      - name: Aplicar V1 e validar Auth antes/depois
+        run: python scripts/apply-batizantes-v1.py
+
+      - name: Validar JavaScript embutido
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          s = Path('index.html').read_text(encoding='utf-8')
+          blocks = re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>', s, re.S)
+          print(f'Scripts inline encontrados: {len(blocks)}')
+          if not blocks:
+              raise SystemExit('Nenhum script inline encontrado')
+          # Checagem simples de equilíbrio de chaves/parênteses nos blocos JS.
+          for i, block in enumerate(blocks, 1):
+              if block.count('{') != block.count('}'):
+                  raise SystemExit(f'Bloco JS {i}: chaves desequilibradas')
+              if block.count('(') != block.count(')'):
+                  raise SystemExit(f'Bloco JS {i}: parênteses desequilibrados')
+          print('Validação estrutural JS: OK')
+          PY
+
+      - name: Verificar proteção do módulo Auth
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re, subprocess, hashlib
+          pat = re.compile(r'<script\s+type="module">.*?</script>', re.S)
+          current = Path('index.html').read_text(encoding='utf-8')
+          stable = subprocess.check_output(['git','show','origin/main:index.html'], text=True)
+          a = pat.findall(current)
+          b = pat.findall(stable)
+          if len(a) != 1 or len(b) != 1 or a[0] != b[0]:
+              raise SystemExit('FALHA CRÍTICA: módulo Google/Firebase Auth foi alterado.')
+          print('Auth SHA256:', hashlib.sha256(a[0].encode()).hexdigest())
+          print('Proteção Auth: OK, módulo idêntico à main.')
+          PY
+
+      - name: Commitar V1 na branch de prévia
+        run: |
+          if git diff --quiet -- index.html; then
+            echo 'Nenhuma alteração no index.html.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'feat: compacta preparacao e adiciona ficha completa dos batizantes'
+          git push origin HEAD:preview/batizantes-ficha-v1-2026-10-16
