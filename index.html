@@ -316,6 +316,39 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   .person-shirt-controls { grid-template-columns: 1fr; }
 }
 </style>
+
+<style id="batizantes-v1-style">
+#pes .batizantes-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#pes .batizantes-head .section-sub{margin:0}
+#pes .prep-summary{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+#pes .prep-summary .tag{font-size:10px;padding:4px 7px}
+#pes .batizante-item{align-items:flex-start;cursor:pointer;transition:border-color .15s ease,transform .15s ease,background .15s ease}
+#pes .batizante-item:hover{border-color:color-mix(in srgb,var(--pri) 48%,var(--ln));transform:translateY(-1px);background:color-mix(in srgb,var(--card) 96%,var(--pri))}
+#pes .batizante-item .item-main{min-width:0}
+#pes .batizante-item .person-title{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+#pes .batizante-item .person-title strong{font-size:15px}
+#pes .prep-title{font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin-top:9px}
+#pes .prep-compact{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:5px}
+#pes .prep-cell{padding:7px 8px;border:1px solid var(--ln);border-radius:9px;background:color-mix(in srgb,var(--bg) 72%,var(--card));min-width:0}
+#pes .prep-cell small{display:block;color:var(--mut);font-size:9px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+#pes .prep-cell b{display:block;font-size:11px;overflow-wrap:anywhere}
+#pes .pending-compact{margin-top:6px;font-size:11px;color:var(--pe)}
+#pes .batizante-item .item-actions{align-self:center;min-width:105px}
+#pes .batizante-item .item-actions .btn{white-space:nowrap}
+#fic .ficha-prep-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+#fic .ficha-prep{border:1px solid var(--ln);border-radius:11px;padding:10px;background:color-mix(in srgb,var(--bg) 72%,var(--card))}
+#fic .ficha-prep small{display:block;color:var(--mut);font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+#fic .ficha-prep strong{display:block;font-size:12px;overflow-wrap:anywhere}
+#fic .ficha-section-title{display:block;font-size:14px;margin-bottom:7px}
+@media(max-width:760px){
+ #pes .prep-compact{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #pes .batizante-item .item-actions{width:100%;min-width:0;align-self:stretch}
+ #pes .batizante-item .item-actions .btn{width:100%}
+ #fic .ficha-prep-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:420px){#pes .prep-compact{grid-template-columns:1fr 1fr}#fic .ficha-prep-grid{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body class="auth-pending">
 
@@ -1142,32 +1175,21 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   function buildPeople() {
     var section = document.getElementById('pes');
     var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
-    if (turmas.indexOf('36') >= 0) { if (!peopleState.turma || peopleState.turma === '') peopleState.turma = '36'; }
+    if (turmas.indexOf('36') >= 0) { if (!peopleState.turma) peopleState.turma = '36'; }
     else if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
-
-    section.innerHTML = '<h2 class="t">Batizantes · ' + numberLabel(appData.people.length) + ' registros</h2>' +
-      '<div class="bb" style="margin:0 0 10px"><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
+    section.innerHTML = '<div class="batizantes-head"><div><h2 class="t">Batizantes · ' + numberLabel(appData.people.length) + ' registros</h2><p class="section-sub">Consulta cadastral e acompanhamento compacto da preparação. Clique em uma pessoa para abrir a ficha completa.</p></div><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
       '<div class="card"><h3 style="margin-top:0">Cadastro direto no sistema</h3><form id="manual-person-form"><div class="record-editor-fields"><label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="name"></label><label class="record-editor-field">Telefone<input id="manual-person-phone" maxlength="50" autocomplete="tel"></label><label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label><label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('') + '</select></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite"></div></form><div id="manual-person-results" class="data-list"></div></div>' +
       '<div class="data-metrics" id="people-ops-summary"></div>' +
-      '<div class="card"><div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com observação/pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option></select></div></div>' +
+      '<div class="card"><div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option></select></div></div>' +
       '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>';
-
     document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
-
-    // Listener para delegação de alteração nos seletores de camiseta dos batizantes
-    document.getElementById('people-results').addEventListener('change', function (event) {
-      var node = event.target;
-      if (!node || !node.matches('select[data-shirt-field]')) return;
-      updateShirtField(node.getAttribute('data-shirt-row'), node.getAttribute('data-shirt-field'), node.value, node);
-    });
-
     drawPeopleResults();
     drawManualPeople();
     document.getElementById('manual-person-form').addEventListener('submit', saveManualPerson);
     document.getElementById('manual-person-cancel').addEventListener('click', resetManualPersonForm);
-  }
+}
 
   function drawManualPeople(){
     var host=document.getElementById('manual-person-results'); if(!host||!appData)return;
@@ -1216,11 +1238,60 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       metric('Presentes', present, 'Na ordem do batismo');
   }
 
+function prepJourney(person) {
+    var value = clean(person && person.journey);
+    var n = normal(value);
+    if (!value) return 'Não informado';
+    if (n.indexOf('4/4') >= 0 || n.indexOf('conclu') >= 0) return value;
+    if (n.indexOf('3/4') >= 0) return value;
+    if (n.indexOf('repor') >= 0) return 'Reposição necessária';
+    return value;
+  }
+  function prepGroup(person) {
+    var value = clean(person && person.group);
+    if (!value) return 'Não informado';
+    var b = asBoolean(value);
+    if (b === true) return '✓ Grupo WhatsApp';
+    if (b === false) return 'Não entrou no grupo';
+    return value;
+  }
+  function prepEklesia(person) {
+    var value = clean(person && (person.eklesia || person.eklesiaStatus || person.baptized));
+    var n = normal(value);
+    if (!value) return 'Não informado';
+    if (n === 'ok' || n.indexOf('incluid') >= 0 || n.indexOf('sim') >= 0) return '✓ Eklesia';
+    if (n.indexOf('pend') >= 0) return 'Pendente';
+    return value;
+  }
+  function prepShirt(person) {
+    var choice = shirtChoiceLabel(person);
+    if (choice === 'Não') return 'Não deseja camiseta';
+    if (choice === 'Já possui') return 'Já possui camiseta';
+    if (choice === 'Pendente') return 'Camiseta pendente';
+    var size = shirtSizeValue(person);
+    var payment = shirtPaymentChoice(person);
+    if (!size) return 'Camiseta pendente';
+    return 'Camiseta ' + size + ' · ' + payment;
+  }
+  function prepClass(value, kind) {
+    var n = normal(value);
+    if (n.indexOf('conclu') >= 0 || n.indexOf('✓') >= 0 || n === 'sim' || n === 'pago' || n.indexOf('incluid') >= 0) return 't-ok';
+    if (n.indexOf('pend') >= 0 || n.indexOf('nao') >= 0 || n.indexOf('não') >= 0 || n.indexOf('repor') >= 0 || n.indexOf('informado') >= 0) return 't-pe';
+    return kind === 'shirt' ? 't-in' : 't-in';
+  }
+  function prepCell(label, value, kind) {
+    return '<div class="prep-cell"><small>' + esc(label) + '</small><b>' + esc(value) + '</b></div>';
+  }
+  function personPendingText(person) {
+    var flags = signalFlags(person);
+    return flags.length ? flags.slice(0, 3).join(' · ') : 'Nenhuma pendência registrada';
+  }
+
   function drawPeopleResults() {
     if (!appData || !document.getElementById('people-results')) return;
     var query = normal(peopleState.query);
     var items = appData.people.filter(function (p) {
-      var text = normal([p.name, p.phone, p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.sourceRow, p.shirt, p.shirtPaid].join(' '));
+      var text = normal([p.name, p.phone, p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.sourceRow, p.shirt, p.shirtPaid, p.group].join(' '));
       if (query && text.indexOf(query) < 0) return false;
       if (peopleState.turma && clean(p.turma) !== peopleState.turma) return false;
       if (peopleState.filter === 'pending' && !hasPendingSignal(p)) return false;
@@ -1234,42 +1305,31 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var start = (peopleState.page - 1) * PAGE_SIZE;
     var view = items.slice(start, start + PAGE_SIZE);
     document.getElementById('people-count').textContent = numberLabel(items.length) + ' registros encontrados · página ' + peopleState.page + ' de ' + pages;
-    
     document.getElementById('people-results').innerHTML = view.map(function (p) {
       var status = isBlank(p.status) ? (p.name ? 'Status não preenchido' : 'Registro incompleto') : p.status;
       var classes = p.name ? 't-in' : 't-er';
-      var link = safeDayLinkForPerson(p);
-      var mark = link ? (dayMarks[dayId(link)] || {}) : null;
-      var attendance = link ? chip(mark && mark.presente ? 'Presente' : 'Não marcado presente', mark && mark.presente ? 't-ok' : 't-pe') + chip(mark && mark.batizado ? 'Batizado' : 'Não marcado batizado', mark && mark.batizado ? 't-ok' : 't-in') : chip('Ordem sem vínculo seguro', 't-in');
-      
-      // Apenas botão Marcar Presente retido (botão Marcar Batizado e Ficha Completa removidos conforme imagem)
-      var checkinActions = link ? '<button type="button" class="btn ' + (mark && mark.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(dayId(link)) + '" data-order-row="' + esc(link.sourceRow) + '">' + (mark && mark.presente ? '✓ Presente' : 'Marcar presente') + '</button>' : '';
-      
-      // Controlos de camiseta integrados diretamente no card do Batizante
-      var choice = shirtChoiceLabel(p);
-      var size = shirtSizeValue(p);
-      var payment = shirtPaymentChoice(p);
-      var shirtControlsHtml = '<div class="person-shirt-controls">' +
-        shirtSelect('Quer camiseta?', choice, [{label:'Pendente',value:'Pendente'},{label:'Sim',value:'Sim'},{label:'Não',value:'Não'},{label:'Já possui',value:'Já possui'}], p, 'choice', false) +
-        shirtSelect('Tamanho', size, [{label:'Pendente',value:''},{label:'PP',value:'PP'},{label:'P',value:'P'},{label:'M',value:'M'},{label:'G',value:'G'},{label:'GG',value:'GG'},{label:'XGG',value:'XGG'}], p, 'size', choice === 'Não' || choice === 'Já possui') +
-        shirtSelect('Pagamento', payment, [{label:'Pendente',value:'Pendente'},{label:'Pago',value:'Pago'}], p, 'payment', choice === 'Não' || choice === 'Já possui') +
-      '</div>';
-
-      return '<div class="data-item">' +
+      var journey = prepJourney(p);
+      var group = prepGroup(p);
+      var eklesia = prepEklesia(p);
+      var shirt = prepShirt(p);
+      var pending = hasPendingSignal(p);
+      return '<div class="data-item batizante-item" data-open-person="' + esc(p.sourceRow) + '" tabindex="0" role="button" aria-label="Abrir ficha de ' + esc(displayName(p)) + '">' +
         '<div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div>' +
         '<div class="item-main">' +
-          '<strong>' + esc(displayName(p)) + '</strong>' +
-          '<div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '<br>Jornada: ' + esc(display(p.journey)) + '<br>Pendência/observação: ' + esc(display(p.pending)) + '</div>' +
-          '<div class="item-badges">' + chip(status, classes) + (isBlank(p.phone) ? chip('Sem telefone', 't-pe') : '') + (!isBlank(p.pending) ? chip('Tem observação', 't-in') : '') + attendance + '</div>' +
-          shirtControlsHtml +
+          '<div class="person-title"><strong>' + esc(displayName(p)) + '</strong>' + chip(status, classes) + '</div>' +
+          '<div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '</div>' +
+          '<div class="prep-title">Preparação</div>' +
+          '<div class="prep-compact">' +
+            prepCell('Jornada', journey, 'journey') +
+            prepCell('WhatsApp', group, 'group') +
+            prepCell('Eklesia', eklesia, 'eklesia') +
+            prepCell('Camiseta', shirt, 'shirt') +
+          '</div>' +
+          '<div class="pending-compact">' + (pending ? '⚠ ' + esc(personPendingText(p)) : '✓ Nenhuma pendência registrada') + '</div>' +
         '</div>' +
-        '<div class="item-actions">' +
-          checkinActions +
-          '<button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button>' +
-        '</div>' +
+        '<div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Ver ficha</button></div>' +
       '</div>';
     }).join('') || '<div class="data-empty">Nenhum registro encontrado com estes filtros.</div>';
-    
     document.getElementById('people-pager').innerHTML = '<button type="button" class="btn o" data-page="people:-1" ' + (peopleState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>' + numberLabel(start + (view.length ? 1 : 0)) + '–' + numberLabel(start + view.length) + ' de ' + numberLabel(items.length) + '</span><button type="button" class="btn o" data-page="people:1" ' + (peopleState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
@@ -1286,9 +1346,22 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
       ['STATUS', person.fields[10]], ['PENDENCIA', person.fields[11]], ['BATIZADO', person.fields[12]],
       ['INVESTIGAÇÃO PERFIL (FBI)', person.fields[13]]
     ];
-    section.innerHTML = '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button></div><h2 class="t">Ficha individual</h2><div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>Linha ' + esc(person.sourceRow) + ' da aba Batismo · Turma ' + esc(display(person.turma)) + '</div></div></div>' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Tem observação', 't-pe') : '') + '</div>' +
+    section.innerHTML = '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para Batizantes</button></div><h2 class="t">Ficha completa</h2>' +
+      '<div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>' + esc(display(person.age)) + ' anos · ' + esc(display(person.phone)) + ' · Turma ' + esc(display(person.turma)) + '</div></div></div><div class="item-badges" style="margin-top:8px">' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Pendência', 't-pe') : chip('Sem pendências registradas', 't-ok')) + '</div></div>' +
+      '<div class="card"><span class="ficha-section-title">Preparação</span><div class="ficha-prep-grid">' +
+        '<div class="ficha-prep"><small>Jornada</small><strong>' + esc(prepJourney(person)) + '</strong></div>' +
+        '<div class="ficha-prep"><small>Grupo WhatsApp</small><strong>' + esc(prepGroup(person)) + '</strong></div>' +
+        '<div class="ficha-prep"><small>Eklesia</small><strong>' + esc(prepEklesia(person)) + '</strong></div>' +
+        '<div class="ficha-prep"><small>Camiseta</small><strong>' + esc(prepShirt(person)) + '</strong></div>' +
+      '</div></div>' +
+      '<div class="card"><b>Jornada e pendências</b><div class="data-field-grid">' +
+        '<div class="data-field"><small>Status da jornada</small><strong>' + esc(display(person.journey)) + '</strong></div>' +
+        '<div class="data-field"><small>Aulas / reposição</small><strong>' + esc(display(person.lesson)) + '</strong></div>' +
+        '<div class="data-field"><small>Pendências</small><strong>' + esc(display(person.pending)) + '</strong></div>' +
+        '<div class="data-field"><small>Observações / perfil</small><strong>' + esc(display(person.profile)) + '</strong></div>' +
+      '</div></div>' +
       '<div class="card"><b>Todos os campos da planilha</b><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></div>' +
-      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para pessoas</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button></div>';
+      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para Batizantes</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button></div>';
   }
 
   function openRecordEditor(kind, record) {
@@ -2603,6 +2676,20 @@ onAuthStateChanged(auth, async function (user) {
     handlingUser = false;
   }
 });
+</script>
+
+
+<script id="batizantes-v1-keyboard">
+(function(){
+  document.addEventListener('keydown', function(event){
+    var item = event.target.closest && event.target.closest('#pes .batizante-item[data-open-person]');
+    if (!item || (event.key !== 'Enter' && event.key !== ' ')) return;
+    if (event.target.closest('button')) return;
+    event.preventDefault();
+    var button = item.querySelector('[data-open-person]');
+    if (button) button.click();
+  });
+})();
 </script>
 
 </body>
