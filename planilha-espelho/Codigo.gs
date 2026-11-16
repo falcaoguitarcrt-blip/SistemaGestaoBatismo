@@ -1,0 +1,356 @@
+/**
+ * Planilha espelho do Sistema de Gestão de Batismo
+ * ------------------------------------------------
+ * Lê os dados do Firebase (projeto batismo-8c5f8) e reescreve esta planilha
+ * no mesmo formato da planilha original: aba " Batismo" e uma aba
+ * "Ordem Batismo NN" por turma, além da aba "Sobre".
+ *
+ * A planilha é SOMENTE PARA CONSULTA. Tudo que for digitado aqui é apagado
+ * na próxima atualização. Cadastros e alterações são feitos no sistema.
+ *
+ * Instalação: veja planilha-espelho/LEIA-ME.md no repositório.
+ */
+
+var PROJECT_ID = 'batismo-8c5f8';
+var INTERVAL_MINUTES = 5; // 1, 5, 10, 15 ou 30
+var FIRESTORE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID + '/databases/(default)/documents';
+
+/* ===================== Menu e agendamento ===================== */
+
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Batismo')
+    .addItem('Atualizar agora', 'atualizarAgora')
+    .addSeparator()
+    .addItem('Ativar atualização automática', 'ativarAtualizacaoAutomatica')
+    .addItem('Desativar atualização automática', 'desativarAtualizacaoAutomatica')
+    .addToUi();
+}
+
+function ativarAtualizacaoAutomatica() {
+  desativarAtualizacaoAutomatica();
+  ScriptApp.newTrigger('atualizarPlanilha').timeBased().everyMinutes(INTERVAL_MINUTES).create();
+  atualizarPlanilha(true);
+  SpreadsheetApp.getActive().toast('A planilha será atualizada a cada ' + INTERVAL_MINUTES + ' minutos.', 'Batismo', 6);
+}
+
+function desativarAtualizacaoAutomatica() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === 'atualizarPlanilha') ScriptApp.deleteTrigger(t);
+  });
+}
+
+function atualizarAgora() {
+  atualizarPlanilha(true);
+  SpreadsheetApp.getActive().toast('Planilha atualizada com os dados do sistema.', 'Batismo', 5);
+}
+
+/* ===================== Atualização ===================== */
+
+function atualizarPlanilha(forcar) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(20000)) return;
+  try {
+    var data = carregarDados();
+    var tabelas = montarTabelas(data);
+    var assinatura = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(tabelas)));
+    var props = PropertiesService.getScriptProperties();
+    var ss = SpreadsheetApp.getActive();
+    if (forcar === true || props.getProperty('assinatura') !== assinatura) {
+      escreverTabelas(ss, tabelas);
+      props.setProperty('assinatura', assinatura);
+      props.setProperty('ultimaMudanca', new Date().toISOString());
+    }
+    escreverSobre(ss, data, props.getProperty('ultimaMudanca'), null);
+  } catch (e) {
+    try { escreverSobre(SpreadsheetApp.getActive(), null, null, e); } catch (ignored) {}
+    throw e;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/* ===================== Firestore (REST) ===================== */
+
+function firestoreGet(path, params) {
+  var url = FIRESTORE + '/' + path + (params ? '?' + params : '');
+  var res = UrlFetchApp.fetch(url, {
+    headers: {
+      Authorization: 'Bearer ' + ScriptApp.getOAuthToken(),
+      'X-Goog-User-Project': PROJECT_ID
+    },
+    muteHttpExceptions: true
+  });
+  var code = res.getResponseCode();
+  if (code === 404) return null;
+  if (code !== 200) throw new Error('Firestore respondeu ' + code + ': ' + res.getContentText().slice(0, 300));
+  return JSON.parse(res.getContentText());
+}
+
+function listarDocumentos(path) {
+  var docs = [], token = '';
+  do {
+    var page = firestoreGet(path, 'pageSize=300' + (token ? '&pageToken=' + encodeURIComponent(token) : ''));
+    if (!page) break;
+    (page.documents || []).forEach(function (d) { docs.push(d); });
+    token = page.nextPageToken || '';
+  } while (token);
+  return docs;
+}
+
+function valor(v) {
+  if (!v) return null;
+  if ('nullValue' in v) return null;
+  if ('stringValue' in v) return v.stringValue;
+  if ('booleanValue' in v) return v.booleanValue;
+  if ('integerValue' in v) return Number(v.integerValue);
+  if ('doubleValue' in v) return Number(v.doubleValue);
+  if ('timestampValue' in v) return v.timestampValue;
+  if ('arrayValue' in v) return (v.arrayValue.values || []).map(valor);
+  if ('mapValue' in v) return campos(v.mapValue.fields || {});
+  return null;
+}
+
+function campos(fields) {
+  var out = {};
+  Object.keys(fields || {}).forEach(function (k) { out[k] = valor(fields[k]); });
+  return out;
+}
+
+function carregarDados() {
+  var root = firestoreGet('appData/primary');
+  if (!root) throw new Error('Não encontrei appData/primary no Firestore.');
+  var versionId = campos(root.fields).currentVersion;
+  if (!versionId) throw new Error('Ainda não existe uma versão principal no sistema.');
+  var metaDoc = firestoreGet('appData/primary/versions/' + encodeURIComponent(versionId));
+  var meta = metaDoc ? campos(metaDoc.fields) : {};
+  var ws = {
+    versionId: versionId, sourceSheetNames: meta.sourceSheetNames || [], turmaPadrao: String(meta.turmaPadrao || '36'),
+    ordemSequencia: meta.ordemSequencia || {}, people: [], order: [], turmas: [], ordensTurma: [], participantes: []
+  };
+  var chunks = listarDocumentos('appData/primary/versions/' + encodeURIComponent(versionId) + '/chunks')
+    .map(function (d) { return campos(d.fields); })
+    .filter(function (c) { return c.section !== 'rawSheet'; })
+    .sort(function (a, b) { return String(a.section).localeCompare(String(b.section)) || (a.part - b.part); });
+  chunks.forEach(function (c) { if (Array.isArray(ws[c.section])) ws[c.section] = ws[c.section].concat(c.items || []); });
+  ws.marks = {};
+  listarDocumentos('marcacoesBatismo').forEach(function (d) {
+    var id = d.name.split('/').pop();
+    ws.marks[id] = campos(d.fields);
+  });
+  return ws;
+}
+
+/* ===================== Mesmas regras do sistema (index.html) ===================== */
+
+function isBlank(v) { return v === null || v === undefined || String(v).trim() === ''; }
+function clean(v) { return isBlank(v) ? '' : String(v).trim(); }
+function normal(v) { return clean(v).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function asBoolean(v) {
+  if (v === true) return true;
+  if (v === false) return false;
+  var n = normal(v);
+  if (['true', 'sim', 's', 'pago', 'ok', 'yes', '1'].indexOf(n) >= 0) return true;
+  if (['false', 'nao', 'n', 'pendente', 'no', '0'].indexOf(n) >= 0) return false;
+  return null;
+}
+function phoneDigits(v) { var t = clean(v); if (/^\d+\.0$/.test(t)) t = t.slice(0, -2); return t.replace(/\D/g, ''); }
+function phoneValid(v) { var d = phoneDigits(v); return d.length === 10 || d.length === 11 || ((d.length === 12 || d.length === 13) && d.indexOf('55') === 0); }
+function phoneLabel(v) {
+  var d = phoneDigits(v);
+  if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+  if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+  return clean(v);
+}
+function shirtChoiceLabel(p) {
+  var saved = normal(p && p.shirtChoice);
+  if (saved === 'sim' || saved === 'quer camiseta') return 'Sim';
+  if (saved === 'nao') return 'Não';
+  if (saved === 'ja possui' || saved === 'ja tem' || saved === 'ja tenho') return 'Já possui';
+  if (saved === 'pendente') return 'Pendente';
+  var value = normal(p && p.shirt);
+  if (!value) return 'Pendente';
+  if (value === 'ja tem' || value === 'ja possui' || value === 'ja tenho') return 'Já possui';
+  if (/nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao\.*/.test(value)) return 'Não';
+  return 'Sim';
+}
+function shirtSizeValue(p) {
+  if (p && p.shirtSize !== null && p.shirtSize !== undefined) return clean(p.shirtSize);
+  var legacy = clean(p && p.shirt);
+  if (!legacy || /^(ja tem|ja possui|ja tenho|nao quer|nao deseja|nao vai querer|sem camiseta|nao precisa|nao informado|pendente)$/i.test(normal(legacy))) return '';
+  return legacy;
+}
+function shirtPaymentChoice(p) {
+  if (p && p.shirtPaymentStatus) {
+    var s = normal(p.shirtPaymentStatus);
+    if (s === 'pago') return 'Pago';
+    if (s === 'pendente' || s === 'a pagar') return 'Pendente';
+  }
+  return asBoolean(p && p.shirtPaid) === true ? 'Pago' : 'Pendente';
+}
+function manualAsPerson(p) {
+  return {
+    sourceRow: String(p.id), __manual: true, name: clean(p.nome), age: p.idade, phone: p.telefone, turma: p.turma,
+    journey: p.jornada || null, lesson: p.aulaRepor || null, group: p.grupo === undefined ? null : p.grupo,
+    shirt: p.shirtSize || null, shirtPaid: null, status: p.status || null, pending: p.pendencia || null, baptized: null,
+    shirtChoice: p.shirtChoice, shirtSize: p.shirtSize, shirtPaymentStatus: p.shirtPaymentStatus, fields: []
+  };
+}
+function importedTurma(ws) { var m = String((ws.sourceSheetNames || [])[1] || '').match(/(\d+)/); return m ? m[1] : '36'; }
+function dayId(ws, row) {
+  var t = String(row.__turmaId || importedTurma(ws));
+  var pos = String(clean(row.id) || clean(row.number) || row.sourceRow).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return t === '36' && !row.__manual ? '36_' + pos : 'tur_' + t + '_' + pos;
+}
+function orderItemKey(row) { return row && row.__manual ? 'manual_' + String(row.id) : 'imported_' + String(row.sourceRow || row.id || row.number); }
+function orderItems(ws, turma) {
+  var it = importedTurma(ws), tid = String(turma.id);
+  var manual = (ws.ordensTurma || []).filter(function (r) { return String(r.turmaId) === tid; })
+    .map(function (r) { return Object.assign({}, r, { sourceRow: r.id, __manual: true, __turmaId: tid }); });
+  var imported = tid === it ? (ws.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: it }); }) : [];
+  var items = imported.concat(manual);
+  var seq = (ws.ordemSequencia || {})[tid] || [];
+  if (!seq.length) return items;
+  var rank = {};
+  seq.forEach(function (k, i) { rank[String(k)] = i; });
+  return items.slice().sort(function (a, b) {
+    var ar = rank[orderItemKey(a)], br = rank[orderItemKey(b)];
+    if (ar === undefined && br === undefined) return 0;
+    if (ar === undefined) return 1;
+    if (br === undefined) return -1;
+    return ar - br;
+  });
+}
+function eklesiaState(r, m) {
+  if (m && typeof m.eklesia === 'boolean') return m.eklesia;
+  return !isBlank(r.eklesiaStatus) && normal(r.eklesiaStatus) === 'ok';
+}
+function safeDayLink(ws, person) {
+  var it = importedTurma(ws);
+  if (!person || !person.name || String(person.turma) !== it) return null;
+  var same = (ws.people || []).filter(function (p) { return String(p.turma) === it && normal(p.name) === normal(person.name); });
+  if (same.length !== 1) return null;
+  var rows = (ws.order || []).filter(function (r) { return !!r.name && normal(r.name) === normal(person.name); });
+  return rows.length === 1 ? Object.assign({}, rows[0], { __turmaId: it }) : null;
+}
+function turmaDate(turma, people) {
+  if (turma && turma.date) return dateFromISO(turma.date);
+  var counts = {};
+  (people || []).forEach(function (p) { if (typeof p.date === 'number' && p.date > 40000 && p.date < 60000) counts[p.date] = (counts[p.date] || 0) + 1; });
+  var best = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0];
+  return best ? dateFromSerial(Number(best)) : null;
+}
+function dateFromSerial(n) { var d = new Date(1899, 11, 30, 12); d.setDate(d.getDate() + Math.floor(n)); return d; }
+function dateFromISO(s) { var m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2] - 1, +m[3], 12) : null; }
+function dateFromAny(v) {
+  if (typeof v === 'number' && v > 20000 && v < 90000) return dateFromSerial(v);
+  var t = clean(v), m;
+  if ((m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) return new Date(+m[3], +m[2] - 1, +m[1], 12);
+  return dateFromISO(t) || (t || '');
+}
+function horaDe(iso) { return iso ? Utilities.formatDate(new Date(iso), Session.getScriptTimeZone(), 'HH:mm') : ''; }
+
+/* ===================== Montagem das abas ===================== */
+
+function montarTabelas(ws) {
+  var people = (ws.people || []).concat((ws.participantes || []).map(manualAsPerson));
+  var turmaPorNumero = {};
+  (ws.turmas || []).forEach(function (t) { turmaPorNumero[String(t.number || t.id)] = t; });
+  var header = ['NOME', 'IDADE', 'TELEFONE', 'TURMA', 'DATA', 'JORNADA', 'AULA P/ REPOR', 'ENTROU NO GRUPO', 'CAMISETA', 'PG CAMISETA', 'STATUS', 'PENDENCIA', 'BATIZADO', 'INVESTIGAÇÃO PERFIL (FBI)', 'ORIGEM'];
+  var rows = [header];
+  people.forEach(function (p) {
+    var f = p.fields || [];
+    var choice = shirtChoiceLabel(p);
+    var shirt = choice === 'Já possui' ? 'Já tem' : (choice === 'Sim' ? (shirtSizeValue(p) || '') : (choice === 'Não' ? 'Não quer' : ''));
+    var paid = choice === 'Sim' ? shirtPaymentChoice(p) === 'Pago' : asBoolean(p.shirtPaid) === true;
+    var link = p.__manual ? null : safeDayLink(ws, p);
+    var mark = link ? (ws.marks[dayId(ws, link)] || {}) : {};
+    var baptized = mark.batizado ? 'SIM' + (mark.batizadoEm ? ' · ' + Utilities.formatDate(new Date(mark.batizadoEm), Session.getScriptTimeZone(), 'dd/MM/yyyy') : '') : clean(p.baptized);
+    var turmaRec = turmaPorNumero[clean(p.turma)];
+    var data = p.__manual ? (turmaDate(turmaRec, people.filter(function (x) { return clean(x.turma) === clean(p.turma); })) || '') : dateFromAny(f[4]);
+    var turmaNum = /^\d+$/.test(clean(p.turma)) ? Number(clean(p.turma)) : clean(p.turma);
+    rows.push([
+      p.name || '',
+      isBlank(p.age) ? '' : (isNaN(Number(p.age)) ? clean(p.age) : Number(p.age)),
+      isBlank(p.phone) ? '' : (phoneValid(p.phone) ? phoneLabel(p.phone) : clean(p.phone)),
+      turmaNum, data || '', clean(p.journey), clean(p.lesson), asBoolean(p.group) === true,
+      shirt, paid, clean(p.status), clean(p.pending), baptized,
+      p.__manual ? '' : clean(f[13]),
+      p.__manual ? 'Cadastro pelo site' : 'Planilha · linha ' + p.sourceRow
+    ]);
+  });
+  var tabelas = [{ nome: String((ws.sourceSheetNames || [])[0] || ' Batismo'), linhas: rows, colunaData: 5 }];
+
+  (ws.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); })
+    .forEach(function (t) {
+      var items = orderItems(ws, t);
+      if (!items.length) return;
+      var od = [['FICHAS RETIRADAS', 'NUMERAÇÃO', 'NOME', 'OBSERVAÇÃO', 'BATIZADO NO EKLESIA ', 'PRESENTE', 'HORA PRESENÇA', 'BATIZADO', 'HORA BATISMO']];
+      items.forEach(function (r) {
+        var m = ws.marks[dayId(ws, r)] || {};
+        od.push([
+          r.__manual ? '' : clean(r.removed),
+          isBlank(r.number) ? '' : (Number(r.number) || clean(r.number)),
+          r.name || '', clean(r.note),
+          eklesiaState(r, m) ? 'OK' : (r.__manual ? '' : clean(r.eklesiaStatus)),
+          m.presente ? 'SIM' : '', m.presente ? horaDe(m.presenteEm) : '',
+          m.batizado ? 'SIM' : '', m.batizado ? horaDe(m.batizadoEm) : ''
+        ]);
+      });
+      tabelas.push({ nome: ('Ordem Batismo ' + t.number).slice(0, 31), linhas: od });
+    });
+  return tabelas;
+}
+
+/* ===================== Escrita na planilha ===================== */
+
+function escreverTabelas(ss, tabelas) {
+  var aviso = 'Espelho do sistema: não edite aqui. As alterações são feitas no sistema e esta aba é reescrita automaticamente.';
+  tabelas.forEach(function (tab, index) {
+    var sh = ss.getSheetByName(tab.nome) || ss.insertSheet(tab.nome, index);
+    var filtro = sh.getFilter();
+    if (filtro) filtro.remove();
+    sh.clearContents();
+    var largura = tab.linhas[0].length;
+    sh.getRange(1, 1, tab.linhas.length, largura).setValues(tab.linhas);
+    sh.getRange(1, 1, 1, largura).setFontWeight('bold').setBackground('#ff5a1f').setFontColor('#ffffff');
+    sh.setFrozenRows(1);
+    if (tab.colunaData && tab.linhas.length > 1) sh.getRange(2, tab.colunaData, tab.linhas.length - 1, 1).setNumberFormat('dd/mm/yyyy');
+    if (tab.linhas.length > 1) sh.getRange(1, 1, tab.linhas.length, largura).createFilter();
+    var extra = sh.getMaxRows() - tab.linhas.length;
+    if (extra > 50) sh.deleteRows(tab.linhas.length + 26, extra - 25);
+    var protecoes = sh.getProtections(SpreadsheetApp.ProtectionType.SHEET);
+    if (!protecoes.length) sh.protect().setDescription(aviso).setWarningOnly(true);
+  });
+  // Remove a aba vazia criada junto com a planilha nova.
+  ['Página1', 'Página 1', 'Sheet1', 'Planilha1'].forEach(function (n) {
+    var vazia = ss.getSheetByName(n);
+    if (vazia && vazia.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(vazia);
+  });
+  // Remove abas de ordem de turmas que deixaram de ter posições.
+  var nomes = tabelas.map(function (t) { return t.nome; });
+  ss.getSheets().forEach(function (sh) {
+    if (/^Ordem Batismo /.test(sh.getName()) && nomes.indexOf(sh.getName()) < 0) ss.deleteSheet(sh);
+  });
+}
+
+function escreverSobre(ss, data, ultimaMudanca, erro) {
+  var sh = ss.getSheetByName('Sobre') || ss.insertSheet('Sobre');
+  var tz = Session.getScriptTimeZone();
+  var agora = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm:ss');
+  var linhas = [
+    ['Planilha espelho · Gestão de Batismo', ''],
+    ['Somente consulta', 'Não edite as outras abas: elas são reescritas com os dados do sistema.'],
+    ['Última verificação', agora],
+    ['Última mudança nos dados', ultimaMudanca ? Utilities.formatDate(new Date(ultimaMudanca), tz, 'dd/MM/yyyy HH:mm:ss') : '—'],
+    ['Versão no Firebase', data ? data.versionId : '—'],
+    ['Situação', erro ? 'ERRO: ' + (erro.message || erro) : 'OK'],
+    ['Atualizar manualmente', 'Menu Batismo → Atualizar agora']
+  ];
+  sh.clearContents();
+  sh.getRange(1, 1, linhas.length, 2).setValues(linhas);
+  sh.getRange(1, 1).setFontWeight('bold').setFontSize(14);
+  sh.getRange(2, 1, linhas.length - 1, 1).setFontWeight('bold');
+  sh.getRange(6, 2).setFontColor(erro ? '#c0392b' : '#1e8e3e');
+  sh.setColumnWidth(1, 220);
+  sh.setColumnWidth(2, 520);
+}

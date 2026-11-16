@@ -2686,6 +2686,8 @@ async function saveCloudWorkspace(payload, createVersion) {
       turmaPadrao: String(payload.turmaPadrao || '36'),
       skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
       checkin: safeValue(payload.checkin || {}),
+      // Ordem reorganizada (arrastar e soltar) por turma: antes não era gravada no Firebase.
+      ordemSequencia: safeValue(payload.ordemSequencia || {}),
       createdAt: new Date().toISOString(),
       createdBy: auth.currentUser.uid,
       counts: {
@@ -2786,7 +2788,7 @@ async function loadCloudWorkspace() {
     id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
     sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
-    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}, ordemSequencia: meta.ordemSequencia || {}
   };
   const chunkSnap = await getDocs(versionChunksRef(versionId));
   const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
