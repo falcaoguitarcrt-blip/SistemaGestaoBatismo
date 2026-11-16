@@ -556,7 +556,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
 
   configSection.innerHTML = '<h2 class="t">Dados e privacidade</h2>' +
     '<div class="card"><b>Banco de dados central</b><p class="section-sub">Os registros importados são armazenados no Cloud Firestore do Firebase.</p></div>' +
-    '<div class="card"><b>Origem carregada</b><div id="config-source" class="local-only-note">Nenhuma planilha carregada do Firebase.</div><div class="bb"><button type="button" class="btn o" data-go="imp">Abrir importação</button><button type="button" class="btn o" data-download-current="xlsx" disabled>Baixar Excel original deste navegador</button><button type="button" class="btn o" data-download-current="json" disabled>Exportar dados JSON</button></div></div>' +
+    '<div class="card"><b>Origem carregada</b><div id="config-source" class="local-only-note">Nenhuma planilha carregada do Firebase.</div><div class="bb"><button type="button" class="btn" data-download-updated>⬇ Baixar planilha atualizada</button><button type="button" class="btn o" data-go="imp">Abrir importação</button><button type="button" class="btn o" data-download-current="xlsx" disabled>Baixar Excel original deste navegador</button><button type="button" class="btn o" data-download-current="json" disabled>Exportar dados JSON</button></div></div>' +
     '<div class="card"><b>Backups locais deste navegador</b><div id="backup-items-config" class="backup-list"><span class="note">Carregando…</span></div></div>';
 
   var homeSection = document.getElementById('home');
@@ -1149,7 +1149,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
       '<div class="card hero"><small>Turma em foco · ' + esc(turmaLabel) + '</small><h2>' + (dateIso ? 'Batismo ' + esc(formatDateBR(dateIso)) : esc(turmaLabel)) + '</h2>' +
       '<p>' + esc(when) + ' · <b>' + ready + '</b> de <b>' + named.length + '</b> prontos (jornada concluída e sem pendências)</p>' +
       '<div class="bar" style="margin:12px 0;max-width:560px"><b style="width:' + pct + '%"></b></div>' +
-      '<div class="bb"><button type="button" class="btn" data-go="ord">Abrir ordem e presenças →</button><button type="button" class="btn o" data-home-filter="all">Ver batizantes</button><button type="button" class="btn o" data-go="tur">Trocar turma em foco</button></div></div>' +
+      '<div class="bb"><button type="button" class="btn" data-go="ord">Abrir ordem e presenças →</button><button type="button" class="btn o" data-home-filter="all">Ver batizantes</button><button type="button" class="btn o" data-download-updated>⬇ Baixar planilha atualizada</button></div></div>' +
       '<div class="data-metrics">' +
         '<div class="kpi"><span>Inscritos</span><b>' + named.length + '</b><span>' + esc(turmaLabel) + '</span></div>' +
         '<div class="kpi"><span>Prontos</span><b style="color:var(--ok)">' + ready + '</b><span>' + pct + '% da turma</span></div>' +
@@ -1182,7 +1182,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
     if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
     var filters = [['all', 'Todos os registros'], ['pending', 'Com pendência'], ['ready', 'Prontos'], ['repor', 'Precisam repor aula'], ['shirt-unpaid', 'Camiseta a pagar'], ['minor', 'Menores de idade'], ['without-phone', 'Sem telefone'], ['invalid-phone', 'Telefone inválido'], ['no-age', 'Sem idade'], ['duplicate', 'Nomes repetidos'], ['without-name', 'Sem nome']];
     var turmaOptions = (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('');
-    section.innerHTML = '<div class="batizantes-head"><div><h2 class="t">Batizantes · ' + numberLabel(everyone.length) + ' registros</h2><p class="section-sub">Clique em uma pessoa para abrir a ficha completa, editar e chamar no WhatsApp.</p></div></div>' +
+    section.innerHTML = '<div class="batizantes-head"><div><h2 class="t">Batizantes · ' + numberLabel(everyone.length) + ' registros</h2><p class="section-sub">Clique em uma pessoa para abrir a ficha completa, editar e chamar no WhatsApp.</p></div><button type="button" class="btn o" data-download-updated>⬇ Baixar planilha atualizada</button></div>' +
       '<details class="card new-person" id="manual-person-box"><summary id="manual-person-title">Cadastrar nova pessoa</summary><form id="manual-person-form"><div class="record-editor-fields">' +
         '<label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="off"></label>' +
         '<label class="record-editor-field">Telefone (WhatsApp)<input id="manual-person-phone" maxlength="50" inputmode="tel" placeholder="(16) 99999-9999"></label>' +
@@ -1640,7 +1640,7 @@ function prepJourney(person) {
     var turmaPeople = (appData.participantes || []).filter(function (p) { return String(p.turma) === String(t.number); });
     var filters = [['all', 'Pessoas'], ['aguardando', 'Aguardando'], ['presentes', 'Presentes'], ['batizados', 'Batizados'], ['sem-eklesia', 'Sem Ekklesia'], ['positions', 'Todas as posições'], ['unnamed', 'Só reservadas']];
     section.innerHTML = '<div class="batizantes-head"><div><h2 class="t">Ordem do batismo · ' + esc(t.name || ('Turma ' + t.number)) + '</h2><p class="section-sub">Arraste ☷ para reorganizar. No dia, toque em <b>Presente</b> na chegada e em <b>Batizado</b> logo após o batismo. As marcações sincronizam entre os celulares.</p></div>' +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap"><select id="order-turma-select" aria-label="Turma da ordem" style="min-height:44px;border:1px solid var(--ln);border-radius:11px;background:var(--card);color:var(--tx);padding:8px 12px;font:inherit">' + (appData.turmas || []).slice().reverse().map(function (x) { return '<option value="' + esc(x.id) + '" ' + (String(t.id) === String(x.id) ? 'selected' : '') + '>' + esc(x.name || ('Turma ' + x.number)) + '</option>'; }).join('') + '</select><button class="btn o" type="button" data-print-order>🖨 Lista em papel</button></div></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><select id="order-turma-select" aria-label="Turma da ordem" style="min-height:44px;border:1px solid var(--ln);border-radius:11px;background:var(--card);color:var(--tx);padding:8px 12px;font:inherit">' + (appData.turmas || []).slice().reverse().map(function (x) { return '<option value="' + esc(x.id) + '" ' + (String(t.id) === String(x.id) ? 'selected' : '') + '>' + esc(x.name || ('Turma ' + x.number)) + '</option>'; }).join('') + '</select><button class="btn o" type="button" data-print-order>🖨 Lista em papel</button><button class="btn o" type="button" data-download-updated>⬇ Planilha</button></div></div>' +
       '<div class="card" id="order-summary"></div>' +
       '<details class="card new-person" id="manual-order-box"' + (manualOrderEditingId ? ' open' : '') + '><summary id="manual-order-title">' + (manualOrderEditingId ? 'Editar posição' : 'Adicionar posição nesta turma') + '</summary><form id="manual-order-form"><div class="record-editor-fields">' +
         '<label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label>' +
@@ -1979,6 +1979,125 @@ function prepJourney(person) {
     }
     downloadBlob(workspace.sourceWorkbook, workspace.sourceFileName || 'backup-batismo.xlsx');
   }
+  // ===== Planilha atualizada: mesmo formato da planilha original, com os dados atuais do sistema =====
+  // Datas vão para o Excel como número de série com formato dd/mm/aaaa (sem fuso horário).
+  function excelSerialFromAny(value) {
+    if (typeof value === 'number' && value > 20000 && value < 90000) return Math.floor(value);
+    var t = clean(value), m;
+    if ((m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/))) return Date.UTC(+m[3], +m[2] - 1, +m[1]) / 86400000 + 25569;
+    if ((m = t.match(/^(\d{4})-(\d{2})-(\d{2})/))) return Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000 + 25569;
+    return t || null;
+  }
+  function numericOr(value) {
+    var t = clean(value);
+    return /^\d+$/.test(t) ? Number(t) : (t || null);
+  }
+  function exportShirt(p) {
+    var choice = shirtChoiceLabel(p);
+    if (choice === 'Já possui') return 'Já tem';
+    if (choice === 'Sim') return shirtSizeValue(p) || null;
+    if (choice === 'Não') return 'Não quer';
+    return null;
+  }
+  function exportShirtPaid(p) {
+    if (exportShirt(p) === null || shirtChoiceLabel(p) !== 'Sim') return asBoolean(p.shirtPaid) === true ? true : false;
+    return shirtPaymentChoice(p) === 'Pago';
+  }
+  function exportBaptized(p) {
+    var row = p.__manual ? null : safeDayLinkForPerson(p);
+    var mark = row ? (dayMarks[dayId(row)] || {}) : {};
+    if (mark.batizado) return 'SIM' + (mark.batizadoEm ? ' · ' + new Date(mark.batizadoEm).toLocaleDateString('pt-BR') : '');
+    return clean(p.baptized) || null;
+  }
+  function setColumnFormats(ws, widths, dateCols) {
+    ws['!cols'] = widths.map(function (w) { return { wch: w }; });
+    if (!ws['!ref']) return;
+    var range = XLSX.utils.decode_range(ws['!ref']);
+    ws['!autofilter'] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: range.e.c } }) };
+    (dateCols || []).forEach(function (c) {
+      for (var r = 1; r <= range.e.r; r++) {
+        var cell = ws[XLSX.utils.encode_cell({ r: r, c: c })];
+        if (cell && cell.t === 'd') cell.z = 'dd/mm/yyyy';
+        if (cell && cell.t === 'n' && dateCols.indexOf(c) >= 0) cell.z = 'dd/mm/yyyy';
+      }
+    });
+  }
+  function orderSheetRows(turma) {
+    var saved = orderState.turmaId; orderState.turmaId = String(turma.id);
+    var rows = currentOrderItems();
+    orderState.turmaId = saved;
+    return rows;
+  }
+  function buildUpdatedWorkbook() {
+    if (!window.XLSX) throw new Error('A biblioteca do Excel ainda não carregou. Tente novamente em alguns segundos.');
+    var wb = XLSX.utils.book_new();
+    var header = ['NOME', 'IDADE', 'TELEFONE', 'TURMA', 'DATA', 'JORNADA', 'AULA P/ REPOR', 'ENTROU NO GRUPO', 'CAMISETA', 'PG CAMISETA', 'STATUS', 'PENDENCIA', 'BATIZADO', 'INVESTIGAÇÃO PERFIL (FBI)', 'ORIGEM'];
+    var data = [header];
+    allPeople().forEach(function (p) {
+      var f = p.fields || [];
+      var turmaRec = turmaRecordFor(clean(p.turma));
+      var dateValue = excelSerialFromAny(p.__manual ? turmaDateISO(turmaRec, allPeople().filter(function (x) { return String(clean(x.turma)) === String(clean(p.turma)); })) : f[4]);
+      data.push([
+        p.name || null,
+        isBlank(p.age) ? null : (isNaN(Number(p.age)) ? clean(p.age) : Number(p.age)),
+        isBlank(p.phone) ? null : (phoneValid(p.phone) ? phoneLabel(p.phone) : clean(p.phone)),
+        numericOr(p.turma),
+        dateValue || null,
+        clean(p.journey) || null,
+        clean(p.lesson) || null,
+        asBoolean(p.group) === true,
+        exportShirt(p),
+        exportShirtPaid(p),
+        clean(p.status) || null,
+        clean(p.pending) || null,
+        exportBaptized(p),
+        p.__manual ? null : (clean(f[13]) || null),
+        p.__manual ? 'Cadastro pelo site' : 'Planilha · linha ' + p.sourceRow
+      ]);
+    });
+    var names = (appData.sourceSheetNames && appData.sourceSheetNames.length) ? appData.sourceSheetNames : [' Batismo'];
+    var wsMain = XLSX.utils.aoa_to_sheet(data);
+    setColumnFormats(wsMain, [38, 7, 17, 7, 12, 13, 28, 10, 10, 10, 11, 32, 16, 28, 22], [4]);
+    XLSX.utils.book_append_sheet(wb, wsMain, String(names[0] || 'Batismo').slice(0, 31));
+
+    var turmas = (appData.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); });
+    turmas.forEach(function (t) {
+      var rows = orderSheetRows(t);
+      if (!rows.length) return;
+      var od = [['FICHAS RETIRADAS', 'NUMERAÇÃO', 'NOME', 'OBSERVAÇÃO', 'BATIZADO NO EKLESIA ', 'PRESENTE', 'HORA PRESENÇA', 'BATIZADO', 'HORA BATISMO']];
+      rows.forEach(function (r) {
+        var m = dayMarks[dayId(r)] || {};
+        od.push([
+          r.__manual ? null : (clean(r.removed) || null),
+          isBlank(r.number) ? null : Number(r.number) || r.number,
+          r.name || null,
+          clean(r.note) || null,
+          eklesiaState(r, m) ? 'OK' : (r.__manual ? null : (clean(r.eklesiaStatus) || null)),
+          m.presente ? 'SIM' : null,
+          m.presente && m.presenteEm ? new Date(m.presenteEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null,
+          m.batizado ? 'SIM' : null,
+          m.batizado && m.batizadoEm ? new Date(m.batizadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : null
+        ]);
+      });
+      var ws = XLSX.utils.aoa_to_sheet(od);
+      setColumnFormats(ws, [10, 11, 38, 30, 20, 10, 9, 10, 9], []);
+      var sheetName = ('Ordem Batismo ' + t.number).slice(0, 31);
+      if (wb.SheetNames.indexOf(sheetName) < 0) XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    });
+    return wb;
+  }
+  function downloadUpdatedWorkbook() {
+    try {
+      var wb = buildUpdatedWorkbook();
+      var today = new Date();
+      var stamp = String(today.getDate()).padStart(2, '0') + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + today.getFullYear();
+      XLSX.writeFile(wb, 'Batismo atualizado ' + stamp + '.xlsx', { compression: true });
+      dayToastGlobal('Planilha atualizada baixada.');
+    } catch (error) {
+      dayToastGlobal('Não foi possível gerar a planilha: ' + (error.message || 'erro'));
+    }
+  }
+
   function downloadJson(workspace) {
     if (!workspace) return;
     var backup = {
@@ -2260,7 +2379,8 @@ function prepJourney(person) {
       });
       return;
     }
-    if(event.target.closest('[data-print-order]')){printOrderSheet();return;
+    if(event.target.closest('[data-print-order]')){printOrderSheet();return;}
+    if(event.target.closest('[data-download-updated]')&&appData){downloadUpdatedWorkbook();return;
     }
     if(event.target.closest('[data-day-print]')){window.print();return;}
 
@@ -2566,6 +2686,8 @@ async function saveCloudWorkspace(payload, createVersion) {
       turmaPadrao: String(payload.turmaPadrao || '36'),
       skippedDuplicateHeaders: Number(payload.skippedDuplicateHeaders || 0),
       checkin: safeValue(payload.checkin || {}),
+      // Ordem reorganizada (arrastar e soltar) por turma: antes não era gravada no Firebase.
+      ordemSequencia: safeValue(payload.ordemSequencia || {}),
       createdAt: new Date().toISOString(),
       createdBy: auth.currentUser.uid,
       counts: {
@@ -2666,7 +2788,7 @@ async function loadCloudWorkspace() {
     id: 'current', importedAt: meta.importedAt, sourceFileName: meta.sourceFileName, sourceFileSize: meta.sourceFileSize,
     sourceWorkbook: null, sheetStats: meta.sheetStats || [], sourceSheetNames: meta.sourceSheetNames || [],
     skippedDuplicateHeaders: meta.skippedDuplicateHeaders || 0, rawSheets: {}, people: [], order: [], order35: [],
-    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}
+    general: [], generalAll: [], generalUnmapped: [], turmas: [], ordensTurma: [], participantes: [], turmaPadrao: String(meta.turmaPadrao || '36'), checkin: meta.checkin || {}, ordemSequencia: meta.ordemSequencia || {}
   };
   const chunkSnap = await getDocs(versionChunksRef(versionId));
   const pieces = chunkSnap.docs.map(function (snapshot) { return Object.assign({ id: snapshot.id }, snapshot.data()); }).sort(function (a, b) {
