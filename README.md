@@ -8,20 +8,24 @@ Protótipo web responsivo para organizar cadastro, preparação, ordem do batism
 - **Código principal:** [index.html](index.html)
 - **Cópia-base visual:** [prototipos/gestao-batismo-base.html](prototipos/gestao-batismo-base.html)
 
+## Acesso
+
+- Login **somente com conta Google** autorizada. O provedor E-mail/senha deve ficar desativado no Firebase Authentication.
+- Quem pode ler e gravar é definido nas regras do Cloud Firestore do projeto `batismo-8c5f8`.
+
 ## Importar a planilha
 
-1. Abra a aplicação e entre em **Importar**.
-2. Selecione o arquivo Excel que contém as abas **Batismo**, **Ordem**, **Ordem Batismo 35** e **GERAL**.
-3. Confira os quantitativos de cada aba.
-4. Clique em **Importar e salvar neste navegador**.
+1. Abra a aplicação e entre em **Mais → Importar**.
+2. Selecione o Excel. Apenas as duas primeiras abas são usadas: **Batismo** e **Ordem Batismo NN**.
+3. Confira os quantitativos e clique em **Importar e salvar no Firebase**.
 
-A planilha original, todas as linhas lidas e as marcações de check-in são mantidas localmente no navegador. A aplicação não envia os registros importados para o GitHub. Duplicidades e linhas incompletas não são apagadas nem mescladas automaticamente. Antes de substituir uma importação, a versão local ativa é arquivada como backup.
+Depois da carga inicial, cadastre e edite pelo site. Importe outro Excel somente para substituir a base inteira.
 
-## Limites deste modo
+## Dados
 
-Este é um modo local, sem sincronização entre diferentes computadores ou usuários. Para trabalho compartilhado, é necessário implementar um backend privado, autenticação real e permissões de acesso. O GitHub Pages deste repositório é público e contém apenas o código da interface.
+Os registros ficam no Cloud Firestore (acesso apenas para contas autorizadas) e as marcações do dia do batismo sincronizam entre os celulares. O GitHub Pages deste repositório é público e contém apenas o código da interface.
 
-**Não commit dados pessoais, telefones, informações de menores ou observações de perfil neste repositório público.** Use o arquivo Excel a partir do navegador e mantenha uma cópia segura do original.
+**Não commit dados pessoais, telefones, informações de menores ou observações de perfil neste repositório público.**
 
 ## Regra para próximas atualizações
 

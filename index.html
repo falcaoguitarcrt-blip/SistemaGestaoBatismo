@@ -6,6 +6,10 @@
 <meta name="theme-color" content="#ff5a1f">
 <meta name="description" content="Sistema de gestão de batismo com cadastros, ordem, importação de planilha e sincronização segura pelo Firebase.">
 <title>Gestão de Batismo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>try{var t=localStorage.getItem('gb-theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t;}catch(e){}</script>
 <style>
 :root{--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--bg:#f4f6fa;--tx:#f4f5f6;--mut:#637187;--card:#fff;--ln:#dce3ed;--ok:#ff8155;--pe:#d9951b;--er:#c0392b;--in:#ff8155;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -14,7 +18,7 @@ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:en
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Inter,system-ui,sans-serif}
-h1,h2{font-family:Fraunces,Georgia,serif;margin:0}
+h1,h2{font-family:Inter,ui-sans-serif,system-ui,sans-serif;margin:0;letter-spacing:-.02em}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--ln)}
 .brand{display:flex;align-items:center;gap:8px;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:18px}
 .brand i{background:var(--pri);color:var(--gold);width:30px;height:30px;border-radius:99px;display:grid;place-items:center;font-style:normal}
@@ -50,7 +54,7 @@ input[type=search]{width:100%;padding:12px 14px;border:1px solid var(--ln);borde
 .k .card{background:var(--bg)}.k .i{background:var(--card);border:1px solid var(--ln);border-radius:12px;padding:10px;margin-bottom:8px;font-size:13px}
 .note{color:var(--mut);font-size:12px;text-align:center;margin:6px 0 20px}
 h2.t{font-size:22px;margin:4px 0 12px}
-.demo-toast{position:fixed;left:50%;bottom:18px;z-index:20;transform:translate(-50%,14px);width:min(92vw,460px);padding:12px 16px;border-radius:12px;background:var(--tx);color:var(--card);box-shadow:0 8px 28px #0003;font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;text-align:center}
+.demo-toast{position:fixed;left:50%;bottom:18px;z-index:10050;transform:translate(-50%,14px);width:min(92vw,460px);padding:12px 16px;border-radius:12px;background:var(--tx);color:var(--card);box-shadow:0 8px 28px #0003;font-size:13px;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;text-align:center}
 .demo-toast.show{opacity:1;transform:translate(-50%,0)}
 @media print{body{background:#fff;color:#111}header,.bb,.note,.demo-toast,#tm{display:none!important}main{max-width:none;padding:0}.card{box-shadow:none;break-inside:avoid}section{display:none!important}section.on{display:block!important}.bar{border:1px solid #bbb}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
@@ -177,11 +181,12 @@ body.auth-pending>header,body.auth-pending>main{visibility:hidden}
 .day-tools-actions .btn,.day-row .item-actions .btn,#dia .data-pager .btn{min-height:48px;flex:1}.day-row{align-items:center}.day-row.next-waiting{border:2px solid var(--gold);background:color-mix(in srgb,var(--gold) 8%,var(--card))}.day-warning{font-size:12px;color:var(--pe);margin-top:5px}
 .day-count{display:grid;grid-template-columns:minmax(110px,auto) 1fr;align-items:center;gap:10px;margin:8px 0}.day-toast{display:none;position:fixed;left:50%;bottom:18px;z-index:30;transform:translateX(-50%);width:min(92vw,480px);padding:12px;background:var(--tx);color:var(--card);border-radius:12px;text-align:center}.day-toast.show{display:block}.day-undo{min-height:48px;border:0;border-radius:8px;padding:0 14px;background:var(--gold);font-weight:700}#day-print-list{display:none}
 @media(max-width:600px){.day-tools-actions{flex-direction:column}.day-row .item-actions{width:100%;display:flex}.day-row .item-actions .btn{min-width:0;padding:8px 5px;font-size:12px}.day-count{grid-template-columns:1fr}.day-row{overflow-wrap:anywhere}}
-@media print{body *{visibility:hidden!important}#dia,#dia *{visibility:visible!important}header,#dia>h2,#day-sync,#day-summary,#dia>.day-tools,#day-results,#day-pager,#day-toast{display:none!important}#dia{display:block!important;position:absolute;inset:0;width:100%;padding:0}#day-print-list{display:block!important;color:#111;font:10pt Arial,sans-serif}#day-print-list h1{font-size:16pt}#day-print-list table{width:100%;border-collapse:collapse}#day-print-list th,#day-print-list td{border:1px solid #555;padding:5px;text-align:left}@page{size:A4 portrait;margin:10mm}}
+#print-sheet{display:none}
+@media print{body.printing-sheet>*:not(#print-sheet){display:none!important}body.printing-sheet #print-sheet{display:block!important;color:#111;background:#fff;font:10pt Arial,sans-serif}#print-sheet h1{font-size:16pt;margin:0 0 4px}#print-sheet p{margin:0 0 10px}#print-sheet table{width:100%;border-collapse:collapse}#print-sheet th,#print-sheet td{border:1px solid #555;padding:5px;text-align:left;vertical-align:top}#print-sheet tr{break-inside:avoid}@page{size:A4 portrait;margin:10mm}}
 
 /* ===== Identidade visual premium ===== */
 :root{--bg:#111315;--tx:#f4f5f6;--mut:#b6b9bd;--card:#1b1d20;--ln:#35383d;--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--ok:#ff8155;--pe:#d5a64a;--er:#e06464;--in:#ff8155;color-scheme:dark}
-:root[data-theme="light"]{--bg:#f4f6fa;--tx:#f4f5f6;--mut:#637187;--card:#fff;--ln:#dce3ed;--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--ok:#ff8155;--pe:#a96700;--er:#c0394b;--in:#ff8155;color-scheme:light}
+:root[data-theme="light"]{--bg:#f4f6fa;--tx:#16191d;--mut:#637187;--card:#fff;--ln:#dce3ed;--pri:#ff5a1f;--pri2:#e84b16;--aq:#ff8155;--gold:#c9a24b;--ok:#ff8155;--pe:#a96700;--er:#c0394b;--in:#ff8155;color-scheme:light}
 body{background:var(--bg);color:var(--tx);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
 header{position:fixed;inset:0 auto 0 0;width:236px;height:100dvh;overflow-y:auto;z-index:30;background:#111315;border-right:1px solid #303338;padding:22px 14px 18px;display:flex;flex-direction:column;gap:22px}
 .brand{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:17px;line-height:1.2;gap:10px;color:#f5f7fa;flex-wrap:wrap}
@@ -206,6 +211,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 .bb{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
 .btn{background:var(--pri);color:#fff;border-radius:11px;padding:12px 17px;min-height:44px;font-weight:700;box-shadow:none}
 .btn:hover{filter:brightness(1.08)}
+a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
 .btn.o{background:#242629;border:1px solid #3b3d40;color:var(--tx)}
 .btn.g{background:var(--ok);color:#06150c}
 .data-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 16px}
@@ -267,6 +273,42 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 }
 @media(max-width:390px){.data-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-grid{grid-template-columns:minmax(0,1fr)}.hero h2{font-size:26px}.brand{font-size:14px}}
 @media(prefers-reduced-motion:reduce){section.on{animation:none}}
+
+/* ===== Tema claro: componentes que tinham cor escura fixa ===== */
+:root[data-theme="light"] .btn.o{background:var(--card);border-color:var(--ln);color:var(--tx)}
+:root[data-theme="light"] .data-bar{background:#e4e8ef}
+:root[data-theme="light"] .hero{background:radial-gradient(ellipse at 80% 0%,rgba(255,90,31,.12),transparent 45%),linear-gradient(120deg,#fff,#fff5f0 72%);border-color:var(--ln);color:var(--tx)}
+:root[data-theme="light"] .hero p{color:var(--mut)}
+:root[data-theme="light"] .hero small{color:var(--pri2)}
+:root[data-theme="light"] .day-sync{background:#fff0e9;color:#a83a12}
+:root[data-theme="light"] .card{box-shadow:0 2px 10px rgba(20,30,50,.06)}
+
+/* ===== Painel inicial ===== */
+.home-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px}
+.home-grid>.card{margin:0}
+.alert-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--ln);font-size:13px}
+.alert-row:first-of-type{border-top:0}
+.alert-row .alert-n{flex:none;min-width:42px;text-align:center;font-weight:800;font-size:16px;padding:6px 8px;border-radius:10px;background:color-mix(in srgb,var(--pe) 16%,transparent);color:var(--pe)}
+.alert-row.urgent .alert-n{background:color-mix(in srgb,var(--er) 16%,transparent);color:var(--er)}
+.alert-row.fine .alert-n{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+.alert-row .alert-text{flex:1;min-width:0}
+.alert-row .alert-text small{display:block;color:var(--mut);font-size:11px;margin-top:2px}
+.alert-row .btn{padding:7px 11px;min-height:36px;font-size:12px}
+.funnel-row{display:grid;grid-template-columns:130px 1fr 74px;align-items:center;gap:10px;margin:12px 0;font-size:13px}
+.funnel-row span{color:var(--mut)}
+.funnel-row em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+.shirt-sizes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.shirt-sizes div{flex:1;min-width:58px;text-align:center;border:1px solid var(--ln);border-radius:11px;padding:9px 4px}
+.shirt-sizes b{display:block;font-size:19px}
+.shirt-sizes small{color:var(--mut);font-size:11px}
+.new-person{margin-bottom:16px}
+.new-person>summary{cursor:pointer;font-weight:700;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.new-person>summary::-webkit-details-marker{display:none}
+.new-person>summary:after{content:'＋';color:var(--pri);font-size:18px}
+.new-person[open]>summary:after{content:'－'}
+.new-person[open]>summary{margin-bottom:12px}
+@media(max-width:600px){.hero .bb .btn{flex:1 1 100%}#ord .batizantes-head>div:last-child{width:100%}#ord .batizantes-head select{flex:1}}
+@media(max-width:900px){.home-grid{grid-template-columns:minmax(0,1fr)}.funnel-row{grid-template-columns:100px 1fr 64px}}
 
 /* ===== Fluxo operacional simplificado ===== */
 .order-item { align-items: center; cursor: grab; transition: transform .16s ease, border-color .16s ease, background .16s ease, opacity .16s ease; }
@@ -356,20 +398,12 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   <form id="firebase-login" class="auth-card">
     <div class="brand" style="margin-bottom:18px"><i>✦</i>Gestão de Batismo</div>
     <h1 id="firebase-login-title">Entrar no sistema</h1>
-    <p>Entre com a conta autorizada no Firebase. Os registros só serão carregados depois da autenticação.</p>
-    <label for="firebase-email">E-mail
-      <input id="firebase-email" name="email" type="email" autocomplete="username" required>
-    </label>
-    <label for="firebase-password">Senha
-      <input id="firebase-password" name="password" type="password" autocomplete="current-password" required>
-    </label>
-    <button id="firebase-google-login" class="btn" type="button" style="width:100%;background:#fff;color:#202124;border:1px solid #dadce0;display:flex;align-items:center;justify-content:center;gap:10px">
+    <p>Entre com a sua conta Google autorizada. Os registros só são carregados depois da autenticação.</p>
+    <button id="firebase-google-login" class="btn" type="button" style="width:100%;margin-top:18px;background:#fff;color:#202124;border:1px solid #dadce0;display:flex;align-items:center;justify-content:center;gap:10px">
       <span aria-hidden="true" style="font-size:18px;font-weight:700;color:#4285f4">G</span> Entrar com Google
     </button>
-    <p style="text-align:center;margin:8px 0 0">ou entre com e-mail e senha</p>
-    <button id="firebase-login-submit" class="btn o" type="submit">Entrar com e-mail</button>
-    <p id="firebase-status" role="status" aria-live="polite">Selecione a conta Google autorizada ou use suas credenciais cadastradas no Firebase.</p>
-    <p style="font-size:11px">Não crie a conta por esta tela. Os usuários são administrados pelo responsável do projeto Firebase.</p>
+    <p id="firebase-status" role="status" aria-live="polite">Use a conta Google que foi autorizada pelo responsável do sistema.</p>
+    <p style="font-size:11px">O acesso é liberado apenas para contas Google autorizadas pelo responsável do projeto.</p>
   </form>
 </div>
 
@@ -383,107 +417,29 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
 </header>
 <main>
 
-<section id="tur"><h2 class="t">Turmas</h2><div class="card"><p class="section-sub">Cadastre e organize os ciclos de batismo. Criar uma turma não importa nem copia participantes da turma anterior.</p><div class="data-toolbar" style="grid-template-columns:minmax(0,1fr) auto"><input id="turma-new-number" type="text" maxlength="40" placeholder="Número ou identificação (ex.: 37)" aria-label="Número ou identificação da nova turma"><button type="button" class="btn" data-create-turma>Criar turma vazia</button></div><div id="turma-status" class="import-status" role="status" aria-live="polite">As turmas registradas aparecerão abaixo.</div><div id="turma-list" class="data-list"></div></div></section>
+<section id="tur"><h2 class="t">Turmas</h2><div class="card"><p class="section-sub">Cadastre os ciclos de batismo e a data de cada um. A turma <b>em foco</b> é a que aparece no Painel. Criar uma turma não copia participantes da anterior.</p><div class="data-toolbar" style="grid-template-columns:minmax(0,1fr) minmax(150px,.5fr) auto"><input id="turma-new-number" type="text" maxlength="40" placeholder="Número da turma (ex.: 38)" aria-label="Número ou identificação da nova turma"><input id="turma-new-date" type="date" aria-label="Data do batismo da nova turma"><button type="button" class="btn" data-create-turma>Criar turma</button></div><div id="turma-status" class="import-status" role="status" aria-live="polite">As turmas registradas aparecerão abaixo.</div><div id="turma-list" class="data-list"></div></div></section>
 
-<section id="home" class="on">
-<div class="card hero"><small>PRÓXIMO BATISMO · TURMA 36</small><h2>12 de outubro</h2><small>em 2 dias · 42 de 57 prontos</small>
-<div class="bar" style="margin:12px 0"><b style="width:74%"></b></div><button type="button" class="btn">Abrir ordem →</button></div>
-<div class="grid" style="margin-bottom:12px">
-<div class="card kpi" style="margin:0"><span>Pessoas na turma</span><b>57</b></div>
-<div class="card kpi" style="margin:0"><span>Com pendências</span><b style="color:var(--pe)">15</b></div>
-<div class="card kpi" style="margin:0"><span>Jornada concluída</span><b style="color:var(--ok)">49</b></div>
-<div class="card kpi" style="margin:0"><span>Camisetas a pagar</span><b style="color:var(--aq)">11</b></div>
-</div>
-<div class="card"><h2 class="t">Funil de preparação</h2>
-<div class="f"><span>Inscritos</span><div class="bar"><b style="width:100%"></b></div><em>57</em></div>
-<div class="f"><span>Aulas 1–4</span><div class="bar"><b style="width:95%"></b></div><em>54</em></div>
-<div class="f"><span>Jornada</span><div class="bar"><b style="width:86%"></b></div><em>49</em></div>
-<div class="f"><span>Ekklesia</span><div class="bar"><b style="width:81%"></b></div><em>46</em></div>
-<div class="f"><span>Camiseta</span><div class="bar"><b style="width:70%"></b></div><em>40</em></div></div>
-<div class="card"><h2 class="t">Atenção agora</h2>
-<div class="row"><span class="tag t-er">Urgente</span><div class="m">3 menores sem responsável cadastrado</div></div>
-<div class="row"><span class="tag t-pe">Antiga</span><div class="m">8 pendências abertas há mais de 30 dias</div></div>
-<div class="row"><span class="tag t-in">Dados</span><div class="m">2 possíveis duplicados para revisar</div></div></div>
-</section>
+<section id="home" class="on"><div class="card"><b>Carregando…</b><p class="section-sub">Entre no sistema para ver o painel.</p></div></section>
 
-<section id="pes">
-<input type="search" placeholder="🔍 Buscar por nome ou telefone…" aria-label="Buscar pessoas por nome ou telefone">
-<div class="chips"><span class="a">Turma 36</span><span>Pendentes</span><span>Sem Ekklesia</span><span>Menores</span><span>+ Filtro</span></div>
-<div class="card">
-<div class="row"><div class="av">MS</div><div class="m"><b>Marina Souza</b><div>Turma 36 · 34 anos</div></div><span class="tag t-ok">Pronta</span></div>
-<div class="row"><div class="av">JL</div><div class="m"><b>João Lima</b><div>Turma 36 · 12 anos</div></div><span class="tag t-er">Sem responsável</span></div>
-<div class="row"><div class="av">CF</div><div class="m"><b>Carlos Ferreira</b><div>Turma 36 · 41 anos</div></div><span class="tag t-pe">Ekklesia</span></div>
-<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36 · 28 anos</div></div><span class="tag t-pe">Aula 3</span></div>
-<div class="row"><div class="av">RT</div><div class="m"><b>Rafael Torres</b><div>Turma 36 · 50 anos</div></div><span class="tag t-ok">Pronto</span></div></div>
-<p id="pes-empty" class="note" style="display:none">Nenhuma pessoa encontrada com esse termo.</p>
-</section>
+<section id="pes"></section>
 
-<section id="fic" aria-label="Ficha individual" hidden>
-<div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">AP</div><div class="m"><h2 style="font-size:20px">Ana Paula Reis</h2><div>28 anos · (16) 9XXXX-XXXX · Turma 36</div></div></div>
-<span class="tag t-pe">2 pendências</span><span class="tag t-in">Pr. Gustavo</span></div>
-<p class="note" style="margin:0 0 10px">Os detalhes de preparação abaixo são exemplos estáticos neste protótipo.</p>
-<div class="card"><b>Aulas da jornada</b><div class="dots" style="margin-top:8px"><span class="t-ok">Aula 1 ✓</span><span class="t-ok">Aula 2 ✓</span><span class="t-pe">Aula 3 ✗</span><span class="t-ok">Aula 4 ✓</span></div>
-<p style="font-size:13px;color:var(--mut);margin:8px 0 0">Reposição: aulão 14/11 · inscrita</p></div>
-<div class="card"><b>Preparação</b>
-<div class="row"><div class="m">Cadastro no Ekklesia</div><span class="tag t-ok">OK</span></div>
-<div class="row"><div class="m">Camiseta<div>Optou por ter · tamanho M</div></div><span class="tag t-pe">A pagar</span></div>
-<div class="row"><div class="m">Entrou no grupo</div><span class="tag t-ok">Sim</span></div>
-<div class="row"><div class="m">Verificação de perfil 🔒</div><span class="tag t-ok">OK</span></div></div>
-<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 WhatsApp</button><button type="button" class="btn o" data-demo-action="true">Editar</button></div>
-</section>
+<section id="fic" aria-label="Ficha individual" hidden></section>
 
-<section id="ord">
-<h2 class="t">Ordem · Turma 36</h2>
-<div class="card">
-<div class="row"><span class="hd">⋮⋮</span><span class="n">1</span><div class="m"><b>Marina Souza</b><div>Pr. Gustavo</div></div><span class="tag t-ok">Ficha ✓</span></div>
-<div class="row"><span class="hd">⋮⋮</span><span class="n">2</span><div class="m"><b>Rafael Torres</b><div>Pr. Gustavo</div></div><span class="tag t-ok">Ficha ✓</span></div>
-<div class="row"><span class="hd">⋮⋮</span><span class="n">3</span><div class="m"><b>Ana Paula Reis</b><div>Pra. Erika</div></div><span class="tag t-pe">Ficha ○</span></div>
-<div class="row"><span class="hd">⋮⋮</span><span class="n">4</span><div class="m"><b>João Lima (12)</b><div>Pra. Erika · subgrupo Kids</div></div><span class="tag t-er">Pendência</span></div></div>
-<div class="bb"><button type="button" class="btn">🖨 Imprimir ordem</button><button type="button" class="btn o" data-demo-action="true">+ Pessoa</button></div>
-</section>
+<section id="ord"></section>
 
-<section id="dia" hidden>
-<div class="card" style="text-align:center"><small style="color:var(--mut)">BATIZADOS HOJE</small><div class="big"><span id="cnt">18</span> <small style="font-size:20px;color:var(--mut)">/ 57</small></div>
-<div class="bar"><b style="width:32%;background:var(--aq)"></b></div><span class="tag t-ok" style="margin-top:10px">● Protótipo · sem sincronização real</span></div>
-<input type="search" placeholder="🔍 Buscar na ordem…" aria-label="Buscar pessoas na ordem do batismo">
-<div class="card"><div class="row"><span class="n">19</span><div class="m"><b style="font-size:17px">Marina Souza</b><div>Pr. Gustavo</div></div></div>
-<div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
-<div class="card"><div class="row"><span class="n">20</span><div class="m"><b style="font-size:17px">Rafael Torres</b><div>Pr. Gustavo</div></div></div>
-<div class="bb"><button type="button" class="btn o">Presente</button><button type="button" class="btn g">✓ Batizado</button></div></div>
-<p id="dia-empty" class="note" style="display:none">Nenhuma pessoa encontrada na ordem.</p>
-</section>
+<section id="dia" hidden></section>
 
-<section id="pen">
-<h2 class="t">Pendências</h2>
-<div class="k">
-<div class="card"><h3>Abertas · 9</h3><div class="i"><b>Ekklesia</b><br>Carlos Ferreira<br><span class="tag t-er">vencida</span></div><div class="i"><b>Aula 3</b><br>Ana Paula Reis</div></div>
-<div class="card"><h3>Em contato · 4</h3><div class="i"><b>Responsável</b><br>João Lima<br><span class="tag t-pe">vence amanhã</span></div></div>
-<div class="card"><h3>Resolvidas · 22</h3><div class="i"><b>Camiseta G</b><br>Rafael Torres ✓</div></div></div>
-</section>
+<section id="pen"></section>
 
-<section id="cam" hidden>
-<!-- Secção oculta pois a gestão de camisetas foi unificada em Batizantes -->
-</section>
 
-<style>.cert{border:3px double var(--gold);border-radius:14px;padding:22px 14px;text-align:center;background:var(--card)}.cert h2{font-size:24px;color:var(--pri)}.cert .s{width:60%;margin:22px auto 4px;border-top:1px solid var(--mut)}.st{display:flex;gap:6px;margin-bottom:12px}.st span{flex:1;text-align:center;font-size:11px;padding:8px 2px;border-radius:99px;background:var(--ln);color:var(--mut)}.st .d{background:var(--ok);color:#fff}.st .c{background:var(--pri);color:#fff}.sw{width:40px;height:22px;border-radius:99px;background:var(--ok);position:relative;flex:none}.sw:after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}</style>
-<section id="rep"><h2 class="t">Reposição de aulas</h2>
-<div class="card hero"><small>PRÓXIMO AULÃO</small><h2>14 de nov · 19h</h2><small>23 inscritos · 6 vagas livres</small></div>
-<div class="card"><b>Quem precisa repor</b>
-<div class="row"><div class="av">AP</div><div class="m"><b>Ana Paula Reis</b><div>Turma 36</div></div><span class="tag t-pe">Aula 3</span><span class="tag t-ok">Inscrita</span></div>
-<div class="row"><div class="av">CB</div><div class="m"><b>Caio Batista</b><div>Turma 36</div></div><span class="tag t-pe">Aulas 3 e 4</span><span class="tag t-er">Sem inscrição</span></div>
-<div class="row"><div class="av">DM</div><div class="m"><b>Daniele Matos</b><div>Turma 35</div></div><span class="tag t-pe">Aula 2</span><span class="tag t-er">Sem inscrição</span></div></div>
-<div class="bb"><button type="button" class="btn g" data-demo-action="true">💬 Convidar 2 pessoas</button><button type="button" class="btn o">Imprimir chamada</button></div></section>
-<section id="his"><h2 class="t">Histórico de batizados</h2><input type="search" placeholder="🔍 Buscar nome em todos os anos…" aria-label="Buscar nome no histórico de batismos">
-<div class="chips"><span>2023</span><span>2024</span><span>2025</span><span class="a">2026</span></div>
-<p id="his-empty" class="note" style="display:none">Nenhum registro encontrado no histórico.</p>
-<div class="card"><div class="row"><span class="n">35</span><div class="m"><b>Turma 35 · 18/07/2026</b><div>36 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">34</span><div class="m"><b>Turma 34 · 30/05/2026</b><div>43 batizados</div></div><span class="tag t-ok">Realizada</span></div><div class="row"><span class="n">36</span><div class="m"><b>Turma 36 · 12/10/2026</b><div>57 inscritos</div></div><span class="tag t-in">Em 2 dias</span></div></div>
-<div class="cert"><small style="color:var(--gold)">✦ CERTIFICADO ✦</small><h2>Marina Souza</h2><p style="margin:8px 0">foi batizada em 18 de julho de 2026<br>Turma 35 · Pr. Gustavo</p><div class="s"></div><small style="color:var(--mut)">Pastor responsável</small></div>
-<div class="bb"><button type="button" class="btn" data-demo-action="true">⬇ Gerar PDF</button><button type="button" class="btn o" data-demo-action="true">Editar modelo</button></div></section>
+
+<section id="rep"></section>
+<section id="his"></section>
 <section id="imp">
 <h2 class="t">Importar planilha de batismo</h2>
 <div class="card security-callout">
   <b>Base central e importação inicial</b>
-  <p>Escolha a planilha original. O arquivo será lido no navegador e guardado neste dispositivo, sem enviar nomes, telefones, idades ou observações ao repositório do GitHub.</p>
+  <p>Escolha a planilha original. O arquivo é lido no navegador e, ao confirmar, os registros são enviados ao banco de dados do Firebase (acesso apenas para contas autorizadas). Nenhum dado vai para o repositório do GitHub.</p>
   <p><strong>Depois da carga inicial:</strong> use Pessoas e Ordem para cadastrar ou editar pelo site. As alterações ficam salvas no Firebase e disponíveis após novo login em outros dispositivos. O Excel original completo fica guardado neste navegador.</p>
   <p><strong>Importe a planilha uma única vez</strong> para carregar a base inicial. Para o controle do dia a dia, cadastre e atualize os registros pelo site; importe outro Excel somente se quiser substituir a base inteira. Para baixar uma cópia, use os botões de exportação.</p>
 </div>
@@ -510,149 +466,41 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   <div id="backup-items" class="backup-list"><span class="note">Carregando backups locais…</span></div>
 </div>
 </section>
-<section id="cfg"><h2 class="t">Configurações</h2>
-<div class="card"><b>Usuários e perfis</b><div class="row"><div class="av">AD</div><div class="m"><b>Admin Geral</b></div><span class="tag t-in">Admin</span></div><div class="row"><div class="av">SE</div><div class="m"><b>Secretaria</b></div><span class="tag t-ok">Edita</span></div><div class="row"><div class="av">VO</div><div class="m"><b>Voluntário</b></div><span class="tag t-pe">Só check-in</span></div></div>
-<div class="card"><b>Privacidade (LGPD)</b><div class="row"><div class="m">Mascarar telefone para voluntários</div><i class="sw"></i></div><div class="row"><div class="m">Verificação de perfil só para pastores</div><i class="sw"></i></div><div class="row"><div class="m">Registrar histórico de alterações</div><i class="sw"></i></div></div>
-<div class="card"><b>Catálogos</b><div style="margin-top:8px"><span class="tag t-pe">Sem Ekklesia</span><span class="tag t-pe">Sem contato</span><span class="tag t-pe">Aula a repor</span><span class="tag t-pe">Camiseta</span><span class="tag t-in">+ Novo tipo</span></div></div>
-<div class="card"><b>Últimas alterações</b><div class="row"><div class="m">Secretaria marcou Ekklesia como OK<div>Carlos Ferreira · hoje 14:02</div></div></div><div class="row"><div class="m">Admin mudou pastor para Pra. Erika<div>Ana Paula Reis · ontem</div></div></div></div></section>
+<section id="cfg"></section>
 </main>
 <div id="demo-toast" class="demo-toast" role="status" aria-live="polite"></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 (function () {
   'use strict';
-
   var nav = document.getElementById('nav');
-  var toast = document.getElementById('demo-toast');
-  var toastTimer;
-
-  function showToast(message) {
-    toast.textContent = message;
-    toast.classList.add('show');
-    window.clearTimeout(toastTimer);
-    toastTimer = window.setTimeout(function () {
-      toast.classList.remove('show');
-    }, 3000);
-  }
-
-  function go(sectionId) {
-    var button = document.querySelector('[data-s="' + sectionId + '"]');
-    if (button) button.click();
-  }
-
   var navMore = document.getElementById('nav-more');
+  var secondary = ['tur', 'pen', 'rep', 'his', 'imp', 'cfg'];
   if (navMore) navMore.addEventListener('change', function () {
     if (!this.value) return;
     var target = document.querySelector('#nav button[data-s="' + this.value + '"]');
     if (target) target.click();
   });
-
   nav.addEventListener('click', function (event) {
     var button = event.target.closest('button[data-s]');
     if (!button) return;
-    document.querySelectorAll('#nav button, main section').forEach(function (item) {
-      item.classList.remove('on');
-    });
+    document.querySelectorAll('#nav button, main section').forEach(function (item) { item.classList.remove('on'); });
     button.classList.add('on');
-    if (navMore && button.dataset.s !== 'tur' && button.dataset.s !== 'pen' && button.dataset.s !== 'rep' && button.dataset.s !== 'his' && button.dataset.s !== 'imp' && button.dataset.s !== 'cfg') navMore.value = '';
-    if (navMore && button.classList.contains('nav-secondary')) navMore.value = button.dataset.s;
-    button.setAttribute('aria-current', 'page');
+    if (navMore) navMore.value = secondary.indexOf(button.dataset.s) >= 0 ? button.dataset.s : '';
     document.querySelectorAll('#nav button').forEach(function (item) {
-      if (item !== button) item.removeAttribute('aria-current');
+      if (item === button) item.setAttribute('aria-current', 'page'); else item.removeAttribute('aria-current');
     });
     var section = document.getElementById(button.dataset.s);
     if (section) section.classList.add('on');
     window.scrollTo({ top: 0, behavior: 'auto' });
   });
-
-  var peopleSearch = document.querySelector('#pes input');
-  if (peopleSearch) {
-    peopleSearch.addEventListener('input', function () {
-      var query = peopleSearch.value.toLowerCase().trim();
-      var visible = 0;
-      document.querySelectorAll('#pes .row').forEach(function (row) {
-        var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
-        row.style.display = matches ? '' : 'none';
-        if (matches) visible += 1;
-      });
-      document.getElementById('pes-empty').style.display = visible ? 'none' : 'block';
-    });
-  }
-
-  var daySearch = document.querySelector('#dia input[type="search"]');
-  if (daySearch) {
-    daySearch.addEventListener('input', function () {
-      var query = daySearch.value.toLowerCase().trim();
-      var visible = 0;
-      Array.prototype.slice.call(document.querySelectorAll('#dia .card')).slice(1).forEach(function (card) {
-        var matches = card.textContent.toLowerCase().indexOf(query) !== -1;
-        card.style.display = matches ? '' : 'none';
-        if (matches) visible += 1;
-      });
-      document.getElementById('dia-empty').style.display = visible ? 'none' : 'block';
-    });
-  }
-
-  var historySearch = document.querySelector('#his input[type="search"]');
-  if (historySearch) {
-    historySearch.addEventListener('input', function () {
-      var query = historySearch.value.toLowerCase().trim();
-      var visible = 0;
-      document.querySelectorAll('#his .card .row').forEach(function (row) {
-        var matches = row.textContent.toLowerCase().indexOf(query) !== -1;
-        row.style.display = matches ? '' : 'none';
-        if (matches) visible += 1;
-      });
-      document.getElementById('his-empty').style.display = visible ? 'none' : 'block';
-    });
-  }
-
-  document.querySelectorAll('#dia .btn.g').forEach(function (button) {
-    button.addEventListener('click', function () {
-      if (button.dataset.done) return;
-      button.dataset.done = 'true';
-      button.textContent = '✔ Registrado';
-      button.disabled = true;
-      button.style.opacity = '.65';
-      var count = document.getElementById('cnt');
-      var next = Math.min(57, Number(count.textContent) + 1);
-      count.textContent = String(next);
-      var progress = document.querySelector('#dia .bar b');
-      progress.style.width = ((next / 57) * 100) + '%';
-      showToast('Registro de demonstração atualizado nesta tela.');
-    });
-  });
-
-  document.querySelectorAll('#dia .btn.o').forEach(function (button) {
-    button.addEventListener('click', function () {
-      if (button.dataset.present) return;
-      button.dataset.present = 'true';
-      button.textContent = '✔ Presente';
-      button.classList.remove('o');
-      button.classList.add('g');
-      showToast('Presença marcada apenas nesta demonstração.');
-    });
-  });
-
-  var openOrder = document.querySelector('.hero .btn');
-  if (openOrder) openOrder.addEventListener('click', function () { go('ord'); });
-
-  document.querySelectorAll('#ord .bb .btn:first-child, #rep .bb .btn.o').forEach(function (button) {
-    button.addEventListener('click', function () { window.print(); });
-  });
-
-  document.getElementById('tm').setAttribute('aria-label', 'Alternar tema claro e escuro');
-  document.getElementById('tm').addEventListener('click', function () {
+  var themeButton = document.getElementById('tm');
+  themeButton.setAttribute('aria-label', 'Alternar tema claro e escuro');
+  themeButton.addEventListener('click', function () {
     var root = document.documentElement;
-    var systemTheme = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    var currentTheme = root.dataset.theme || systemTheme;
-    root.dataset.theme = currentTheme === 'dark' ? 'light' : 'dark';
-  });
-
-  document.querySelectorAll('[data-demo-action="true"]').forEach(function (button) {
-    button.disabled = true;
-    button.setAttribute('aria-disabled', 'true');
-    button.title = 'Ação demonstrativa indisponível.';
+    var next = root.dataset.theme === 'light' ? 'dark' : 'light';
+    root.dataset.theme = next;
+    try { localStorage.setItem('gb-theme', next); } catch (e) {}
   });
 })();
 </script>
@@ -667,7 +515,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   var appData = null;
   var pendingImport = null;
   var selectedPersonRow = null;
-  var peopleState = { query: '', turma: '36', filter: 'all', page: 1 };
+  var peopleState = { query: '', turma: '', filter: 'all', page: 1 };
   var orderState = { query: '', filter: 'all', page: 1, turmaId: '' };
   var manualOrderEditingId = '';
   var dayState = { query: '' , page: 1, turmaId: '' };
@@ -675,6 +523,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   var returnState = { query: '', page: 1, turma: '' };
   var historyState = { query: '', source: 'geral', page: 1 };
   var manualPersonEditingId = '';
+  var peopleScrollY = 0;
 
   var importSection = document.getElementById('imp');
   var configSection = document.getElementById('cfg');
@@ -758,7 +607,56 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     return null;
   }
   function displayName(person) {
-    return person.name || ('Registro sem nome · linha ' + person.sourceRow);
+    if (person.name) return person.name;
+    return person.__manual ? 'Cadastro sem nome' : ('Registro sem nome · linha ' + person.sourceRow);
+  }
+  // Turma da ordem importada: vem do nome da 2ª aba (ex.: "Ordem Batismo 36"). Mantém "36" como padrão
+  // para não alterar os identificadores das marcações já gravadas.
+  function importedTurma() {
+    var names = (appData && appData.sourceSheetNames) || [];
+    var match = String(names[1] || '').match(/(\d+)/);
+    return match ? match[1] : '36';
+  }
+  // Pessoas cadastradas pelo site (participantes) no mesmo formato das importadas,
+  // para aparecerem em Batizantes, Pendências, Reposição, Ficha e Painel.
+  function manualAsPerson(p) {
+    var fields = [p.nome, p.idade, p.telefone, p.turma, null, p.jornada || null, p.aulaRepor || null, p.grupo === undefined ? null : p.grupo, p.shirtSize || null, null, p.status || null, p.pendencia || null, null, null];
+    return {
+      sourceRow: String(p.id), __manual: true, manualId: p.id, name: clean(p.nome), age: p.idade, phone: p.telefone, turma: p.turma,
+      date: null, journey: p.jornada || null, lesson: p.aulaRepor || null, group: p.grupo === undefined ? null : p.grupo,
+      shirt: p.shirtSize || null, shirtPaid: null, status: p.status || null, pending: p.pendencia || null, baptized: null, profile: null,
+      shirtChoice: p.shirtChoice, shirtSize: p.shirtSize, shirtPaymentStatus: p.shirtPaymentStatus,
+      fields: fields
+    };
+  }
+  function allPeople() {
+    if (!appData) return [];
+    return (appData.people || []).concat((appData.participantes || []).map(manualAsPerson));
+  }
+  function findPerson(sourceRow) {
+    var key = String(sourceRow);
+    return allPeople().find(function (p) { return String(p.sourceRow) === key; }) || null;
+  }
+  function phoneDigits(value) {
+    var text = clean(value);
+    if (/^\d+\.0$/.test(text)) text = text.slice(0, -2);
+    return text.replace(/\D/g, '');
+  }
+  function phoneValid(value) {
+    var d = phoneDigits(value);
+    return d.length === 10 || d.length === 11 || ((d.length === 12 || d.length === 13) && d.indexOf('55') === 0);
+  }
+  function phoneLabel(value) {
+    var d = phoneDigits(value);
+    if (d.length === 11) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+    if (d.length === 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+    return clean(value);
+  }
+  function whatsappLink(value, message) {
+    if (!phoneValid(value)) return '';
+    var d = phoneDigits(value);
+    if (d.indexOf('55') !== 0 || d.length <= 11) d = '55' + d;
+    return 'https://wa.me/' + d + (message ? '?text=' + encodeURIComponent(message) : '');
   }
   function chip(text, cls) {
     return '<span class="tag ' + (cls || 't-in') + '">' + esc(text) + '</span>';
@@ -818,7 +716,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   }
   function captureTypedFields() {
     return Array.prototype.slice.call(document.querySelectorAll('input[id], textarea[id], select[id]')).filter(function (node) {
-      return node.id && !node.closest('#auth-shell') && !node.closest('#cloud-version-conflict-banner');
+      return node.id && node.type !== 'file' && !node.closest('#auth-shell') && !node.closest('#cloud-version-conflict-banner');
     }).map(function (node) {
       return { id: node.id, value: node.value, checked: 'checked' in node ? node.checked : undefined, type: node.type || '' };
     });
@@ -826,7 +724,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   function restoreTypedFields(fields) {
     fields.forEach(function (field) {
       var node = document.getElementById(field.id);
-      if (!node || node.closest('#auth-shell')) return;
+      if (!node || node.type === 'file' || node.closest('#auth-shell')) return;
       if (field.type === 'checkbox' || field.type === 'radio') node.checked = !!field.checked;
       else node.value = field.value;
     });
@@ -1050,7 +948,7 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     return !!record && turma === String(record.number || record.id);
   }
   function shirtSummary(turmaFilter) {
-    var people = appData.people.filter(function (p) { return matchesTurmaFilter(p, turmaFilter || ''); });
+    var people = allPeople().filter(function (p) { return matchesTurmaFilter(p, turmaFilter || ''); });
     var shirts = people.filter(shirtChosen);
     return {
       shirts: shirts,
@@ -1108,117 +1006,257 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
   }
   async function updateShirtField(sourceRow, field, value, selectNode) {
     if (!appData) return;
-    var original = (appData.people || []).find(function (p) { return String(p.sourceRow) === String(sourceRow); });
-    if (!original) { setImportMessage('Não foi possível localizar este participante.', 'error'); return; }
-    var updated = Object.assign({}, original);
-    if (field === 'choice') updated.shirtChoice = value;
-    if (field === 'size') updated.shirtSize = value;
-    if (field === 'payment') updated.shirtPaymentStatus = value;
-
-    var draft = Object.assign({}, appData, {
-      people: appData.people.map(function (p) {
-        return String(p.sourceRow) === String(sourceRow) ? updated : p;
-      })
-    });
-    var row = selectNode && selectNode.closest('.data-item');
-    var status = row && row.querySelector('.shirt-save-status');
+    var target = findPerson(sourceRow);
+    if (!target) { setImportMessage('Não foi possível localizar este participante.', 'error'); return; }
+    var key = field === 'choice' ? 'shirtChoice' : (field === 'size' ? 'shirtSize' : 'shirtPaymentStatus');
+    var draft = cloneWorkspaceForEdit();
+    if (target.__manual) {
+      var manual = (draft.participantes || []).find(function (p) { return String(p.id) === String(target.manualId); });
+      if (manual) { manual[key] = value; manual.atualizadoEm = new Date().toISOString(); }
+    } else {
+      var person = (draft.people || []).find(function (p) { return String(p.sourceRow) === String(sourceRow); });
+      if (person) person[key] = value;
+    }
+    var host = selectNode && selectNode.closest('[data-shirt-host]');
+    var status = host && host.querySelector('.shirt-save-status');
     if (status) { status.className = 'shirt-save-status is-saving'; status.textContent = 'Salvando…'; }
-    if (selectNode) selectNode.disabled = true;
+    if (host) host.querySelectorAll('select').forEach(function (s) { s.disabled = true; });
     try {
       if (typeof window.firebaseSaveWorkspace !== 'function') throw new Error('A gravação no Firebase não está disponível.');
       await window.firebaseSaveWorkspace(draft, true);
       try { await saveWorkspace(draft, false); } catch (localError) {}
       appData = draft;
       drawPeopleResults();
-      if (status) { status.className = 'shirt-save-status is-saved'; status.textContent = 'Salvo'; }
+      buildHome();
+      buildFiche(findPerson(sourceRow));
+      var fresh = document.querySelector('#fic .shirt-save-status');
+      if (fresh) { fresh.className = 'shirt-save-status is-saved'; fresh.textContent = 'Salvo'; }
     } catch (error) {
-      if (status) { status.className = 'shirt-save-status is-error'; status.textContent = 'Não salvo'; }
-      if (selectNode) selectNode.disabled = false;
+      if (status) { status.className = 'shirt-save-status is-error'; status.textContent = 'Não salvo: ' + (error.message || 'erro'); }
+      if (host) host.querySelectorAll('select').forEach(function (s) { s.disabled = false; });
     }
   }
+  function shirtEditor(person) {
+    var choice = shirtChoiceLabel(person);
+    var choiceValue = choice === 'Sim' ? 'sim' : (choice === 'Não' ? 'nao' : (choice === 'Já possui' ? 'ja possui' : 'pendente'));
+    var size = shirtSizeValue(person).toUpperCase();
+    var sizes = ['', 'PP', 'P', 'M', 'G', 'GG', 'EG', 'G1', 'G2', 'G3'];
+    if (size && sizes.indexOf(size) < 0) sizes.push(size);
+    var payment = shirtPaymentChoice(person) === 'Pago' ? 'pago' : 'pendente';
+    var noShirt = choiceValue !== 'sim';
+    return '<div class="card" data-shirt-host><b>Camiseta</b><div class="person-shirt-controls">' +
+      shirtSelect('Deseja camiseta?', choiceValue, [{ value: 'pendente', label: 'Pendente' }, { value: 'sim', label: 'Sim' }, { value: 'nao', label: 'Não' }, { value: 'ja possui', label: 'Já possui' }], person, 'choice', false) +
+      shirtSelect('Tamanho', size, sizes.map(function (s) { return { value: s, label: s || 'Selecione' }; }), person, 'size', noShirt) +
+      shirtSelect('Pagamento', payment, [{ value: 'pendente', label: 'A pagar' }, { value: 'pago', label: 'Pago' }], person, 'payment', noShirt) +
+      '</div><div class="shirt-save-status"></div></div>';
+  }
 
+  // ===== Painel inicial =====
+  function turmaRecordFor(id) {
+    return (appData.turmas || []).find(function (t) { return String(t.id) === String(id) || String(t.number) === String(id); }) || null;
+  }
+  function turmaDateISO(turma, people) {
+    if (turma && turma.date) return turma.date;
+    var counts = {};
+    (people || []).forEach(function (p) { if (typeof p.date === 'number' && p.date > 40000 && p.date < 60000) counts[p.date] = (counts[p.date] || 0) + 1; });
+    var best = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; })[0];
+    if (!best) return '';
+    var d = new Date(Date.UTC(1899, 11, 30) + Number(best) * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
+  function formatDateBR(iso) {
+    if (!iso) return '';
+    var p = iso.split('-');
+    return p[2] + '/' + p[1] + '/' + p[0];
+  }
+  function daysUntil(iso) {
+    if (!iso) return null;
+    var p = iso.split('-').map(Number);
+    var target = new Date(p[0], p[1] - 1, p[2]);
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    return Math.round((target - today) / 86400000);
+  }
+  function isReady(p) { return normal(p.journey) === 'concluida' && !hasPendingSignal(p); }
+  function isMinor(p) { var a = Number(p.age); return !isBlank(p.age) && a > 0 && a < 18; }
+  function duplicateNames(people) {
+    var counts = {};
+    people.forEach(function (p) { if (p.name) { var k = normal(p.name); counts[k] = (counts[k] || 0) + 1; } });
+    return counts;
+  }
+  function peopleFilterMatch(p, filter, dupCounts) {
+    if (filter === 'pending') return hasPendingSignal(p);
+    if (filter === 'without-phone') return isBlank(p.phone);
+    if (filter === 'invalid-phone') return !isBlank(p.phone) && !phoneValid(p.phone);
+    if (filter === 'without-name') return !p.name;
+    if (filter === 'minor') return isMinor(p);
+    if (filter === 'no-age') return !!p.name && isBlank(p.age);
+    if (filter === 'duplicate') return !!p.name && (dupCounts[normal(p.name)] || 0) > 1;
+    if (filter === 'repor') return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson);
+    if (filter === 'ready') return isReady(p);
+    if (filter === 'shirt-unpaid') return shirtChoiceLabel(p) === 'Sim' && shirtPaymentChoice(p) !== 'Pago';
+    return true;
+  }
+  function openPeopleFilter(filter, turma) {
+    peopleState.filter = filter; peopleState.turma = turma || ''; peopleState.__touched = true; peopleState.page = 1; peopleState.query = '';
+    goTo('pes'); buildPeople();
+  }
   function buildHome() {
     if (!appData) return;
     var home = document.getElementById('home');
-    var turmaAtual = String(appData.turmaPadrao || '36');
-    var turmaRecord = (appData.turmas || []).find(function (t) { return String(t.id) === turmaAtual || String(t.number) === turmaAtual; });
-    var turmaLabel = turmaRecord ? (turmaRecord.name || ('Turma ' + (turmaRecord.number || turmaRecord.id))) : ('Turma ' + turmaAtual);
+    var turmaAtual = String(appData.turmaPadrao || importedTurma());
+    var turmaRecord = turmaRecordFor(turmaAtual);
+    var turmaNumber = String(turmaRecord ? (turmaRecord.number || turmaRecord.id) : turmaAtual);
+    var turmaLabel = turmaRecord ? (turmaRecord.name || ('Turma ' + turmaNumber)) : ('Turma ' + turmaNumber);
     var turmaId = turmaRecord ? String(turmaRecord.id) : turmaAtual;
-    var people = (appData.people || []).filter(function (p) { return matchesTurmaFilter(p, turmaAtual); });
-    var namedPeople = people.filter(function (p) { return !!p.name; });
-    var pendingPeople = people.filter(hasPendingSignal);
-    var journeyDone = namedPeople.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
-    var shirts = shirtSummary(turmaAtual);
-    var orderRows = turmaId === '36' ? (appData.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: '36' }); }) : [];
-    var manualRows = (appData.ordensTurma || []).filter(function (r) { return String(r.turmaId) === turmaId; }).map(function (r) {
-      return Object.assign({}, r, { sourceRow: r.id, number: r.number, name: r.name, note: r.note, removed: r.removed, participantId: r.participantId, __turmaId: turmaId, __manual: true });
-    });
-    var orderRowsForTurma = orderRows.concat(manualRows);
-    var namedOrder = orderRowsForTurma.filter(function (r) { return !!r.name && !r.removed; });
-    var presentCount = 0, baptizedCount = 0;
-    namedOrder.forEach(function (r) {
-      var id = dayId(r), mark = dayMarks[id] || {};
-      if (mark.presente) presentCount++;
-      if (mark.batizado) baptizedCount++;
-    });
-
+    var people = allPeople().filter(function (p) { return matchesTurmaFilter(p, turmaNumber); });
+    var named = people.filter(function (p) { return !!p.name; });
+    var ready = named.filter(isReady).length;
+    var pending = named.filter(hasPendingSignal).length;
+    var journeyDone = named.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
+    var inGroup = named.filter(function (p) { return asBoolean(p.group) === true; }).length;
+    var wantShirt = named.filter(function (p) { return shirtChoiceLabel(p) === 'Sim'; });
+    var shirtPaid = wantShirt.filter(function (p) { return shirtPaymentChoice(p) === 'Pago'; }).length;
+    var savedOrderTurma = orderState.turmaId; orderState.turmaId = turmaId;
+    var orderRows = currentOrderItems().filter(function (r) { return !!r.name && !(r.__manual && r.removed); });
+    orderState.turmaId = savedOrderTurma;
+    var present = 0, baptized = 0;
+    orderRows.forEach(function (r) { var m = dayMarks[dayId(r)] || {}; if (m.presente) present++; if (m.batizado) baptized++; });
+    var dateIso = turmaDateISO(turmaRecord, people);
+    var days = daysUntil(dateIso);
+    var when = !dateIso ? 'Defina a data em Turmas' : (days > 1 ? 'em ' + days + ' dias' : (days === 1 ? 'amanhã' : (days === 0 ? 'é hoje!' : 'realizado há ' + Math.abs(days) + ' dias')));
+    var pct = named.length ? Math.round(ready * 100 / named.length) : 0;
+    var dup = duplicateNames(named);
+    function count(filter) { return named.filter(function (p) { return peopleFilterMatch(p, filter, dup); }).length; }
+    var alerts = [
+      { f: 'pending', n: pending, t: 'Com pendência de preparação', s: 'Status, reposição, observação ou telefone', u: true },
+      { f: 'repor', n: count('repor'), t: 'Precisam repor aula', s: 'Jornada “repor aula” ou aula indicada' },
+      { f: 'shirt-unpaid', n: count('shirt-unpaid'), t: 'Camisetas a pagar', s: 'Querem camiseta e ainda não pagaram' },
+      { f: 'invalid-phone', n: count('invalid-phone'), t: 'Telefone inválido', s: 'Não dá para chamar no WhatsApp', u: true },
+      { f: 'minor', n: count('minor'), t: 'Menores de idade', s: 'Confira a autorização do responsável' },
+      { f: 'no-age', n: count('no-age'), t: 'Sem idade informada', s: 'Impede identificar menores' },
+      { f: 'duplicate', n: count('duplicate'), t: 'Nomes repetidos na turma', s: 'Possível cadastro duplicado' }
+    ].filter(function (a) { return a.n > 0; });
+    var sizes = {};
+    wantShirt.forEach(function (p) { var s = (shirtSizeValue(p) || '?').toUpperCase(); sizes[s] = (sizes[s] || 0) + 1; });
+    var sizeOrder = ['PP', 'P', 'M', 'G', 'GG', 'EG', 'G1', 'G2', 'G3', '?'];
+    var sizeKeys = Object.keys(sizes).sort(function (a, b) { var ia = sizeOrder.indexOf(a), ib = sizeOrder.indexOf(b); return (ia < 0 ? 50 : ia) - (ib < 0 ? 50 : ib); });
+    function funnel(label, value, total) {
+      var w = total ? Math.round(value * 100 / total) : 0;
+      return '<div class="funnel-row"><span>' + esc(label) + '</span><div class="data-bar"><i style="width:' + w + '%"></i></div><em>' + value + ' · ' + w + '%</em></div>';
+    }
+    var recent = (appData.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); }).slice(0, 5);
     home.innerHTML =
-      '<div class="card hero"><small>GESTÃO DE BATISMO · ' + esc(turmaLabel.toUpperCase()) + '</small><h2>Vamos preparar cada detalhe.</h2><p>Um panorama da preparação e do dia do batismo.</p><div class="bb"><button type="button" class="btn" data-go="ord">Acompanhar presenças <span aria-hidden="true">→</span></button><button type="button" class="btn o" data-go="ord">Consultar ordem</button></div></div>' +
+      '<div class="card hero"><small>Turma em foco · ' + esc(turmaLabel) + '</small><h2>' + (dateIso ? 'Batismo ' + esc(formatDateBR(dateIso)) : esc(turmaLabel)) + '</h2>' +
+      '<p>' + esc(when) + ' · <b>' + ready + '</b> de <b>' + named.length + '</b> prontos (jornada concluída e sem pendências)</p>' +
+      '<div class="bar" style="margin:12px 0;max-width:560px"><b style="width:' + pct + '%"></b></div>' +
+      '<div class="bb"><button type="button" class="btn" data-go="ord">Abrir ordem e presenças →</button><button type="button" class="btn o" data-home-filter="all">Ver batizantes</button><button type="button" class="btn o" data-go="tur">Trocar turma em foco</button></div></div>' +
       '<div class="data-metrics">' +
-      '<div class="kpi"><span>Participantes cadastrados</span><b>' + namedPeople.length + '</b><span>Registros em ' + esc(turmaLabel.toLowerCase()) + '</span></div>' +
-      '<div class="kpi"><span>Presenças confirmadas</span><b>' + presentCount + '</b><span>Na ordem do batismo</span></div>' +
-      '<div class="kpi"><span>Pendências de preparação</span><b>' + pendingPeople.length + '</b><span>Sinais registrados</span></div>' +
-      '<div class="kpi"><span>Camisetas com tamanho</span><b>' + shirts.shirts.length + '</b><span>Cadastros identificados</span></div>' +
+        '<div class="kpi"><span>Inscritos</span><b>' + named.length + '</b><span>' + esc(turmaLabel) + '</span></div>' +
+        '<div class="kpi"><span>Prontos</span><b style="color:var(--ok)">' + ready + '</b><span>' + pct + '% da turma</span></div>' +
+        '<div class="kpi"><span>Com pendências</span><b style="color:var(--pe)">' + pending + '</b><span>Precisam de contato</span></div>' +
+        '<div class="kpi"><span>Dia do batismo</span><b>' + baptized + '<small style="font-size:15px;color:var(--mut)"> / ' + orderRows.length + '</small></b><span>' + present + ' presentes na ordem</span></div>' +
+      '</div>' +
+      '<div class="home-grid">' +
+        '<div class="card"><h2 class="t">Atenção agora</h2>' + (alerts.length ? alerts.map(function (a) {
+          return '<div class="alert-row' + (a.u ? ' urgent' : '') + '"><span class="alert-n">' + a.n + '</span><div class="alert-text">' + esc(a.t) + '<small>' + esc(a.s) + '</small></div><button type="button" class="btn o" data-home-filter="' + a.f + '">Ver</button></div>';
+        }).join('') : '<div class="alert-row fine"><span class="alert-n">✓</span><div class="alert-text">Nenhum alerta nesta turma</div></div>') + '</div>' +
+        '<div class="card"><h2 class="t">Funil de preparação</h2>' +
+          funnel('Inscritos', named.length, named.length) + funnel('Jornada concluída', journeyDone, named.length) + funnel('Entrou no grupo', inGroup, named.length) + funnel('Prontos', ready, named.length) + funnel('Na ordem', orderRows.length, named.length) +
+        '</div>' +
+        '<div class="card"><h2 class="t">Camisetas</h2><p class="section-sub" style="margin:0">' + wantShirt.length + ' pedidos · ' + shirtPaid + ' pagos · ' + (wantShirt.length - shirtPaid) + ' a pagar</p>' +
+          (sizeKeys.length ? '<div class="shirt-sizes">' + sizeKeys.map(function (k) { return '<div><b>' + sizes[k] + '</b><small>' + esc(k === '?' ? 'Sem tam.' : k) + '</small></div>'; }).join('') + '</div>' : '<div class="data-empty" style="margin-top:10px">Nenhum pedido de camiseta nesta turma.</div>') +
+        '</div>' +
+        '<div class="card"><h2 class="t">Turmas recentes</h2>' + recent.map(function (t) {
+          var tp = allPeople().filter(function (p) { return String(clean(p.turma)) === String(t.number); });
+          var d = turmaDateISO(t, tp);
+          return '<div class="alert-row"><span class="n">' + esc(t.number) + '</span><div class="alert-text">' + esc(t.name || ('Turma ' + t.number)) + '<small>' + (d ? esc(formatDateBR(d)) + ' · ' : '') + tp.length + ' inscritos</small></div>' + (String(t.id) === turmaId ? chip('Em foco', 't-ok') : '<button type="button" class="btn o" data-default-turma="' + esc(t.id) + '">Focar</button>') + '</div>';
+        }).join('') + '</div>' +
       '</div>';
   }
 
   function buildPeople() {
     var section = document.getElementById('pes');
-    var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\s+/i,'');}).concat(appData.people.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
-    if (turmas.indexOf('36') >= 0) { if (!peopleState.turma) peopleState.turma = '36'; }
-    else if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
-    section.innerHTML = '<div class="batizantes-head"><div><h2 class="t">Batizantes · ' + numberLabel(appData.people.length) + ' registros</h2><p class="section-sub">Consulta cadastral e acompanhamento compacto da preparação. Clique em uma pessoa para abrir a ficha completa.</p></div><button type="button" class="btn" data-add-person>+ Cadastrar pessoa</button></div>' +
-      '<div class="card"><h3 style="margin-top:0">Cadastro direto no sistema</h3><form id="manual-person-form"><div class="record-editor-fields"><label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="name"></label><label class="record-editor-field">Telefone<input id="manual-person-phone" maxlength="50" autocomplete="tel"></label><label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label><label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('') + '</select></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite"></div></form><div id="manual-person-results" class="data-list"></div></div>' +
+    var everyone = allPeople();
+    var turmas = Array.from(new Set((appData.turmas || []).map(function(t){return clean(t.number || t.name).replace(/^Turma\s+/i,'');}).concat(everyone.map(function (p) { return clean(p.turma); })).filter(Boolean))).sort(function (a, b) { return Number(a) - Number(b); });
+    if (!peopleState.turma && !peopleState.__touched) { var padrao = String((turmaRecordFor(appData.turmaPadrao) || {}).number || appData.turmaPadrao || ''); if (turmas.indexOf(padrao) >= 0) peopleState.turma = padrao; }
+    if (peopleState.turma && turmas.indexOf(peopleState.turma) < 0) peopleState.turma = '';
+    var filters = [['all', 'Todos os registros'], ['pending', 'Com pendência'], ['ready', 'Prontos'], ['repor', 'Precisam repor aula'], ['shirt-unpaid', 'Camiseta a pagar'], ['minor', 'Menores de idade'], ['without-phone', 'Sem telefone'], ['invalid-phone', 'Telefone inválido'], ['no-age', 'Sem idade'], ['duplicate', 'Nomes repetidos'], ['without-name', 'Sem nome']];
+    var turmaOptions = (appData.turmas || []).map(function(t){return '<option value="'+esc(t.number || t.name)+'">Turma '+esc(t.number || t.name)+'</option>';}).join('');
+    section.innerHTML = '<div class="batizantes-head"><div><h2 class="t">Batizantes · ' + numberLabel(everyone.length) + ' registros</h2><p class="section-sub">Clique em uma pessoa para abrir a ficha completa, editar e chamar no WhatsApp.</p></div></div>' +
+      '<details class="card new-person" id="manual-person-box"><summary id="manual-person-title">Cadastrar nova pessoa</summary><form id="manual-person-form"><div class="record-editor-fields">' +
+        '<label class="record-editor-field">Nome<input id="manual-person-name" required maxlength="160" autocomplete="off"></label>' +
+        '<label class="record-editor-field">Telefone (WhatsApp)<input id="manual-person-phone" maxlength="50" inputmode="tel" placeholder="(16) 99999-9999"></label>' +
+        '<label class="record-editor-field">Idade<input id="manual-person-age" type="number" min="0" max="120"></label>' +
+        '<label class="record-editor-field">Turma<select id="manual-person-turma" required><option value="">Selecione a turma</option>' + turmaOptions + '</select></label>' +
+        '<label class="record-editor-field">Jornada<select id="manual-person-journey"><option value="">Em andamento</option><option value="CONCLUIDA">Concluída</option><option value="REPOR AULA">Repor aula</option></select></label>' +
+        '<label class="record-editor-field">Aula para repor<input id="manual-person-lesson" maxlength="120" placeholder="Ex.: Aula 3 · aulão 14/11"></label>' +
+        '<label class="record-editor-field">Entrou no grupo?<select id="manual-person-group"><option value="">Não informado</option><option value="true">Sim</option><option value="false">Não</option></select></label>' +
+        '<label class="record-editor-field">Status<select id="manual-person-status-field"><option value="">Sem status</option><option value="OK">OK</option><option value="PENDENCIA">Pendência</option></select></label>' +
+        '<label class="record-editor-field wide">Pendência / observação<textarea id="manual-person-pending" maxlength="500"></textarea></label>' +
+      '</div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-person-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-person-save">Cadastrar pessoa</button></div><div id="manual-person-status" class="import-status" role="status" aria-live="polite" hidden></div></form></details>' +
       '<div class="data-metrics" id="people-ops-summary"></div>' +
-      '<div class="card"><div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone, observação ou linha…" aria-label="Buscar pessoas"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros"><option value="all">Todos os registros</option><option value="pending">Com pendência</option><option value="without-phone">Sem telefone</option><option value="without-name">Sem nome</option></select></div></div>' +
+      '<div class="card"><div class="data-toolbar"><input id="people-search" type="search" placeholder="Buscar nome, telefone ou observação…" aria-label="Buscar pessoas" value="' + esc(peopleState.query) + '"><select id="people-turma" aria-label="Filtrar turma"><option value="">Todas as turmas</option>' + turmas.map(function (t) { return '<option value="' + esc(t) + '" ' + (peopleState.turma === t ? 'selected' : '') + '>Turma ' + esc(t) + '</option>'; }).join('') + '</select><select id="people-filter" aria-label="Filtrar registros">' + filters.map(function (f) { return '<option value="' + f[0] + '" ' + (peopleState.filter === f[0] ? 'selected' : '') + '>' + f[1] + '</option>'; }).join('') + '</select></div></div>' +
       '<div id="people-count" class="data-summary"></div><div id="people-results" class="data-list"></div><div id="people-pager" class="data-pager"></div>';
     document.getElementById('people-search').addEventListener('input', function () { peopleState.query = this.value; peopleState.page = 1; drawPeopleResults(); });
-    document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.page = 1; drawPeopleResults(); });
+    document.getElementById('people-turma').addEventListener('change', function () { peopleState.turma = this.value; peopleState.__touched = true; peopleState.page = 1; drawPeopleResults(); });
     document.getElementById('people-filter').addEventListener('change', function () { peopleState.filter = this.value; peopleState.page = 1; drawPeopleResults(); });
-    drawPeopleResults();
-    drawManualPeople();
     document.getElementById('manual-person-form').addEventListener('submit', saveManualPerson);
     document.getElementById('manual-person-cancel').addEventListener('click', resetManualPersonForm);
-}
-
-  function drawManualPeople(){
-    var host=document.getElementById('manual-person-results'); if(!host||!appData)return;
-    var list=(appData.participantes||[]).slice().sort(function(a,b){return String(a.nome).localeCompare(String(b.nome),'pt-BR');});
-    host.innerHTML=list.map(function(p){return '<div class="data-item"><div class="item-main"><strong>'+esc(p.nome)+'</strong><div class="item-meta">Turma '+esc(p.turma)+' · Idade: '+esc(display(p.idade))+' · Telefone: '+esc(display(p.telefone))+'</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-manual-person="'+esc(p.id)+'">Editar / transferir</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa cadastrada diretamente ainda.</div>';
+    if (manualPersonEditingId) fillManualPersonForm(manualPersonEditingId);
+    drawPeopleResults();
   }
-  function resetManualPersonForm(){manualPersonEditingId='';var form=document.getElementById('manual-person-form');if(!form)return;form.reset();document.getElementById('manual-person-save').textContent='Cadastrar pessoa';document.getElementById('manual-person-cancel').hidden=true;document.getElementById('manual-person-status').textContent='';}
+
+  function resetManualPersonForm(){
+    manualPersonEditingId='';var form=document.getElementById('manual-person-form');if(!form)return;form.reset();
+    document.getElementById('manual-person-save').textContent='Cadastrar pessoa';document.getElementById('manual-person-title').textContent='Cadastrar nova pessoa';
+    document.getElementById('manual-person-cancel').hidden=true;var st=document.getElementById('manual-person-status');st.textContent='';st.hidden=true;
+    document.getElementById('manual-person-box').open=false;
+  }
   async function saveManualPerson(event){
     event.preventDefault();if(!appData)return;
-    var nome=document.getElementById('manual-person-name').value.trim(),telefone=document.getElementById('manual-person-phone').value.trim(),idade=document.getElementById('manual-person-age').value.trim(),turma=document.getElementById('manual-person-turma').value;
-    var status=document.getElementById('manual-person-status');if(!nome||!turma){status.className='import-status error';status.textContent='Preencha o nome e selecione a turma.';return;}
+    function v(id){return document.getElementById(id).value.trim();}
+    var nome=v('manual-person-name'),telefone=v('manual-person-phone'),idade=v('manual-person-age'),turma=v('manual-person-turma');
+    var status=document.getElementById('manual-person-status');status.hidden=false;
+    if(!nome||!turma){status.className='import-status error';status.textContent='Preencha o nome e selecione a turma.';return;}
+    if(telefone&&!phoneValid(telefone)){status.className='import-status error';status.textContent='Telefone inválido. Use DDD + número, ex.: (16) 99999-9999.';return;}
+    var extra={jornada:v('manual-person-journey')||null,aulaRepor:v('manual-person-lesson')||null,grupo:v('manual-person-group')===''?null:v('manual-person-group')==='true',status:v('manual-person-status-field')||null,pendencia:v('manual-person-pending')||null};
+    if(telefone)telefone=phoneLabel(telefone);
     var draft=cloneWorkspaceForEdit();if(!Array.isArray(draft.participantes))draft.participantes=[];
     var existing=draft.participantes.find(function(p){return p.id===manualPersonEditingId;});var now=new Date().toISOString();
-    if(existing){var oldTurma=String(existing.turma);if(oldTurma!==String(turma)){if(!Array.isArray(existing.historicoTurmas))existing.historicoTurmas=[];existing.historicoTurmas.push({turma:oldTurma,desde:existing.atualizadoEm||existing.criadoEm||now,ate:now});existing.turma=turma;}existing.nome=nome;existing.telefone=telefone;existing.idade=idade;existing.atualizadoEm=now;}
-    else draft.participantes.push({id:'p_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),nome:nome,telefone:telefone,idade:idade,turma:turma,criadoEm:now,atualizadoEm:now,historicoTurmas:[],participacoes:[]});
+    if(existing){var oldTurma=String(existing.turma);if(oldTurma!==String(turma)){if(!Array.isArray(existing.historicoTurmas))existing.historicoTurmas=[];existing.historicoTurmas.push({turma:oldTurma,desde:existing.atualizadoEm||existing.criadoEm||now,ate:now});existing.turma=turma;}Object.assign(existing,{nome:nome,telefone:telefone,idade:idade,atualizadoEm:now},extra);}
+    else{
+      var dupl=allPeople().find(function(p){return normal(p.name)===normal(nome)&&String(clean(p.turma))===String(turma);});
+      if(dupl&&!window.confirm('Já existe "'+displayName(dupl)+'" na Turma '+turma+'. Cadastrar mesmo assim?'))return;
+      draft.participantes.push(Object.assign({id:'p_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),nome:nome,telefone:telefone,idade:idade,turma:turma,criadoEm:now,atualizadoEm:now,historicoTurmas:[],participacoes:[]},extra));
+    }
     var save=document.getElementById('manual-person-save');save.disabled=true;status.className='import-status';status.textContent='Salvando cadastro...';
-    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(localError){}appData=draft;resetManualPersonForm();buildAll();goTo('pes');}
+    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(localError){}appData=draft;manualPersonEditingId='';peopleState.filter='all';peopleState.query=nome;peopleState.turma=String(turma);peopleState.__touched=true;peopleState.page=1;buildAll();goTo('pes');dayToastGlobal('Cadastro salvo: '+nome);}
     catch(error){status.className='import-status error';status.textContent='Não foi possível salvar: '+(error.message||'erro desconhecido');}
     finally{save.disabled=false;}
   }
-  function editManualPerson(id){var p=(appData.participantes||[]).find(function(item){return item.id===id;});if(!p)return;manualPersonEditingId=p.id;document.getElementById('manual-person-name').value=p.nome||'';document.getElementById('manual-person-phone').value=p.telefone||'';document.getElementById('manual-person-age').value=p.idade||'';document.getElementById('manual-person-turma').value=p.turma||'';document.getElementById('manual-person-save').textContent='Salvar alterações';document.getElementById('manual-person-cancel').hidden=false;}
+  function fillManualPersonForm(id){
+    var p=(appData.participantes||[]).find(function(item){return item.id===id;});if(!p||!document.getElementById('manual-person-form'))return;
+    manualPersonEditingId=p.id;
+    function set(fid,val){var n=document.getElementById(fid);if(n)n.value=val===null||val===undefined?'':String(val);}
+    set('manual-person-name',p.nome);set('manual-person-phone',p.telefone);set('manual-person-age',p.idade);set('manual-person-turma',p.turma);
+    set('manual-person-journey',p.jornada);set('manual-person-lesson',p.aulaRepor);set('manual-person-group',p.grupo===null||p.grupo===undefined?'':p.grupo);
+    set('manual-person-status-field',p.status);set('manual-person-pending',p.pendencia);
+    document.getElementById('manual-person-save').textContent='Salvar alterações';document.getElementById('manual-person-title').textContent='Editar cadastro · '+(p.nome||'');
+    document.getElementById('manual-person-cancel').hidden=false;var box=document.getElementById('manual-person-box');box.open=true;
+  }
+  function editManualPerson(id){
+    goTo('pes');var fic=document.getElementById('fic');fic.hidden=true;fic.classList.remove('on');
+    fillManualPersonForm(id);var box=document.getElementById('manual-person-box');if(box)box.scrollIntoView({behavior:'auto',block:'start'});
+  }
 
   function safeDayLinkForPerson(person) {
-    if (!person || !person.name || String(person.turma) !== '36') return null;
+    var it = importedTurma();
+    if (!person || !person.name || String(person.turma) !== it) return null;
     var samePeople = (appData.people || []).filter(function (p) {
-      return String(p.turma) === '36' && normal(p.name) === normal(person.name);
+      return String(p.turma) === it && normal(p.name) === normal(person.name);
     });
     if (samePeople.length !== 1) return null;
-    var rows = (appData.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: '36' }); }).filter(function (r) {
+    var rows = (appData.order || []).map(function (r) { return Object.assign({}, r, { __turmaId: it }); }).filter(function (r) {
       return !!r.name && normal(r.name) === normal(person.name);
     });
     if (rows.length !== 1) return null;
@@ -1230,12 +1268,11 @@ h2.t{font-family:Inter,ui-sans-serif,system-ui,sans-serif;font-size:21px;letter-
     var named = items.filter(function (p) { return !!p.name; });
     var pending = named.filter(hasPendingSignal).length;
     var journeyDone = named.filter(function (p) { return normal(p.journey) === 'concluida'; }).length;
-    var knownLinks = named.map(safeDayLinkForPerson).filter(Boolean);
-    var present = knownLinks.filter(function (r) { return !!(dayMarks[dayId(r)] || {}).presente; }).length;
-    host.innerHTML = metric('Participantes', named.length, 'Cadastros com nome') +
+    var ready = named.filter(isReady).length;
+    host.innerHTML = metric('Participantes', named.length, peopleState.turma ? 'Turma ' + peopleState.turma : 'Todas as turmas') +
+      metric('Prontos', ready, 'Jornada concluída e sem pendência') +
       metric('Pendências', pending, 'Com sinal registrado') +
-      metric('Jornada concluída', journeyDone, 'Status “concluída”') +
-      metric('Presentes', present, 'Na ordem do batismo');
+      metric('Jornada concluída', journeyDone, 'Status “concluída”');
   }
 
 function prepJourney(person) {
@@ -1255,8 +1292,15 @@ function prepJourney(person) {
     if (b === false) return 'Não entrou no grupo';
     return value;
   }
+  function eklesiaFromOrder(person) {
+    var row = person && !person.__manual ? safeDayLinkForPerson(person) : null;
+    if (!row) return '';
+    if ((dayMarks[dayId(row)] || {}).eklesia) return 'OK';
+    return clean(row.eklesiaStatus);
+  }
   function prepEklesia(person) {
-    var value = clean(person && (person.eklesia || person.eklesiaStatus || person.baptized));
+    if (person && normal(person.pending).indexOf('sem cadastro no eklesia') >= 0) return 'Sem cadastro';
+    var value = clean(person && (person.eklesia || person.eklesiaStatus || person.baptized)) || eklesiaFromOrder(person);
     var n = normal(value);
     if (!value) return 'Não informado';
     if (n === 'ok' || n.indexOf('incluid') >= 0 || n.indexOf('sim') >= 0) return '✓ Eklesia';
@@ -1290,16 +1334,14 @@ function prepJourney(person) {
   function drawPeopleResults() {
     if (!appData || !document.getElementById('people-results')) return;
     var query = normal(peopleState.query);
-    var items = appData.people.filter(function (p) {
-      var text = normal([p.name, p.phone, p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.sourceRow, p.shirt, p.shirtPaid, p.group].join(' '));
+    var scoped = allPeople().filter(function (p) { return !peopleState.turma || clean(p.turma) === peopleState.turma; });
+    var dupCounts = duplicateNames(scoped);
+    var items = scoped.filter(function (p) {
+      var text = normal([p.name, p.phone, phoneDigits(p.phone), p.turma, p.journey, p.lesson, p.status, p.pending, p.profile, p.shirt, p.group].join(' '));
       if (query && text.indexOf(query) < 0) return false;
-      if (peopleState.turma && clean(p.turma) !== peopleState.turma) return false;
-      if (peopleState.filter === 'pending' && !hasPendingSignal(p)) return false;
-      if (peopleState.filter === 'without-phone' && !isBlank(p.phone)) return false;
-      if (peopleState.filter === 'without-name' && p.name) return false;
-      return true;
-    });
-    drawPeopleOpsSummary((appData.people || []).filter(function (p) { return matchesTurmaFilter(p, peopleState.turma); }));
+      return peopleFilterMatch(p, peopleState.filter, dupCounts);
+    }).sort(function (a, b) { return String(a.name || '~').localeCompare(String(b.name || '~'), 'pt-BR'); });
+    drawPeopleOpsSummary(scoped);
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
     peopleState.page = Math.min(Math.max(1, peopleState.page), pages);
     var start = (peopleState.page - 1) * PAGE_SIZE;
@@ -1316,8 +1358,8 @@ function prepJourney(person) {
       return '<div class="data-item batizante-item" data-open-person="' + esc(p.sourceRow) + '" tabindex="0" role="button" aria-label="Abrir ficha de ' + esc(displayName(p)) + '">' +
         '<div class="av">' + esc(p.name ? p.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div>' +
         '<div class="item-main">' +
-          '<div class="person-title"><strong>' + esc(displayName(p)) + '</strong>' + chip(status, classes) + '</div>' +
-          '<div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(display(p.phone)) + '</div>' +
+          '<div class="person-title"><strong>' + esc(displayName(p)) + '</strong>' + chip(status, normal(p.status) === 'ok' ? 't-ok' : (normal(p.status) === 'pendencia' ? 't-er' : classes)) + (isMinor(p) ? chip('Menor', 't-pe') : '') + (p.__manual ? chip('Cadastro pelo site', 't-in') : '') + '</div>' +
+          '<div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Idade: ' + esc(display(p.age)) + ' · Telefone: ' + esc(isBlank(p.phone) ? 'Não preenchido' : phoneLabel(p.phone)) + (!isBlank(p.phone) && !phoneValid(p.phone) ? ' ⚠' : '') + '</div>' +
           '<div class="prep-title">Preparação</div>' +
           '<div class="prep-compact">' +
             prepCell('Jornada', journey, 'journey') +
@@ -1327,41 +1369,65 @@ function prepJourney(person) {
           '</div>' +
           '<div class="pending-compact">' + (pending ? '⚠ ' + esc(personPendingText(p)) : '✓ Nenhuma pendência registrada') + '</div>' +
         '</div>' +
-        '<div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Ver ficha</button></div>' +
+        '<div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Ver ficha</button>' + (whatsappLink(p.phone) ? '<a class="btn g" href="' + esc(whatsappLink(p.phone)) + '" target="_blank" rel="noopener" data-stop-open>WhatsApp</a>' : '') + '</div>' +
       '</div>';
     }).join('') || '<div class="data-empty">Nenhum registro encontrado com estes filtros.</div>';
     document.getElementById('people-pager').innerHTML = '<button type="button" class="btn o" data-page="people:-1" ' + (peopleState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>' + numberLabel(start + (view.length ? 1 : 0)) + '–' + numberLabel(start + view.length) + ' de ' + numberLabel(items.length) + '</span><button type="button" class="btn o" data-page="people:1" ' + (peopleState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
+  function firstName(name) { var n = clean(name).split(/\s+/)[0] || ''; return n.charAt(0).toUpperCase() + n.slice(1).toLowerCase(); }
+  function whatsappTemplates(person) {
+    var nome = firstName(person.name);
+    var turma = 'Turma ' + clean(person.turma);
+    var list = [{ label: 'Mensagem livre', text: '' }];
+    list.push({ label: 'Boas-vindas', text: 'Olá, ' + nome + '! Que alegria ter você na ' + turma + ' do batismo. Qualquer dúvida sobre a jornada, é só me chamar por aqui. 😊' });
+    if (normal(person.journey).indexOf('repor') >= 0 || !isBlank(person.lesson)) list.push({ label: 'Reposição de aula', text: 'Olá, ' + nome + '! Vimos que falta repor uma aula da jornada' + (isBlank(person.lesson) ? '' : ' (' + clean(person.lesson) + ')') + '. Podemos contar com você no próximo aulão?' });
+    if (shirtChoiceLabel(person) === 'Sim' && shirtPaymentChoice(person) !== 'Pago') list.push({ label: 'Pagamento da camiseta', text: 'Olá, ' + nome + '! Passando para lembrar do pagamento da camiseta do batismo' + (shirtSizeValue(person) ? ' (tamanho ' + shirtSizeValue(person) + ')' : '') + '. Qualquer dúvida, estou à disposição!' });
+    if (shirtChoiceLabel(person) === 'Pendente') list.push({ label: 'Escolher camiseta', text: 'Olá, ' + nome + '! Você vai querer a camiseta do batismo? Se sim, qual tamanho (PP, P, M, G, GG, EG)?' });
+    if (asBoolean(person.group) !== true) list.push({ label: 'Convite para o grupo', text: 'Olá, ' + nome + '! Ainda não te encontramos no grupo da ' + turma + '. Posso te enviar o link para entrar?' });
+    return list;
+  }
   function buildFiche(person) {
     var section = document.getElementById('fic');
     if (!person) {
       section.innerHTML = '<h2 class="t">Ficha individual</h2><div class="data-empty">Selecione uma pessoa para abrir a ficha completa.</div>';
       return;
     }
+    var f = person.fields || [];
     var fields = [
-      ['NOME', person.fields[0]], ['IDADE', person.fields[1]], ['TELEFONE', person.fields[2]], ['TURMA', person.fields[3]],
-      ['DATA', excelDate(person.fields[4])], ['JORNADA', person.fields[5]], ['AULA P/ REPOR', person.fields[6]],
-      ['ENTROU NO GRUPO', person.fields[7]], ['CAMISETA', person.fields[8]], ['PG CAMISETA', person.fields[9]],
-      ['STATUS', person.fields[10]], ['PENDENCIA', person.fields[11]], ['BATIZADO', person.fields[12]],
-      ['INVESTIGAÇÃO PERFIL (FBI)', person.fields[13]]
+      ['Nome', f[0]], ['Idade', f[1]], ['Telefone', f[2]], ['Turma', f[3]],
+      ['Data', excelDate(f[4])], ['Jornada', f[5]], ['Aula p/ repor', f[6]],
+      ['Entrou no grupo', f[7]], ['Camiseta (original)', f[8]], ['Pg camiseta (original)', f[9]],
+      ['Status', f[10]], ['Pendência', f[11]], ['Batizado', f[12]],
+      ['Verificação de perfil (restrito)', f[13]]
     ];
-    section.innerHTML = '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para Batizantes</button></div><h2 class="t">Ficha completa</h2>' +
-      '<div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—') + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>' + esc(display(person.age)) + ' anos · ' + esc(display(person.phone)) + ' · Turma ' + esc(display(person.turma)) + '</div></div></div><div class="item-badges" style="margin-top:8px">' + badgeForStatus(person.status) + (!isBlank(person.pending) ? chip('Pendência', 't-pe') : chip('Sem pendências registradas', 't-ok')) + '</div></div>' +
+    var initials = person.name ? person.name.split(/\s+/).filter(Boolean).slice(0, 2).map(function (s) { return s.charAt(0); }).join('').toUpperCase() : '—';
+    var wa = whatsappLink(person.phone);
+    var templates = whatsappTemplates(person);
+    var manualRecord = person.__manual ? (appData.participantes || []).find(function (p) { return String(p.id) === String(person.manualId); }) : null;
+    var history = manualRecord && (manualRecord.historicoTurmas || []).length ? '<div class="card"><b>Histórico de turmas</b>' + manualRecord.historicoTurmas.map(function (h) { return '<div class="alert-row"><span class="n">' + esc(h.turma) + '</span><div class="alert-text">Turma ' + esc(h.turma) + '<small>até ' + esc(h.ate ? new Date(h.ate).toLocaleDateString('pt-BR') : '—') + '</small></div></div>'; }).join('') + '<div class="alert-row"><span class="n">' + esc(manualRecord.turma) + '</span><div class="alert-text">Turma ' + esc(manualRecord.turma) + '<small>atual</small></div></div></div>' : '';
+    var sameName = allPeople().filter(function (p) { return p !== person && person.name && normal(p.name) === normal(person.name) && String(p.sourceRow) !== String(person.sourceRow); });
+    var otherTurmas = sameName.length ? '<div class="card"><b>Mesmo nome em outras turmas</b><p class="section-sub" style="margin:4px 0 0">Pode ser a mesma pessoa em outra turma ou um cadastro duplicado.</p>' + sameName.map(function (p) { return '<div class="alert-row"><span class="n">' + esc(display(p.turma)) + '</span><div class="alert-text">' + esc(displayName(p)) + '<small>Turma ' + esc(display(p.turma)) + ' · ' + esc(prepJourney(p)) + '</small></div><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Abrir</button></div>'; }).join('') + '</div>' : '';
+    var editButton = person.__manual ? '<button type="button" class="btn" data-edit-manual-person="' + esc(person.manualId) + '">Editar cadastro</button>' : '<button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button>';
+    section.innerHTML = '<div style="margin:0 0 14px"><button type="button" class="btn o" data-go="pes">← Voltar para Batizantes</button></div>' +
+      '<div class="card"><div class="row" style="border:0;padding-top:0"><div class="av" style="width:52px;height:52px;font-size:18px">' + esc(initials) + '</div><div class="m"><h2 style="font-size:20px">' + esc(displayName(person)) + '</h2><div>' + (isBlank(person.age) ? 'Idade não informada' : esc(display(person.age)) + ' anos') + ' · ' + esc(isBlank(person.phone) ? 'Sem telefone' : phoneLabel(person.phone)) + ' · Turma ' + esc(display(person.turma)) + '</div></div></div>' +
+        '<div class="item-badges" style="margin-top:8px">' + badgeForStatus(person.status) + (hasPendingSignal(person) ? chip('Com pendência', 't-pe') : chip('Sem pendências', 't-ok')) + (isReady(person) ? chip('Pronto para o batismo', 't-ok') : '') + (isMinor(person) ? chip('Menor de idade', 't-pe') : '') + (person.__manual ? chip('Cadastro pelo site', 't-in') : chip('Importado · linha ' + person.sourceRow, 't-in')) + '</div>' +
+        (wa ? '<div class="data-toolbar" style="grid-template-columns:minmax(0,1fr) auto;margin-top:14px"><select id="wa-template" aria-label="Modelo de mensagem">' + templates.map(function (t, i) { return '<option value="' + i + '">' + esc(t.label) + '</option>'; }).join('') + '</select><a class="btn g" id="wa-send" href="' + esc(wa) + '" target="_blank" rel="noopener">💬 Abrir WhatsApp</a></div>' : '<p class="section-sub" style="margin:12px 0 0">⚠ Telefone ausente ou inválido: corrija o cadastro para habilitar o WhatsApp.</p>') +
+      '</div>' +
       '<div class="card"><span class="ficha-section-title">Preparação</span><div class="ficha-prep-grid">' +
         '<div class="ficha-prep"><small>Jornada</small><strong>' + esc(prepJourney(person)) + '</strong></div>' +
         '<div class="ficha-prep"><small>Grupo WhatsApp</small><strong>' + esc(prepGroup(person)) + '</strong></div>' +
         '<div class="ficha-prep"><small>Eklesia</small><strong>' + esc(prepEklesia(person)) + '</strong></div>' +
         '<div class="ficha-prep"><small>Camiseta</small><strong>' + esc(prepShirt(person)) + '</strong></div>' +
-      '</div></div>' +
-      '<div class="card"><b>Jornada e pendências</b><div class="data-field-grid">' +
-        '<div class="data-field"><small>Status da jornada</small><strong>' + esc(display(person.journey)) + '</strong></div>' +
+      '</div><div class="data-field-grid">' +
         '<div class="data-field"><small>Aulas / reposição</small><strong>' + esc(display(person.lesson)) + '</strong></div>' +
-        '<div class="data-field"><small>Pendências</small><strong>' + esc(display(person.pending)) + '</strong></div>' +
-        '<div class="data-field"><small>Observações / perfil</small><strong>' + esc(display(person.profile)) + '</strong></div>' +
+        '<div class="data-field"><small>Pendências</small><strong>' + esc(signalFlags(person).join(' · ') || 'Nenhuma') + '</strong></div>' +
       '</div></div>' +
-      '<div class="card"><b>Todos os campos da planilha</b><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></div>' +
-      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para Batizantes</button><button type="button" class="btn" data-edit-person="' + esc(person.sourceRow) + '">Editar cadastro</button></div>';
+      shirtEditor(person) + history + otherTurmas +
+      (person.__manual ? '' : '<details class="card"><summary style="cursor:pointer;font-weight:700">Todos os campos da planilha original</summary><div class="data-field-grid">' + fields.map(function (field) { return '<div class="data-field"><small>' + esc(field[0]) + '</small><strong>' + esc(display(field[1])) + '</strong></div>'; }).join('') + '</div></details>') +
+      '<div class="bb"><button type="button" class="btn o" data-go="pes">← Voltar para Batizantes</button>' + editButton + '</div>';
+    var tpl = section.querySelector('#wa-template'), send = section.querySelector('#wa-send');
+    if (tpl && send) tpl.addEventListener('change', function () { send.href = whatsappLink(person.phone, templates[Number(tpl.value)].text); });
   }
 
   function openRecordEditor(kind, record) {
@@ -1370,7 +1436,7 @@ function prepJourney(person) {
     var fields, labels, title, key;
     if (kind === 'person') {
       key = 'batismo';
-      labels = ['NOME', 'IDADE', 'TELEFONE', 'TURMA', 'DATA', 'JORNADA', 'AULA P/ REPOR', 'ENTROU NO GRUPO', 'CAMISETA', 'PG CAMISETA', 'STATUS', 'PENDENCIA', 'BATIZADO', 'INVESTIGAÇÃO PERFIL (FBI)'];
+      labels = ['NOME', 'IDADE', 'TELEFONE', 'TURMA', 'DATA', 'JORNADA', 'AULA P/ REPOR', 'ENTROU NO GRUPO', 'CAMISETA', 'PG CAMISETA', 'STATUS', 'PENDENCIA', 'BATIZADO', 'VERIFICAÇÃO DE PERFIL (RESTRITO)'];
       fields = isNew ? new Array(14).fill(null) : (record.fields || []).slice(0, 14);
       while (fields.length < 14) fields.push(null);
       if (!isNew) fields[4] = excelDate(fields[4]);
@@ -1521,6 +1587,10 @@ function prepJourney(person) {
       else {
         var personIndex = draft.people.findIndex(function (item) { return Number(item.sourceRow) === Number(sourceRow); });
         if (personIndex < 0) throw new Error('Não foi possível localizar este cadastro.');
+        var previous = draft.people[personIndex];
+        // Mantém as escolhas de camiseta feitas na ficha, a menos que os campos da camiseta tenham sido alterados aqui.
+        var shirtEdited = String(clean(previous.fields && previous.fields[8])) !== String(clean(fields[8])) || String(clean(previous.fields && previous.fields[9])) !== String(clean(fields[9]));
+        if (!shirtEdited) ['shirtChoice', 'shirtSize', 'shirtPaymentStatus'].forEach(function (k) { if (previous[k] !== undefined) person[k] = previous[k]; });
         draft.people[personIndex] = person;
       }
       selectedPersonRow = sourceRow;
@@ -1559,113 +1629,167 @@ function prepJourney(person) {
     }
   });
 
-  function selectedOrderTurma(){var id=String(orderState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
+  function selectedOrderTurma(){var id=String(orderState.turmaId||appData.turmaPadrao||importedTurma());return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
   function orderItemKey(row){return row&&row.__manual?'manual_'+String(row.id):'imported_'+String(row.sourceRow||row.id||row.number);}
   function sortOrderItems(items,turmaId){var sequence=(appData.ordemSequencia&&appData.ordemSequencia[String(turmaId)])||[];if(!sequence.length)return items;var rank={};sequence.forEach(function(key,index){rank[String(key)]=index;});return items.slice().sort(function(a,b){var ar=rank[orderItemKey(a)];var br=rank[orderItemKey(b)];if(ar===undefined&&br===undefined)return 0;if(ar===undefined)return 1;if(br===undefined)return -1;return ar-br;});}
-  function currentOrderItems(){var t=selectedOrderTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__manual:true,__turmaId:String(t.id)});});var imported=String(t.id)==='36'?(appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}):[];return sortOrderItems(imported.concat(manual),t.id);}
+  function currentOrderItems(){var t=selectedOrderTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,__manual:true,__turmaId:String(t.id)});});var it=importedTurma(),imported=String(t.id)===it?(appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:it});}):[];return sortOrderItems(imported.concat(manual),t.id);}
 
   function buildOrder() {
-    var section=document.getElementById('ord');
-    section.innerHTML='<h2 class="t">Batizantes · Ordem do batismo</h2><div class="card order-operation-card"><b>Operação do batismo</b><p class="section-sub">Arraste para reorganizar. Marque Presente, Batizado e Incluído no Ekklesia diretamente nesta lista.</p></div><div class="card"><label for="order-turma-select"><b>Turma da ordem</b></label><select id="order-turma-select" class="day-turma-select">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(orderState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'>'+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select></div><div class="card"><b>Adicionar posição nesta turma</b><form id="manual-order-form"><div class="record-editor-fields"><label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label><label class="record-editor-field">Participante (opcional)<select id="manual-order-person"><option value="">Posição reservada / sem nome</option>'+(appData.participantes||[]).filter(function(p){return String(p.turma)===String(selectedOrderTurma().number);}).map(function(p){return '<option value="'+esc(p.id)+'">'+esc(p.nome)+'</option>';}).join('')+'</select></label><label class="record-editor-field wide">Observação<input id="manual-order-note" maxlength="300"></label></div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" hidden>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">Adicionar posição</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite"></div></form></div><div class="card"><div class="data-toolbar"><input id="order-search" type="search" placeholder="Buscar nome, observação ou número…" aria-label="Buscar na ordem"><select id="order-filter" aria-label="Filtrar posições"><option value="all">Todas as posições</option><option value="named">Com nome</option><option value="unnamed">Sem nome / reservadas</option></select><button class="btn o" type="button" data-print>🖨 Imprimir ordem visível</button></div><div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
-    
-    document.getElementById('order-turma-select').onchange=function(){orderState.turmaId=this.value;orderState.page=1;manualOrderEditingId='';buildOrder();};
-    document.getElementById('order-search').addEventListener('input',function(){orderState.query=this.value;orderState.page=1;drawOrderResults();});
-    document.getElementById('order-filter').addEventListener('change',function(){orderState.filter=this.value;orderState.page=1;drawOrderResults();});
-    document.getElementById('manual-order-form').addEventListener('submit',saveManualOrder);
-    document.getElementById('manual-order-cancel').onclick=function(){manualOrderEditingId='';buildOrder();};
-    var next=Math.max.apply(null,currentOrderItems().map(function(r){return Number(r.number)||0;}).concat([0]))+1;document.getElementById('manual-order-number').value=next;
-    
+    var section = document.getElementById('ord');
+    var t = selectedOrderTurma();
+    var turmaPeople = (appData.participantes || []).filter(function (p) { return String(p.turma) === String(t.number); });
+    var filters = [['all', 'Pessoas'], ['aguardando', 'Aguardando'], ['presentes', 'Presentes'], ['batizados', 'Batizados'], ['sem-eklesia', 'Sem Ekklesia'], ['positions', 'Todas as posições'], ['unnamed', 'Só reservadas']];
+    section.innerHTML = '<div class="batizantes-head"><div><h2 class="t">Ordem do batismo · ' + esc(t.name || ('Turma ' + t.number)) + '</h2><p class="section-sub">Arraste ☷ para reorganizar. No dia, toque em <b>Presente</b> na chegada e em <b>Batizado</b> logo após o batismo. As marcações sincronizam entre os celulares.</p></div>' +
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><select id="order-turma-select" aria-label="Turma da ordem" style="min-height:44px;border:1px solid var(--ln);border-radius:11px;background:var(--card);color:var(--tx);padding:8px 12px;font:inherit">' + (appData.turmas || []).slice().reverse().map(function (x) { return '<option value="' + esc(x.id) + '" ' + (String(t.id) === String(x.id) ? 'selected' : '') + '>' + esc(x.name || ('Turma ' + x.number)) + '</option>'; }).join('') + '</select><button class="btn o" type="button" data-print-order>🖨 Lista em papel</button></div></div>' +
+      '<div class="card" id="order-summary"></div>' +
+      '<details class="card new-person" id="manual-order-box"' + (manualOrderEditingId ? ' open' : '') + '><summary id="manual-order-title">' + (manualOrderEditingId ? 'Editar posição' : 'Adicionar posição nesta turma') + '</summary><form id="manual-order-form"><div class="record-editor-fields">' +
+        '<label class="record-editor-field">Número da posição<input id="manual-order-number" type="number" min="1" required></label>' +
+        '<label class="record-editor-field">Participante (cadastrados pelo site nesta turma)<select id="manual-order-person"><option value="">Posição reservada / digitar nome abaixo</option>' + turmaPeople.map(function (p) { return '<option value="' + esc(p.id) + '">' + esc(p.nome) + '</option>'; }).join('') + '</select></label>' +
+        '<label class="record-editor-field">Nome (se não estiver na lista)<input id="manual-order-name" maxlength="160"></label>' +
+        '<label class="record-editor-field">Observação<input id="manual-order-note" maxlength="300" placeholder="Ex.: Prioridade · Batizar com Pr. …"></label>' +
+      '</div><div class="record-editor-actions"><button type="button" class="btn o" id="manual-order-cancel" ' + (manualOrderEditingId ? '' : 'hidden') + '>Cancelar edição</button><button type="submit" class="btn" id="manual-order-save">' + (manualOrderEditingId ? 'Salvar posição' : 'Adicionar posição') + '</button></div><div id="manual-order-status" class="import-status" role="status" aria-live="polite" hidden></div></form></details>' +
+      '<div class="card"><div class="data-toolbar" style="grid-template-columns:minmax(0,1fr)"><input id="order-search" type="search" placeholder="Buscar nome, número ou observação…" aria-label="Buscar na ordem" value="' + esc(orderState.query || '') + '"></div>' +
+      '<div class="day-filters" style="margin-bottom:10px">' + filters.map(function (f) { return '<button type="button" data-order-filter="' + f[0] + '" class="' + ((orderState.filter || 'all') === f[0] ? 'active' : '') + '">' + f[1] + '</button>'; }).join('') + '</div>' +
+      '<div id="order-count" class="data-summary"></div><div id="order-results" class="data-list"></div><div id="order-pager" class="data-pager"></div></div>';
+    document.getElementById('order-turma-select').onchange = function () { orderState.turmaId = this.value; orderState.page = 1; manualOrderEditingId = ''; buildOrder(); };
+    document.getElementById('order-search').addEventListener('input', function () { orderState.query = this.value; orderState.page = 1; drawOrderResults(); });
+    section.querySelectorAll('[data-order-filter]').forEach(function (b) { b.onclick = function () { orderState.filter = b.dataset.orderFilter; orderState.page = 1; section.querySelectorAll('[data-order-filter]').forEach(function (x) { x.classList.toggle('active', x === b); }); drawOrderResults(); }; });
+    document.getElementById('manual-order-form').addEventListener('submit', saveManualOrder);
+    document.getElementById('manual-order-cancel').onclick = function () { manualOrderEditingId = ''; buildOrder(); };
+    var editing = manualOrderEditingId && (appData.ordensTurma || []).find(function (r) { return r.id === manualOrderEditingId; });
+    if (editing) {
+      document.getElementById('manual-order-number').value = editing.number || '';
+      document.getElementById('manual-order-person').value = editing.participantId || '';
+      document.getElementById('manual-order-name').value = editing.participantId ? '' : (editing.name || '');
+      document.getElementById('manual-order-note').value = editing.note || '';
+    } else {
+      document.getElementById('manual-order-number').value = Math.max.apply(null, currentOrderItems().map(function (r) { return Number(r.number) || 0; }).concat([0])) + 1;
+    }
     drawOrderResults();
-    window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawOrderResults();buildHome();});
-    window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawOrderResults();});
-    window.addEventListener('day-checkin-error',function(e){dayToast('Não foi possível salvar.');});
   }
-
+  function editManualOrder(id) {
+    manualOrderEditingId = id; goTo('ord'); buildOrder();
+    var box = document.getElementById('manual-order-box'); if (box) box.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }
+  async function removeManualOrder(id) {
+    var item = (appData.ordensTurma || []).find(function (r) { return r.id === id; });
+    if (!item) return;
+    if (!window.confirm('Remover a posição ' + (item.number || '') + (item.name ? ' (' + item.name + ')' : '') + ' da ordem?')) return;
+    var draft = cloneWorkspaceForEdit();
+    draft.ordensTurma = (draft.ordensTurma || []).filter(function (r) { return r.id !== id; });
+    try { await window.firebaseSaveWorkspace(draft, true); try { await saveWorkspace(draft, false); } catch (e) {} appData = draft; buildAll(); goTo('ord'); dayToastGlobal('Posição removida.'); }
+    catch (error) { dayToastGlobal('Não foi possível remover: ' + (error.message || 'erro')); }
+  }
   async function saveManualOrder(event){
-    event.preventDefault();var t=selectedOrderTurma(),number=document.getElementById('manual-order-number').value.trim(),participantId=document.getElementById('manual-order-person').value,note=document.getElementById('manual-order-note').value.trim(),status=document.getElementById('manual-order-status');
+    event.preventDefault();var t=selectedOrderTurma(),number=document.getElementById('manual-order-number').value.trim(),participantId=document.getElementById('manual-order-person').value,typedName=document.getElementById('manual-order-name').value.trim(),note=document.getElementById('manual-order-note').value.trim(),status=document.getElementById('manual-order-status');
+    status.hidden=false;
     if(!number){status.className='import-status error';status.textContent='Informe o número da posição.';return;}
+    var clash=currentOrderItems().find(function(r){return Number(r.number)===Number(number)&&!(r.__manual&&r.id===manualOrderEditingId);});
+    if(clash&&!window.confirm('A posição '+number+' já está ocupada'+(clash.name?' por '+clash.name:'')+'. Salvar mesmo assim?'))return;
     var draft=cloneWorkspaceForEdit();if(!Array.isArray(draft.ordensTurma))draft.ordensTurma=[];
     var person=(draft.participantes||[]).find(function(p){return p.id===participantId;});
     var existing=draft.ordensTurma.find(function(r){return r.id===manualOrderEditingId;});
-    var item={id:existing?existing.id:'o_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),turmaId:String(t.id),number:Number(number),participantId:participantId||'',name:person?person.nome:'',note:note,removed:false,createdAt:existing?existing.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+    var item={id:existing?existing.id:'o_'+(window.crypto&&crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+'_'+Math.random().toString(36).slice(2)),turmaId:String(t.id),number:Number(number),participantId:participantId||'',name:person?person.nome:typedName,note:note,removed:false,createdAt:existing?existing.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
     if(existing)Object.assign(existing,item);else draft.ordensTurma.push(item);
     var button=document.getElementById('manual-order-save');button.disabled=true;status.className='import-status';status.textContent='Salvando...';
-    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(e){}appData=draft;manualOrderEditingId='';buildAll();goTo('ord');}
+    try{await window.firebaseSaveWorkspace(draft,true);try{await saveWorkspace(draft,false);}catch(e){}appData=draft;manualOrderEditingId='';buildAll();goTo('ord');dayToastGlobal('Posição '+number+' salva.');}
     catch(error){status.className='import-status error';status.textContent='Não foi possível salvar: '+(error.message||'erro desconhecido');}
     finally{button.disabled=false;}
   }
-
+  function eklesiaState(r, marks) {
+    if (marks && typeof marks.eklesia === 'boolean') return marks.eklesia;
+    return !isBlank(r.eklesiaStatus)&&normal(r.eklesiaStatus)==='ok';
+  }
+  function timeLabel(v) { return v ? new Date(v).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''; }
   function drawOrderResults() {
-    if(!appData||!document.getElementById('order-results'))return;
-    var queryText=normal(orderState.query),items=currentOrderItems().filter(function(r){if(orderState.filter==='named'&&isBlank(r.name))return false;if(orderState.filter==='unnamed'&&!isBlank(r.name))return false;return !queryText||normal([r.number,r.name,r.note,r.removed,r.sourceRow].join(' ')).indexOf(queryText)>=0;});
-    var pages=Math.max(1,Math.ceil(items.length/PAGE_SIZE));orderState.page=Math.min(Math.max(1,orderState.page),pages);var start=(orderState.page-1)*PAGE_SIZE,view=items.slice(start,start+PAGE_SIZE),named=currentOrderItems().filter(function(r){return !!r.name;}).length;
-    var allOrder=currentOrderItems().filter(function(r){return !!r.name;}), total=allOrder.length, present=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).presente;}).length, baptized=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).batizado;}).length, eklesia=allOrder.filter(function(r){return !!(dayMarks[dayId(r)]||{}).eklesia || !isBlank(r.eklesiaStatus) && normal(r.eklesiaStatus)==='ok';}).length;
-    
-    document.getElementById('order-count').innerHTML='<span>'+numberLabel(items.length)+' posições · '+numberLabel(named)+' com nome</span><span class="order-live-summary"><b>'+present+'</b> presentes · <b>'+baptized+'</b> batizados · <b>'+eklesia+'</b> no Ekklesia</span>';
-    
-    document.getElementById('order-results').innerHTML=view.map(function(r){
-      var key=orderItemKey(r), marks=dayMarks[dayId(r)]||{}, eklesiaMarked=!!marks.eklesia || (!isBlank(r.eklesiaStatus)&&normal(r.eklesiaStatus)==='ok');
-      
-      // Removidos os botões "Não batizado" e "Editar origem", mantendo Presente, Batizado (quando selecionado) e Incluído no Ekklesia conforme solicitado
-      var statusActions = '';
+    if (!appData || !document.getElementById('order-results')) return;
+    var all = currentOrderItems();
+    var named = all.filter(function (r) { return !!r.name; });
+    var total = named.length, present = 0, baptized = 0, eklesia = 0;
+    named.forEach(function (r) { var m = dayMarks[dayId(r)] || {}; if (m.presente) present++; if (m.batizado) baptized++; if (eklesiaState(r, m)) eklesia++; });
+    var summary = document.getElementById('order-summary');
+    if (summary) summary.innerHTML = '<div class="day-sync" id="order-sync" style="margin:0 0 12px;border-radius:10px">' + (dayStatus.online ? '● Online · marcações sincronizadas' : '● Offline · as marcações serão enviadas quando a conexão voltar') + (dayStatus.pending ? ' · ' + dayStatus.pending + ' aguardando envio' : '') + '</div>' +
+      '<div class="day-count"><b>Presentes ' + present + '/' + total + '</b><div class="data-bar"><i style="width:' + (total ? present * 100 / total : 0) + '%"></i></div></div>' +
+      '<div class="day-count"><b>Batizados ' + baptized + '/' + total + '</b><div class="data-bar"><i style="width:' + (total ? baptized * 100 / total : 0) + '%"></i></div></div>' +
+      '<div class="day-count"><b>No Ekklesia ' + eklesia + '/' + total + '</b><div class="data-bar"><i style="width:' + (total ? eklesia * 100 / total : 0) + '%"></i></div></div>';
+    var queryText = normal(orderState.query), filter = orderState.filter || 'all';
+    var nextKey = null;
+    named.some(function (r) { var m = dayMarks[dayId(r)] || {}; if (!m.batizado && !(normal(r.note).indexOf('nao veio') >= 0)) { nextKey = orderItemKey(r); return true; } return false; });
+    var items = all.filter(function (r) {
+      var m = dayMarks[dayId(r)] || {};
+      if (filter === 'unnamed' && !isBlank(r.name)) return false;
+      if (filter !== 'positions' && filter !== 'unnamed' && isBlank(r.name)) return false;
+      if (filter === 'aguardando' && (m.presente || m.batizado)) return false;
+      if (filter === 'presentes' && !m.presente) return false;
+      if (filter === 'batizados' && !m.batizado) return false;
+      if (filter === 'sem-eklesia' && eklesiaState(r, m)) return false;
+      return !queryText || normal([r.number, r.name, r.note].join(' ')).indexOf(queryText) >= 0;
+    });
+    var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE)); orderState.page = Math.min(Math.max(1, orderState.page), pages);
+    var start = (orderState.page - 1) * PAGE_SIZE, view = items.slice(start, start + PAGE_SIZE);
+    document.getElementById('order-count').textContent = numberLabel(items.length) + ' posições exibidas · ' + numberLabel(total) + ' com nome · ' + numberLabel(all.length - total) + ' reservadas';
+    document.getElementById('order-results').innerHTML = view.map(function (r) {
+      var key = orderItemKey(r), id = dayId(r), m = dayMarks[id] || {}, ek = eklesiaState(r, m), p = personForDay(r);
+      var actions = '';
       if (r.name) {
-        statusActions += '<button class="btn ' + (marks.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (marks.presente ? '✓ Presente' : 'Presente') + '</button>';
-        
-        if (marks.batizado) {
-          statusActions += '<button class="btn g" data-checkin="batizado" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">✓ Batizado</button>';
-        }
-        
-        statusActions += '<button class="btn ' + (eklesiaMarked ? 'g' : 'o') + '" data-checkin="eklesia" data-checkin-id="' + esc(dayId(r)) + '" data-order-row="' + esc(r.sourceRow) + '">' + (eklesiaMarked ? '✓ Incluído no Ekklesia' : 'Incluído no Ekklesia') + '</button>';
+        actions += '<button class="btn ' + (m.presente ? 'g' : 'o') + '" data-checkin="presente" data-checkin-id="' + esc(id) + '" data-order-row="' + esc(r.sourceRow) + '">' + (m.presente ? '✓ Presente ' + timeLabel(m.presenteEm) : 'Presente') + '</button>';
+        actions += '<button class="btn ' + (m.batizado ? 'g' : 'o') + '" data-checkin="batizado" data-checkin-id="' + esc(id) + '" data-order-row="' + esc(r.sourceRow) + '">' + (m.batizado ? '✓ Batizado ' + timeLabel(m.batizadoEm) : 'Batizado') + '</button>';
+        actions += '<button class="btn ' + (ek ? 'g' : 'o') + '" data-checkin="eklesia" data-checkin-current="' + (ek ? '1' : '0') + '" data-checkin-id="' + esc(id) + '" data-order-row="' + esc(r.sourceRow) + '">' + (ek ? '✓ Ekklesia' : 'Ekklesia') + '</button>';
       }
-
-      return '<div class="data-item order-item" draggable="true" data-order-key="'+esc(key)+'"><div class="order-drag-handle" title="Arrastar para reorganizar" aria-label="Arrastar para reorganizar">☷</div><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name||'Posição reservada sem nome')+'</strong><div class="item-meta">'+(r.note?'Observação: '+esc(r.note):'Sem observação')+'</div><div class="item-badges">'+(r.name?chip('Nome preenchido','t-ok'):chip('Reservada','t-pe'))+(marks.presente?chip('Presente','t-ok'):'')+(marks.batizado?chip('Batizado','t-ok'):'')+(eklesiaMarked?chip('Incluído no Eklesia','t-in'):'')+(dayBadges(r,personForDay(r))||'')+'</div></div><div class="item-actions order-status-actions">'+statusActions+'</div></div>';
-    }).join('')||'<div class="data-empty">Nenhuma posição encontrada.</div>';
-    
-    document.getElementById('order-pager').innerHTML='<button type="button" class="btn o" data-page="order:-1" '+(orderState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+orderState.page+' de '+pages+'</span><button type="button" class="btn o" data-page="order:1" '+(orderState.page>=pages?'disabled':'')+'>Próxima →</button>';
+      if (r.__manual) actions += '<button class="btn o" data-edit-manual-order="' + esc(r.id) + '" title="Editar posição">✎</button><button class="btn o" data-remove-manual-order="' + esc(r.id) + '" title="Remover posição">✕</button>';
+      var fichaOk = !r.__manual && normal(r.removed) === 'ok';
+      return '<div class="data-item order-item' + (key === nextKey ? ' day-row next-waiting' : '') + '" draggable="true" data-order-key="' + esc(key) + '"><div class="order-drag-handle" title="Arrastar para reorganizar" aria-label="Arrastar para reorganizar">☷</div><div class="n">' + esc(display(r.number)) + '</div>' +
+        '<div class="item-main"><strong>' + esc(r.name || 'Posição reservada') + '</strong>' + (key === nextKey ? ' ' + chip('Próximo', 't-er') : '') +
+        (r.note ? '<div class="item-meta">Observação: ' + esc(r.note) + '</div>' : '') +
+        '<div class="item-badges">' + (r.name ? '' : chip('Reservada', 't-pe')) + (fichaOk ? chip('Ficha retirada', 't-ok') : '') + (dayBadges(r, p) || '') + (r.name && !p ? chip('Sem cadastro correspondente', 't-pe') : '') + '</div></div>' +
+        '<div class="item-actions order-status-actions">' + actions + '</div></div>';
+    }).join('') || '<div class="data-empty">Nenhuma posição encontrada.</div>';
+    document.getElementById('order-pager').innerHTML = pages > 1 ? '<button type="button" class="btn o" data-page="order:-1" ' + (orderState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + orderState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="order:1" ' + (orderState.page >= pages ? 'disabled' : '') + '>Próxima →</button>' : '';
+  }
+  function printOrderSheet() {
+    var t = selectedOrderTurma();
+    var rows = currentOrderItems();
+    var sheet = document.getElementById('print-sheet');
+    if (!sheet) { sheet = document.createElement('div'); sheet.id = 'print-sheet'; document.body.appendChild(sheet); }
+    sheet.innerHTML = '<h1>Ordem do batismo · ' + esc(t.name || ('Turma ' + t.number)) + '</h1><p>Impresso em ' + esc(new Date().toLocaleString('pt-BR')) + ' · ' + rows.filter(function (r) { return !!r.name; }).length + ' pessoas</p>' +
+      '<table><thead><tr><th style="width:42px">Nº</th><th>Nome</th><th>Observação</th><th style="width:64px">Presente</th><th style="width:64px">Batizado</th><th style="width:64px">Ekklesia</th></tr></thead><tbody>' +
+      rows.map(function (r) { var m = dayMarks[dayId(r)] || {}; return '<tr><td>' + esc(display(r.number)) + '</td><td>' + esc(r.name || '— reservada —') + '</td><td>' + esc(r.note || '') + '</td><td>' + (m.presente ? '✓' : '☐') + '</td><td>' + (m.batizado ? '✓' : '☐') + '</td><td>' + (eklesiaState(r, m) ? '✓' : '☐') + '</td></tr>'; }).join('') +
+      '</tbody></table>';
+    document.body.classList.add('printing-sheet');
+    window.print();
+    setTimeout(function () { document.body.classList.remove('printing-sheet'); }, 500);
   }
 
   var dayMarks = {}, dayFilter='todos', dayStatus={online:navigator.onLine,pending:0,ready:false}, undoTimer=null;
-  function dayToast(msg,undo){var t=document.getElementById('day-toast');if(!t)return;t.innerHTML=esc(msg)+(undo?' <button class="day-undo" id="day-undo">Desfazer</button>':'');t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(function(){t.classList.remove('show');},8000);if(undo)document.getElementById('day-undo').onclick=async function(){clearTimeout(undoTimer);t.classList.remove('show');await undo();};}
-  function personForDay(row){if(row&&row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return {name:manual.nome,age:manual.idade,phone:manual.telefone,turma:manual.turma,sourceRow:manual.id};}var n=normal(row.name);return (appData.people||[]).find(function(p){return normal(p.name)===n&&String(p.turma)===String(row.__turmaId||'36');})||((String(row.__turmaId||'36')==='36')?(appData.people||[]).find(function(p){return normal(p.name)===n;}):null)||null;}
-  function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||'36');return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
-  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});if(String(t.id)==='36')return sortOrderItems((appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:'36'});}).concat(manual),t.id);return sortOrderItems(manual,t.id);}
-  function dayId(row){var t=String(row.__turmaId||'36'),pos=String(clean(row.id)||clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');return t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos;}
+  function dayToast(msg, undo) { dayToastGlobal(msg, undo); }
+  function dayToastGlobal(msg, undo) {
+    var t = document.getElementById('demo-toast'); if (!t) return;
+    t.innerHTML = esc(msg) + (undo ? ' <button class="day-undo" type="button" id="toast-undo">Desfazer</button>' : '');
+    t.classList.add('show'); t.style.pointerEvents = undo ? 'auto' : 'none';
+    clearTimeout(undoTimer); undoTimer = setTimeout(function () { t.classList.remove('show'); t.style.pointerEvents = 'none'; }, undo ? 7000 : 3500);
+    if (undo) document.getElementById('toast-undo').onclick = async function () { clearTimeout(undoTimer); t.classList.remove('show'); t.style.pointerEvents = 'none'; await undo(); };
+  }
+  function personForDay(row){
+    if(row&&row.participantId){var manual=(appData.participantes||[]).find(function(p){return String(p.id)===String(row.participantId);});if(manual)return manualAsPerson(manual);}
+    var n=normal(row.name),it=importedTurma(),turmaId=String(row.__turmaId||it),turmaRec=(appData.turmas||[]).find(function(t){return String(t.id)===turmaId;}),turmaNumber=String(turmaRec&&turmaRec.number||turmaId),people=allPeople();
+    return people.find(function(p){return normal(p.name)===n&&String(clean(p.turma))===turmaNumber;})||(turmaId===it?people.find(function(p){return normal(p.name)===n;}):null)||null;
+  }
+  function selectedDayTurma(){var id=String(dayState.turmaId||appData.turmaPadrao||importedTurma());return (appData.turmas||[]).find(function(t){return String(t.id)===id||String(t.number)===id;})||{id:id,number:id,name:'Turma '+id};}
+  function orderForTurma(){var t=selectedDayTurma(),manual=(appData.ordensTurma||[]).filter(function(r){return String(r.turmaId)===String(t.id);}).map(function(r){return Object.assign({},r,{sourceRow:r.id,number:r.number,name:r.name,note:r.note,removed:r.removed,participantId:r.participantId,__turmaId:String(t.id),__manual:true});});var it=importedTurma();if(String(t.id)===it)return sortOrderItems((appData.order||[]).map(function(r){return Object.assign({},r,{__turmaId:it});}).concat(manual),t.id);return sortOrderItems(manual,t.id);}
+  function dayId(row){var t=String(row.__turmaId||importedTurma()),pos=String(clean(row.id)||clean(row.number)||row.sourceRow).replace(/[^a-zA-Z0-9_-]/g,'_');return t==='36'&&!row.__manual?'36_'+pos:'tur_'+t+'_'+pos;}
   function dayBadges(row,p){var b='';if(normal(row.note||'').includes('prioridade'))b+=chip('Prioridade','t-er');if(p&&Number(p.age)>0&&Number(p.age)<18)b+=chip('Menor','t-pe');if(p&&hasPendingSignal(p))b+=chip('Pendência','t-pe');return b;}
 
-  function buildDay(){
-    var sec=document.getElementById('dia');
-    sec.innerHTML='<div id="day-sync" class="day-sync"></div><h2 class="t">Batizantes · Ordem do batismo</h2><div class="card"><label for="day-turma-select"><b>Turma do evento</b></label><select id="day-turma-select" class="day-turma-select" aria-label="Selecionar turma">'+(appData.turmas||[]).map(function(t){return '<option value="'+esc(t.id)+'" '+(String(dayState.turmaId||appData.turmaPadrao||'36')===String(t.id)?'selected':'')+'> '+esc(t.name||('Turma '+t.number))+'</option>';}).join('')+'</select></div><div class="card" id="day-summary"></div><div class="day-tools"><input id="day-search" type="search" placeholder="Buscar nome ou número…" aria-label="Buscar pessoa"><div class="day-filters"><button data-day-filter="todos">Todos</button><button data-day-filter="aguardando">Aguardando</button><button data-day-filter="presentes">Presentes</button><button data-day-filter="batizados">Batizados</button></div><div class="day-tools-actions"><button type="button" class="btn o" data-day-print>Lista em papel (reserva)</button></div></div><div id="day-results" class="data-list"></div><div id="day-pager" class="data-pager"></div><div id="day-toast" class="day-toast" aria-live="polite"></div><div id="day-print-list"></div>';
-    sec.querySelector('#day-search').oninput=function(){dayState.query=this.value;dayState.page=1;drawDayResults();};
-    sec.querySelector('#day-turma-select').onchange=function(){dayState.turmaId=this.value;dayState.page=1;dayState.query='';sec.querySelector('#day-search').value='';drawDayResults();};
-    sec.querySelectorAll('[data-day-filter]').forEach(function(b){b.onclick=function(){dayFilter=b.dataset.dayFilter;dayState.page=1;drawDayResults();};});
-    sec.querySelector('[data-day-print]').onclick=function(){window.print();};
-    
-    window.addEventListener('day-checkins-updated',function(e){dayMarks=e.detail.marks||{};dayStatus=Object.assign(dayStatus,e.detail.status||{});drawDayResults();drawPeopleResults();buildHome();});
-    window.addEventListener('day-checkin-status',function(e){dayStatus=Object.assign(dayStatus,e.detail||{});drawDayResults();});
-    window.addEventListener('day-checkin-error',function(e){dayToast('Não foi possível salvar.');});
-    window.addEventListener('online',function(){dayStatus.online=true;drawDayResults();});window.addEventListener('offline',function(){dayStatus.online=false;drawDayResults();});
-    drawDayResults();
-  }
-
-  function drawDayResults(){
-    var host=document.getElementById('day-results');if(!appData||!host)return;
-    var all=orderForTurma().slice().sort(function(a,b){return Number(a.number||a.sourceRow)-Number(b.number||b.sourceRow);});
-    var rows=all.filter(function(r){return !!r.name;}).map(function(r){return {row:r,id:dayId(r),s:dayMarks[dayId(r)]||{},p:personForDay(r)};});
-    var total=rows.length,pres=rows.filter(function(x){return x.s.presente;}).length,bat=rows.filter(function(x){return x.s.batizado;}).length;
-    rows=rows.filter(function(x){if(dayFilter==='aguardando'&&(x.s.presente||x.s.batizado))return false;if(dayFilter==='presentes'&&!x.s.presente)return false;if(dayFilter==='batizados'&&!x.s.batizado)return false;return !dayState.query||normal([x.row.name,x.row.number,x.row.note].join(' ')).includes(normal(dayState.query));});
-    var next=rows.findIndex(function(x){return !x.s.presente&&!x.s.batizado;}),pages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));dayState.page=Math.min(Math.max(1,dayState.page),pages);
-    var start=(dayState.page-1)*PAGE_SIZE,view=rows.slice(start,start+PAGE_SIZE);
-    
-    document.getElementById('day-sync').textContent=!dayStatus.online?'Offline':'Online';
-    document.getElementById('day-summary').innerHTML='<div class="day-count"><b>Presentes '+pres+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?pres*100/total:0)+'%"></i></div></div><div class="day-count"><b>Batizados '+bat+'/'+total+'</b><div class="data-bar"><i style="width:'+(total?bat*100/total:0)+'%"></i></div></div>';
-    document.querySelectorAll('[data-day-filter]').forEach(function(b){b.classList.toggle('active',b.dataset.dayFilter===dayFilter);});
-    
-    host.innerHTML=view.map(function(x,i){var r=x.row,s=x.s;var when=function(v){return v?new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'';};return '<div class="data-item day-row '+(next===i?'next-waiting':'')+'"><div class="n">'+esc(display(r.number))+'</div><div class="item-main"><strong>'+esc(r.name)+'</strong><div class="item-badges">'+dayBadges(r,x.p)+'</div>'+(r.note?'<div class="item-meta">Observação: '+esc(r.note)+'</div>':'')+'</div><div class="item-actions"><button class="btn '+(s.presente?'g':'o')+'" data-checkin="presente" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.presente?'✓ Presente '+when(s.presenteEm):'Presente')+'</button><button class="btn '+(s.batizado?'g':'o')+'" data-checkin="batizado" data-checkin-id="'+esc(x.id)+'" data-order-row="'+esc(r.sourceRow)+'">'+(s.batizado?'✓ Batizado '+when(s.batizadoEm):'Marcar batizado')+'</button></div></div>';}).join('')||'<div class="data-empty">Nenhuma pessoa encontrada.</div>';
-    document.getElementById('day-pager').innerHTML='<button class="btn o" data-page="day:-1" '+(dayState.page<=1?'disabled':'')+'>← Anterior</button><span>Página '+dayState.page+' de '+pages+'</span><button class="btn o" data-page="day:1" '+(dayState.page>=pages?'disabled':'')+'>Próxima →</button>';
-  }
+  // A tela "Dia do batismo" foi incorporada à Ordem; mantidas como compatibilidade.
+  function buildDay() {}
+  function drawDayResults() {}
+  window.addEventListener('day-checkins-updated', function (e) { dayMarks = e.detail.marks || {}; dayStatus = Object.assign(dayStatus, e.detail.status || {}); if (!appData) return; drawOrderResults(); drawPeopleResults(); buildHome(); });
+  window.addEventListener('day-checkin-status', function (e) { dayStatus = Object.assign(dayStatus, e.detail || {}); if (appData) drawOrderResults(); });
+  window.addEventListener('day-checkin-error', function () { dayToastGlobal('Não foi possível salvar a marcação. Verifique a conexão.'); });
+  window.addEventListener('online', function () { dayStatus.online = true; if (appData) drawOrderResults(); });
+  window.addEventListener('offline', function () { dayStatus.online = false; if (appData) drawOrderResults(); });
 
   function buildPending() {
-    var scopedPeople = appData.people.filter(function (p) { return matchesTurmaFilter(p, pendingState.turma); });
+    var scopedPeople = allPeople().filter(function (p) { return matchesTurmaFilter(p, pendingState.turma); });
     var pending = scopedPeople.filter(hasPendingSignal);
     var statusCount = scopedPeople.filter(function (p) { return normal(p.status) === 'pendencia'; }).length;
     var makeupCount = scopedPeople.filter(function (p) { return normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson); }).length;
@@ -1679,7 +1803,7 @@ function prepJourney(person) {
   function drawPendingResults() {
     if (!appData || !document.getElementById('pending-results')) return;
     var query = normal(pendingState.query);
-    var items = appData.people.filter(function (p) { return matchesTurmaFilter(p, pendingState.turma); }).filter(hasPendingSignal).filter(function (p) {
+    var items = allPeople().filter(function (p) { return matchesTurmaFilter(p, pendingState.turma); }).filter(hasPendingSignal).filter(function (p) {
       return !query || normal([p.name, p.phone, p.status, p.pending, p.lesson, p.journey, p.sourceRow].join(' ')).indexOf(query) >= 0;
     });
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
@@ -1688,13 +1812,13 @@ function prepJourney(person) {
     var view = items.slice(start, start + PAGE_SIZE);
     document.getElementById('pending-count').textContent = numberLabel(items.length) + ' registros encontrados · página ' + pendingState.page + ' de ' + pages;
     document.getElementById('pending-results').innerHTML = view.map(function (p) {
-      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Linha ' + esc(p.sourceRow) + '</div><div class="item-badges">' + signalFlags(p).map(function (flag) { return chip(flag, flag.indexOf('Status:') === 0 ? 't-er' : 't-pe'); }).join('') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · ' + esc(isBlank(p.phone) ? 'Sem telefone' : phoneLabel(p.phone)) + '</div><div class="item-badges">' + signalFlags(p).map(function (flag) { return chip(flag, flag.indexOf('Status:') === 0 ? 't-er' : 't-pe'); }).join('') + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Ver ficha</button>' + (whatsappLink(p.phone) ? '<a class="btn g" href="' + esc(whatsappLink(p.phone)) + '" target="_blank" rel="noopener">WhatsApp</a>' : '') + '</div></div>';
     }).join('') || '<div class="data-empty">Nenhum registro encontrado.</div>';
     document.getElementById('pending-pager').innerHTML = '<button type="button" class="btn o" data-page="pending:-1" ' + (pendingState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + pendingState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="pending:1" ' + (pendingState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
 
   function buildReturns() {
-    var rows = appData.people.filter(function (p) { return matchesTurmaFilter(p, returnState.turma) && (normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson)); });
+    var rows = allPeople().filter(function (p) { return matchesTurmaFilter(p, returnState.turma) && (normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson)); });
     document.getElementById('rep').innerHTML = '<h2 class="t">Reposição de aulas</h2><div class="card"><div class="data-metrics">' + metric('Registros com reposição', rows.length, 'JORNADA ou AULA P/ REPOR') + '</div><div class="data-toolbar"><input id="return-search" type="search" placeholder="Buscar nome, aula ou turma…" aria-label="Buscar reposições"><select id="return-turma" aria-label="Filtrar reposições por turma">' + turmaFilterOptions(returnState.turma) + '</select></div><div id="return-count" class="data-summary"></div><div id="return-results" class="data-list"></div><div id="return-pager" class="data-pager"></div></div>';
     document.getElementById('return-search').addEventListener('input', function () { returnState.query = this.value; returnState.page = 1; drawReturnResults(); });
     document.getElementById('return-turma').addEventListener('change', function () { returnState.turma = this.value; returnState.query = ''; returnState.page = 1; buildReturns(); });
@@ -1703,7 +1827,7 @@ function prepJourney(person) {
   function drawReturnResults() {
     if (!appData || !document.getElementById('return-results')) return;
     var query = normal(returnState.query);
-    var items = appData.people.filter(function (p) { return matchesTurmaFilter(p, returnState.turma) && (normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson)); }).filter(function (p) {
+    var items = allPeople().filter(function (p) { return matchesTurmaFilter(p, returnState.turma) && (normal(p.journey).indexOf('repor') >= 0 || !isBlank(p.lesson)); }).filter(function (p) {
       return !query || normal([p.name, p.lesson, p.journey, p.turma, p.sourceRow].join(' ')).indexOf(query) >= 0;
     });
     var pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
@@ -1712,7 +1836,7 @@ function prepJourney(person) {
     var view = items.slice(start, start + PAGE_SIZE);
     document.getElementById('return-count').textContent = numberLabel(items.length) + ' registros · página ' + returnState.page + ' de ' + pages;
     document.getElementById('return-results').innerHTML = view.map(function (p) {
-      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Jornada: ' + esc(display(p.journey)) + ' · Aula para repor: ' + esc(display(p.lesson)) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-edit-person="' + esc(p.sourceRow) + '">Editar</button></div></div>';
+      return '<div class="data-item"><div class="item-main"><strong>' + esc(displayName(p)) + '</strong><div class="item-meta">Turma ' + esc(display(p.turma)) + ' · Jornada: ' + esc(display(p.journey)) + ' · Aula para repor: ' + esc(display(p.lesson)) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-open-person="' + esc(p.sourceRow) + '">Ver ficha</button>' + (whatsappLink(p.phone) ? '<a class="btn g" href="' + esc(whatsappLink(p.phone)) + '" target="_blank" rel="noopener">WhatsApp</a>' : '') + '</div></div>';
     }).join('') || '<div class="data-empty">Nenhuma reposição encontrada.</div>';
     document.getElementById('return-pager').innerHTML = '<button type="button" class="btn o" data-page="return:-1" ' + (returnState.page <= 1 ? 'disabled' : '') + '>← Anterior</button><span>Página ' + returnState.page + ' de ' + pages + '</span><button type="button" class="btn o" data-page="return:1" ' + (returnState.page >= pages ? 'disabled' : '') + '>Próxima →</button>';
   }
@@ -1764,10 +1888,10 @@ function prepJourney(person) {
     if (!Array.isArray(workspace.turmas)) workspace.turmas = [];
     var known = new Set(workspace.turmas.map(function (t) { return String(t.id); }));
     var numbers = (workspace.people || []).map(function (p) { return clean(p.turma); }).filter(Boolean);
-    if ((workspace.order || []).length && numbers.indexOf('36') < 0) numbers.push('36');
+    var itw = importedTurma(); if ((workspace.order || []).length && numbers.indexOf(itw) < 0) numbers.push(itw);
     numbers.forEach(function (number) {
       if (known.has(String(number))) return;
-      workspace.turmas.push({ id: String(number), number: String(number), name: 'Turma ' + String(number), status: String(number) === '36' ? 'histórica' : 'registrada', createdAt: null, source: 'compatibilidade' });
+      workspace.turmas.push({ id: String(number), number: String(number), name: 'Turma ' + String(number), status: 'registrada', createdAt: null, source: 'compatibilidade' });
       known.add(String(number));
     });
     workspace.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
@@ -1779,17 +1903,23 @@ function prepJourney(person) {
     ensureTurmaRegistry(appData);
     var host = document.getElementById('turma-list');
     if (!host) return;
-    host.innerHTML = (appData.turmas || []).map(function (t) {
+    var everyone = allPeople();
+    host.innerHTML = (appData.turmas || []).slice().reverse().map(function (t) {
       var isDefault = String(appData.turmaPadrao) === String(t.id);
-      var peopleCount = (appData.people || []).filter(function (p) { return String(clean(p.turma)) === String(t.number); }).length;
-      return '<div class="data-item"><div class="n">' + esc(display(t.number)) + '</div><div class="item-main"><strong>' + esc(t.name || ('Turma ' + t.number)) + '</strong><div class="item-meta">Identificador: ' + esc(t.id) + ' · Cadastros associados: ' + numberLabel(peopleCount) + '</div></div><div class="item-actions"><button type="button" class="btn o" data-default-turma="' + esc(t.id) + '" ' + (isDefault ? 'disabled' : '') + '>Definir padrão</button></div></div>';
+      var tp = everyone.filter(function (p) { return String(clean(p.turma)) === String(t.number); });
+      var dateIso = turmaDateISO(t, tp);
+      var days = daysUntil(dateIso);
+      var badge = isDefault ? chip('Em foco no painel', 't-ok') : (dateIso && days !== null && days >= 0 ? chip(days === 0 ? 'Hoje' : 'Em ' + days + ' dias', 't-pe') : '');
+      return '<div class="data-item"><div class="n">' + esc(display(t.number)) + '</div><div class="item-main"><strong>' + esc(t.name || ('Turma ' + t.number)) + '</strong> ' + badge +
+        '<div class="item-meta">' + numberLabel(tp.length) + ' inscritos · ' + numberLabel(tp.filter(isReady).length) + ' prontos' + (dateIso ? ' · batismo ' + esc(formatDateBR(dateIso)) + (t.date ? '' : ' (pela planilha)') : ' · sem data definida') + '</div></div>' +
+        '<div class="item-actions"><input type="date" data-turma-date="' + esc(t.id) + '" value="' + esc(t.date || dateIso || '') + '" aria-label="Data do batismo da turma ' + esc(t.number) + '" style="min-height:38px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);padding:6px 8px;font:inherit;font-size:12px"><button type="button" class="btn o" data-save-turma-date="' + esc(t.id) + '">Salvar data</button><button type="button" class="btn ' + (isDefault ? 'g' : 'o') + '" data-default-turma="' + esc(t.id) + '" ' + (isDefault ? 'disabled' : '') + '>' + (isDefault ? '✓ Em foco' : 'Colocar em foco') + '</button></div></div>';
     }).join('') || '<div class="data-empty">Nenhuma turma cadastrada.</div>';
   }
 
-  async function persistTurmaRegistry(draft, message) {
+  async function persistTurmaRegistry(draft, message, target) {
     ensureTurmaRegistry(draft);
     var status = document.getElementById('turma-status');
-    var buttons = document.querySelectorAll('[data-create-turma],[data-default-turma]');
+    var buttons = document.querySelectorAll('[data-create-turma],[data-default-turma],[data-save-turma-date]');
     buttons.forEach(function (b) { b.disabled = true; });
     if (status) { status.className = 'import-status'; status.textContent = 'Salvando no Firebase…'; }
     try {
@@ -1797,10 +1927,14 @@ function prepJourney(person) {
       try { await saveWorkspace(draft, false); } catch (e) {}
       appData = draft;
       buildAll();
-      goTo('tur');
+      goTo(target || 'tur');
+      var st = document.getElementById('turma-status');
+      if (st && message) { st.className = 'import-status success'; st.textContent = message; }
+      dayToastGlobal(message || 'Salvo.');
     } catch (error) {
       if (status) { status.className = 'import-status error'; status.textContent = 'Não foi possível salvar: ' + (error.message || 'erro desconhecido'); }
-    } finally { buttons.forEach(function (b) { b.disabled = false; }); }
+      dayToastGlobal('Não foi possível salvar: ' + (error.message || 'erro desconhecido'));
+    } finally { document.querySelectorAll('[data-create-turma],[data-save-turma-date]').forEach(function (b) { b.disabled = false; }); }
   }
 
   function buildAll() {
@@ -1810,7 +1944,7 @@ function prepJourney(person) {
     buildHome();
     buildTurmas();
     buildPeople();
-    buildFiche(appData.people.find(function (p) { return p.sourceRow === selectedPersonRow; }) || null);
+    buildFiche(selectedPersonRow ? findPerson(selectedPersonRow) : null);
     buildOrder();
     buildDay();
     buildPending();
@@ -1989,8 +2123,32 @@ function prepJourney(person) {
   });
 
   document.addEventListener('click', async function (event) {
+    if (event.target.closest('[data-stop-open]')) return;
     var addPersonButton = event.target.closest('[data-add-person]');
-    if (addPersonButton) { openRecordEditor('person', null); return; }
+    if (addPersonButton) {
+      goTo('pes');
+      if (manualPersonEditingId) resetManualPersonForm();
+      var box = document.getElementById('manual-person-box');
+      if (box) { box.open = true; box.scrollIntoView({ behavior: 'auto', block: 'start' }); var nameInput = document.getElementById('manual-person-name'); if (nameInput) nameInput.focus(); }
+      return;
+    }
+    var homeFilter = event.target.closest('[data-home-filter]');
+    if (homeFilter && appData) {
+      var focusTurma = String((turmaRecordFor(appData.turmaPadrao) || {}).number || appData.turmaPadrao || '');
+      openPeopleFilter(homeFilter.dataset.homeFilter, focusTurma);
+      return;
+    }
+    var saveTurmaDate = event.target.closest('[data-save-turma-date]');
+    if (saveTurmaDate && appData) {
+      var turmaKey = saveTurmaDate.dataset.saveTurmaDate;
+      var dateInput = document.querySelector('[data-turma-date="' + turmaKey + '"]');
+      var draftDate = cloneWorkspaceForEdit();
+      var turmaToDate = (draftDate.turmas || []).find(function (t) { return String(t.id) === String(turmaKey); });
+      if (!turmaToDate) return;
+      turmaToDate.date = dateInput && dateInput.value ? dateInput.value : '';
+      await persistTurmaRegistry(draftDate, 'Data da turma salva.', 'tur');
+      return;
+    }
     var editPersonButton = event.target.closest('[data-edit-person]');
     if (editPersonButton && appData) {
       var editPerson = appData.people.find(function (item) { return Number(item.sourceRow) === Number(editPersonButton.dataset.editPerson); });
@@ -1998,6 +2156,7 @@ function prepJourney(person) {
       return;
     }
     var editManualOrderButton=event.target.closest('[data-edit-manual-order]');if(editManualOrderButton){editManualOrder(editManualOrderButton.dataset.editManualOrder);return;}
+    var removeManualOrderButton=event.target.closest('[data-remove-manual-order]');if(removeManualOrderButton){await removeManualOrder(removeManualOrderButton.dataset.removeManualOrder);return;}
     var addOrderButton = event.target.closest('[data-add-order]');
     if (addOrderButton) { openRecordEditor('order', null); return; }
     var editOrderButton = event.target.closest('[data-edit-order]');
@@ -2020,7 +2179,10 @@ function prepJourney(person) {
       var draftTurmas = cloneWorkspaceForEdit();
       if (!Array.isArray(draftTurmas.turmas)) draftTurmas.turmas = [];
       var id = number.replace(/[^a-zA-Z0-9_-]/g, '_');
-      draftTurmas.turmas.push({ id: id, number: number, name: 'Turma ' + number, status: 'ativa', createdAt: new Date().toISOString(), source: 'cadastro_manual' });
+      if (draftTurmas.turmas.some(function (t) { return String(t.id) === id || String(t.number) === number; })) { if (status) { status.className = 'import-status error'; status.textContent = 'A Turma ' + number + ' já existe.'; } return; }
+      var newDate = document.getElementById('turma-new-date');
+      draftTurmas.turmas.push({ id: id, number: number, name: 'Turma ' + number, status: 'ativa', date: newDate && newDate.value ? newDate.value : '', createdAt: new Date().toISOString(), source: 'cadastro_manual' });
+      if (newDate) newDate.value = '';
       draftTurmas.turmas.sort(function (a, b) { return String(a.number).localeCompare(String(b.number), 'pt-BR', { numeric: true }); });
       if (input) input.value = '';
       await persistTurmaRegistry(draftTurmas, 'Turma ' + number + ' criada.');
@@ -2030,42 +2192,47 @@ function prepJourney(person) {
     if (defaultTurmaButton && appData) {
       var draftDefault = cloneWorkspaceForEdit();
       draftDefault.turmaPadrao = String(defaultTurmaButton.dataset.defaultTurma);
-      await persistTurmaRegistry(draftDefault, 'Turma padrão alterada.');
+      var activeSection = document.querySelector('main section.on');
+      await persistTurmaRegistry(draftDefault, 'Turma em foco alterada.', activeSection ? activeSection.id : 'tur');
       return;
     }
 
     var goButton = event.target.closest('[data-go]');
-    if (goButton) { goTo(goButton.dataset.go); return; }
+    if (goButton) {
+      var fromFiche = !!goButton.closest('#fic');
+      goTo(goButton.dataset.go);
+      if (fromFiche && goButton.dataset.go === 'pes' && peopleScrollY) window.scrollTo({ top: peopleScrollY, behavior: 'auto' });
+      return;
+    }
 
     var openPersonButton = event.target.closest('[data-open-person]');
     if (openPersonButton && appData) {
-      var sourceRow = String(openPersonButton.dataset.openPerson || '');
-      var person = (appData.people || []).find(function (p) { return String(p.sourceRow) === sourceRow; });
-      if (!person) {
-        var fallbackRow = Number(sourceRow);
-        person = (appData.people || []).find(function (p) { return Number(p.sourceRow) === fallbackRow; });
-      }
+      var person = findPerson(openPersonButton.dataset.openPerson || '');
       if (!person) return;
-      selectedPersonRow = Number(person.sourceRow);
+      if (!openPersonButton.closest('#fic')) peopleScrollY = window.scrollY;
+      selectedPersonRow = String(person.sourceRow);
       var fichaSection = document.getElementById('fic');
       goTo('pes');
+      document.getElementById('pes').classList.remove('on');
       buildFiche(person);
-      fichaSection.removeAttribute('hidden');
       fichaSection.hidden = false;
       fichaSection.classList.add('on');
-      fichaSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
       return;
     }
 
     var pageButton = event.target.closest('[data-page]');
     if (pageButton && !pageButton.disabled) {
       var parts = pageButton.dataset.page.split(':');
-      var stateMap = { people: peopleState, order: orderState, day: dayState, pending: pendingState, return: returnState, history: historyState };
+      var stateMap = { people: peopleState, order: orderState, day: dayState, pending: pendingState, return: returnState };
       var state = stateMap[parts[0]];
       if (state) {
         state.page = Math.max(1, state.page + Number(parts[1]));
-        var drawMap = { people: drawPeopleResults, order: drawOrderResults, day: drawDayResults, pending: drawPendingResults, return: drawReturnResults, history: drawHistoryResults };
+        var drawMap = { people: drawPeopleResults, order: drawOrderResults, day: drawDayResults, pending: drawPendingResults, return: drawReturnResults };
         drawMap[parts[0]]();
+        var listTop = { people: 'people-count', order: 'order-count', day: 'day-results', pending: 'pending-count', return: 'return-count' }[parts[0]];
+        var anchor = listTop && document.getElementById(listTop);
+        if (anchor) anchor.scrollIntoView({ behavior: 'auto', block: 'start' });
       }
       return;
     }
@@ -2073,9 +2240,27 @@ function prepJourney(person) {
     var checkinButton = event.target.closest('[data-checkin][data-checkin-id]');
     if(checkinButton&&appData){
       if(!window.firebaseToggleDayMark){dayToast('Aguarde a conexão.');return;}
-      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin,row=orderForTurma().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;}),prior=Object.assign({},dayMarks[id]||{}),on=!prior[kind],timeKey=kind==='presente'?'presenteEm':(kind==='batizado'?'batizadoEm':'eklesiaEm');
-      await window.firebaseToggleDayMark(id,Object.assign({},kind==='batizado'&&on&&!prior.presente?{presente:true,presenteEm:new Date().toISOString()}: {},{[kind]:on,[timeKey]:on?new Date().toISOString():null}),row);
+      var id=checkinButton.dataset.checkinId,kind=checkinButton.dataset.checkin;
+      var row=currentOrderItems().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;})||orderForTurma().find(function(r){return String(r.sourceRow)===checkinButton.dataset.orderRow||String(r.id)===checkinButton.dataset.orderRow;});
+      var prior=Object.assign({},dayMarks[id]||{});
+      var current=kind==='eklesia'?checkinButton.dataset.checkinCurrent==='1':!!prior[kind];
+      var on=!current,timeKey=kind==='presente'?'presenteEm':(kind==='batizado'?'batizadoEm':'eklesiaEm');
+      var change={};change[kind]=on;change[timeKey]=on?new Date().toISOString():null;
+      if(kind==='batizado'&&on&&!prior.presente){change.presente=true;change.presenteEm=new Date().toISOString();}
+      // Atualiza a tela na hora; o Firebase confirma em seguida.
+      dayMarks[id]=Object.assign({},prior,change);drawOrderResults();
+      await window.firebaseToggleDayMark(id,change,row);
+      var label={presente:'presente',batizado:'batizado(a)',eklesia:'no Ekklesia'}[kind];
+      var who=row&&row.name?row.name:'Pessoa';
+      dayToastGlobal(who+(on?' marcado(a) como ':' desmarcado(a): ')+label,async function(){
+        var revert={};revert[kind]=current;revert[timeKey]=current?(prior[timeKey]||new Date().toISOString()):null;
+        if(change.presente&&!prior.presente){revert.presente=false;revert.presenteEm=null;}
+        dayMarks[id]=Object.assign({},dayMarks[id]||{},revert);drawOrderResults();
+        await window.firebaseToggleDayMark(id,revert,row);
+      });
       return;
+    }
+    if(event.target.closest('[data-print-order]')){printOrderSheet();return;
     }
     if(event.target.closest('[data-day-print]')){window.print();return;}
 
@@ -2112,6 +2297,14 @@ function prepJourney(person) {
     if (event.target.closest('[data-print]')) {
       window.print();
     }
+  });
+
+  document.addEventListener('change', function (event) {
+    var select = event.target.closest('select[data-shirt-row][data-shirt-field]');
+    if (select) updateShirtField(select.dataset.shirtRow, select.dataset.shirtField, select.value, select);
+  });
+  document.addEventListener('keydown', function (event) {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target.matches && event.target.matches('.batizante-item[data-open-person]')) { event.preventDefault(); event.target.click(); }
   });
 
   async function initialize() {
@@ -2159,7 +2352,7 @@ function prepJourney(person) {
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, setPersistence, browserLocalPersistence } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, collection, getDoc, getDocs, setDoc, writeBatch, onSnapshot, query, where, runTransaction } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -2177,7 +2370,6 @@ try { firestore = initializeFirestore(firebaseApp, { localCache: persistentLocal
 const loginShell = document.getElementById('auth-shell');
 const loginForm = document.getElementById('firebase-login');
 const loginStatus = document.getElementById('firebase-status');
-const loginButton = document.getElementById('firebase-login-submit');
 const googleLoginButton = document.getElementById('firebase-google-login');
 const logoutButton = document.createElement('button');
 let lastAuthError = '';
@@ -2241,6 +2433,9 @@ async function writeInBatches(actions) {
     await batch.commit();
   }
 }
+// Blocos maiores = menos documentos gravados por salvamento (antes: 40 itens por bloco, ~110 gravações por edição).
+// Cada bloco continua bem abaixo do limite de 1 MB por documento do Firestore. A leitura aceita qualquer tamanho.
+const CHUNK_SIZE = 200;
 let baseWorkspaceVersionId = null;
 let workspaceVersionConflict = false;
 let savingWorkspaceVersionId = null;
@@ -2340,17 +2535,21 @@ async function saveCloudWorkspace(payload, createVersion) {
   let chunksRef = null;
   try {
     ['people', 'order', 'order35', 'general', 'generalAll', 'generalUnmapped', 'turmas', 'ordensTurma', 'participantes'].forEach(function (section) {
-      chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], 40));
+      chunks.push.apply(chunks, chunkItems(section, Array.isArray(payload[section]) ? payload[section] : [], CHUNK_SIZE));
     });
     const rawNames = Object.keys(payload.rawSheets || {});
     rawNames.forEach(function (sheetName, sheetIndex) {
-      const rows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
+      const allRows = Array.isArray(payload.rawSheets[sheetName]) ? payload.rawSheets[sheetName] : [];
+      // Linhas vazias no fim da aba não carregam informação: não são gravadas.
+      let lastFilled = allRows.length - 1;
+      while (lastFilled >= 0 && !(Array.isArray(allRows[lastFilled]) && allRows[lastFilled].some(function (c) { return c !== null && c !== undefined && String(c).trim() !== ''; }))) lastFilled--;
+      const rows = allRows.slice(0, lastFilled + 1);
       // Preserve the existing row-object format to avoid nested arrays in Firestore.
       const firestoreRows = rows.map(function (row, rowIndex) {
         const cells = Array.isArray(row) ? row : [];
         return { sourceRow: rowIndex + 1, length: cells.length, cells: cells };
       });
-      chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, 40, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
+      chunks.push.apply(chunks, chunkItems('rawSheet', firestoreRows, CHUNK_SIZE, { sheetName: sheetName, sheetIndex: sheetIndex, idPrefix: 'raw_' + String(sheetIndex).padStart(2, '0') + '_' }));
     });
     chunksRef = versionChunksRef(versionId);
     await writeInBatches(chunks.map(function (item) {
@@ -2563,7 +2762,6 @@ const googleRedirectResultPromise = getRedirectResult(auth).then(function (resul
 
 googleLoginButton.addEventListener('click', async function () {
   googleLoginButton.disabled = true;
-  loginButton.disabled = true;
   setLoginStatus('Abrindo a autenticação segura do Google…', false);
   try {
     const provider = new GoogleAuthProvider();
@@ -2593,28 +2791,10 @@ googleLoginButton.addEventListener('click', async function () {
     }
   } finally {
     googleLoginButton.disabled = false;
-    loginButton.disabled = false;
   }
 });
 
-loginForm.addEventListener('submit', async function (event) {
-  event.preventDefault();
-  const email = document.getElementById('firebase-email').value.trim();
-  const password = document.getElementById('firebase-password').value;
-  loginButton.disabled = true;
-  googleLoginButton.disabled = true;
-  setLoginStatus('Validando acesso e conectando ao banco…', false);
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    lastAuthError = '';
-  } catch (error) {
-    lastAuthError = explainAuthError(error);
-    setLoginStatus(lastAuthError, true);
-  } finally {
-    loginButton.disabled = false;
-    googleLoginButton.disabled = false;
-  }
-});
+loginForm.addEventListener('submit', function (event) { event.preventDefault(); });
 logoutButton.addEventListener('click', async function () {
   logoutButton.disabled = true;
   // Encerra o listener antes do signOut para impedir consultas Firestore
@@ -2646,10 +2826,16 @@ onAuthStateChanged(auth, async function (user) {
     document.body.classList.add('auth-pending');
     loginShell.hidden = false;
     logoutButton.hidden = true;
-    setLoginStatus(lastAuthError || 'Use o e-mail e a senha cadastrados no Firebase Authentication.', !!lastAuthError);
+    setLoginStatus(lastAuthError || 'Entre com a sua conta Google autorizada.', !!lastAuthError);
     return;
   }
   if (handlingUser) return;
+  // Acesso somente por Google: sessões abertas com e-mail e senha são encerradas.
+  if (!(user.providerData || []).some(function (p) { return p && p.providerId === 'google.com'; })) {
+    lastAuthError = 'O acesso agora é feito somente com a conta Google. Clique em "Entrar com Google".';
+    await signOut(auth).catch(function () {});
+    return;
+  }
   handlingUser = true;
   document.body.classList.add('auth-pending');
   loginShell.hidden = false;

@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const html = fs.readFileSync('index.html', 'utf8');
 
 const requiredContracts = [
-  ['seletor de turma no Dia do Batismo', 'id="day-turma-select"'],
+  ['seletor de turma na Ordem do Batismo (check-in do dia incorporado à Ordem)', 'id="order-turma-select"'],
   ['ordens separadas por turma', 'function orderForTurma()'],
   ['identificador estável para marcações', 'function dayId(row)'],
   ['cadastros manuais de participantes', 'function saveManualPerson(event)'],
