@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -27,23 +27,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Restaurar Google Login e módulo Firebase da versão estável
-        run: python scripts/restore-google-login.py
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Validar scripts inline
-        run: node scripts/check-inline-scripts.mjs
-
-      - name: Persistir correção no index.html
+      # A restauração automática do módulo Firebase (restore-google-login.py) foi
+      # desativada: ela sobrescrevia o login somente Google a cada publicação.
+      # O módulo agora é protegido pelo hash aprovado em apply-batizantes-v1.yml.
+      - name: Validar scripts e contratos antes de publicar
         run: |
-          if git diff --quiet -- index.html; then
-            echo "index.html já está consolidado."
-          else
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add index.html
-            git commit -m "fix: consolidar módulo Firebase e Google Login [skip ci]"
-            git push origin HEAD:main
-          fi
+          node scripts/check-inline-scripts.mjs
+          node scripts/check-multiturma-contract.mjs
+          node scripts/check-two-sheet-import-contract.mjs
+          node scripts/check-data-preservation-contract.mjs
 
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
