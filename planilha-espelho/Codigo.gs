@@ -1,12 +1,14 @@
 /**
  * Planilha espelho do Sistema de Gestão de Batismo
  * ------------------------------------------------
- * Lê os dados do Firebase (projeto batismo-8c5f8) e reescreve esta planilha
- * no mesmo formato da planilha original: aba " Batismo" e uma aba
- * "Ordem Batismo NN" por turma, além da aba "Sobre".
+ * Lê os dados do Firebase (projeto batismo-8c5f8) e escreve, nesta planilha,
+ * abas próprias com o prefixo "Sistema · ": "Sistema · Batismo", uma
+ * "Sistema · Ordem NN" por turma e "Sistema · Sobre".
  *
- * A planilha é SOMENTE PARA CONSULTA. Tudo que for digitado aqui é apagado
- * na próxima atualização. Cadastros e alterações são feitos no sistema.
+ * As outras abas da planilha NUNCA são alteradas, renomeadas ou apagadas, então
+ * o script pode ser instalado na planilha original sem mexer nos dados dela.
+ * As abas "Sistema · " são SOMENTE PARA CONSULTA: o que for digitado nelas é
+ * apagado na próxima atualização. Cadastros e alterações são feitos no sistema.
  *
  * Atualização instantânea (opcional): publicado como app da Web, o script
  * recebe um aviso do site logo depois de cada cadastro, edição ou marcação e
@@ -17,6 +19,7 @@
 
 var PROJECT_ID = 'batismo-8c5f8';
 var INTERVAL_MINUTES = 5; // 1, 5, 10, 15 ou 30
+var PREFIXO = 'Sistema · ';
 var FIRESTORE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID + '/databases/(default)/documents';
 
 /* ===================== Menu e agendamento ===================== */
@@ -363,7 +366,7 @@ function montarTabelas(ws) {
       p.__manual ? 'Cadastro pelo site' : 'Planilha · linha ' + p.sourceRow
     ]);
   });
-  var tabelas = [{ nome: String((ws.sourceSheetNames || [])[0] || ' Batismo'), linhas: rows, colunaData: 5 }];
+  var tabelas = [{ nome: PREFIXO + 'Batismo', linhas: rows, colunaData: 5 }];
 
   (ws.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); })
     .forEach(function (t) {
@@ -381,7 +384,7 @@ function montarTabelas(ws) {
           m.batizado ? 'SIM' : '', m.batizado ? horaDe(m.batizadoEm) : ''
         ]);
       });
-      tabelas.push({ nome: ('Ordem Batismo ' + t.number).slice(0, 31), linhas: od });
+      tabelas.push({ nome: (PREFIXO + 'Ordem ' + t.number).slice(0, 100), linhas: od });
     });
   return tabelas;
 }
@@ -390,8 +393,12 @@ function montarTabelas(ws) {
 
 function escreverTabelas(ss, tabelas) {
   var aviso = 'Espelho do sistema: não edite aqui. As alterações são feitas no sistema e esta aba é reescrita automaticamente.';
-  tabelas.forEach(function (tab, index) {
-    var sh = ss.getSheetByName(tab.nome) || ss.insertSheet(tab.nome, index);
+  tabelas.forEach(function (tab) {
+    if (tab.nome.indexOf(PREFIXO) !== 0) throw new Error('Proteção: o script só escreve em abas que começam com "' + PREFIXO + '".');
+  });
+  tabelas.forEach(function (tab) {
+    // Abas novas entram no fim, sem mudar a posição das abas existentes.
+    var sh = ss.getSheetByName(tab.nome) || ss.insertSheet(tab.nome, ss.getSheets().length);
     var filtro = sh.getFilter();
     if (filtro) filtro.remove();
     sh.clearContents();
@@ -406,25 +413,22 @@ function escreverTabelas(ss, tabelas) {
     var protecoes = sh.getProtections(SpreadsheetApp.ProtectionType.SHEET);
     if (!protecoes.length) sh.protect().setDescription(aviso).setWarningOnly(true);
   });
-  // Remove a aba vazia criada junto com a planilha nova.
-  ['Página1', 'Página 1', 'Sheet1', 'Planilha1'].forEach(function (n) {
-    var vazia = ss.getSheetByName(n);
-    if (vazia && vazia.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(vazia);
-  });
-  // Remove abas de ordem de turmas que deixaram de ter posições.
+  // Remove só abas de ordem criadas por este script ("Sistema · Ordem NN")
+  // cuja turma deixou de ter posições. Nenhuma outra aba é apagada.
   var nomes = tabelas.map(function (t) { return t.nome; });
   ss.getSheets().forEach(function (sh) {
-    if (/^Ordem Batismo /.test(sh.getName()) && nomes.indexOf(sh.getName()) < 0) ss.deleteSheet(sh);
+    var nome = sh.getName();
+    if (nome.indexOf(PREFIXO + 'Ordem ') === 0 && nomes.indexOf(nome) < 0) ss.deleteSheet(sh);
   });
 }
 
 function escreverSobre(ss, data, ultimaMudanca, erro) {
-  var sh = ss.getSheetByName('Sobre') || ss.insertSheet('Sobre');
+  var sh = ss.getSheetByName(PREFIXO + 'Sobre') || ss.insertSheet(PREFIXO + 'Sobre', ss.getSheets().length);
   var tz = Session.getScriptTimeZone();
   var agora = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm:ss');
   var linhas = [
     ['Planilha espelho · Gestão de Batismo', ''],
-    ['Somente consulta', 'Não edite as outras abas: elas são reescritas com os dados do sistema.'],
+    ['Somente consulta', 'As abas "' + PREFIXO + '…" são reescritas com os dados do sistema. As demais abas desta planilha não são alteradas.'],
     ['Última verificação', agora],
     ['Última mudança nos dados', ultimaMudanca ? Utilities.formatDate(new Date(ultimaMudanca), tz, 'dd/MM/yyyy HH:mm:ss') : '—'],
     ['Versão no Firebase', data ? data.versionId : '—'],

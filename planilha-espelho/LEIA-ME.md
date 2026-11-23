@@ -1,18 +1,20 @@
 # Planilha espelho (Google Planilhas)
 
-Uma planilha do Google que se atualiza sozinha a cada 5 minutos com os dados do sistema, no mesmo formato da planilha original:
+O script escreve, numa planilha do Google, abas que se atualizam sozinhas com os dados do sistema:
 
-- aba **Batismo**, com as mesmas colunas da original e a coluna extra **ORIGEM**;
-- uma aba **Ordem Batismo NN** para cada turma que tenha ordem, com presença, batismo e Ekklesia do dia;
-- aba **Sobre**, com o horário da última atualização e eventuais erros.
+- **Sistema · Batismo**, com as mesmas colunas da aba Batismo original e a coluna extra **ORIGEM**;
+- uma aba **Sistema · Ordem NN** para cada turma que tenha ordem, com presença, batismo e Ekklesia do dia;
+- **Sistema · Sobre**, com o horário da última atualização e eventuais erros.
 
-**É somente para consulta.** O que for digitado nas abas é apagado na próxima atualização. Cadastros e mudanças são feitos no sistema.
+**Pode ser instalado na própria planilha Batismo.** O script só cria e reescreve abas que começam com `Sistema · `. As outras abas (Batismo, Ordem Batismo NN, GERAL etc.) nunca são alteradas, movidas ou apagadas.
+
+As abas `Sistema · ` são **somente para consulta**: o que for digitado nelas é apagado na próxima atualização. Cadastros e mudanças são feitos no sistema.
 
 ## Instalação (uma vez, cerca de 5 minutos)
 
 > Faça tudo logado na **conta Google dona do projeto Firebase `batismo-8c5f8`**. A planilha usa o acesso dessa conta para ler o Firestore e não precisa de mudanças nas regras de segurança.
 
-1. Abra **https://sheets.new** e dê um nome, por exemplo *Batismo · espelho do sistema*.
+1. Abra a planilha onde as abas devem aparecer (por exemplo, a própria planilha **Batismo**).
 2. Menu **Extensões → Apps Script**.
 3. Na engrenagem **Configurações do projeto**, marque **Mostrar arquivo de manifesto "appsscript.json" no editor**.
 4. Volte em **Editor** (`< >`):
@@ -22,7 +24,7 @@ Uma planilha do Google que se atualiza sozinha a cada 5 minutos com os dados do 
 5. Volte para a planilha e recarregue a página. Vai aparecer o menu **Batismo**.
 6. Clique em **Batismo → Ativar atualização automática**.
    - O Google pede autorização. Escolha a sua conta e clique em **Avançado → Acessar (não seguro)** → **Permitir**. O aviso aparece porque o script é seu e não passou pela verificação do Google; ele só lê o Firestore e escreve nesta planilha.
-7. Pronto. As abas aparecem em alguns segundos. Para atualizar na hora, use **Batismo → Atualizar agora**.
+7. Pronto. As abas `Sistema · ` aparecem no fim da planilha em alguns segundos. Para atualizar na hora, use **Batismo → Atualizar agora**.
 
 ## Atualização instantânea (recomendado, mais 3 minutos)
 
@@ -42,11 +44,11 @@ Com isso, cada cadastro, edição ou marcação feita no site aparece na planilh
 
 ## Compartilhar com a equipe
 
-Botão **Compartilhar** → adicione as pessoas como **Leitor**. Quem tiver só leitura não consegue alterar nada. Quem for editor recebe um aviso se tentar mexer nas abas.
+Botão **Compartilhar** → adicione as pessoas como **Leitor**. Quem tiver só leitura não consegue alterar nada. Quem for editor recebe um aviso se tentar mexer nas abas `Sistema · `.
 
 ## Problemas comuns
 
-| Aba **Sobre** mostra | O que fazer |
+| Aba **Sistema · Sobre** mostra | O que fazer |
 |---|---|
 | `Firestore respondeu 403` | A conta que instalou o script não tem acesso ao projeto `batismo-8c5f8`. Reinstale com a conta dona do projeto. |
 | `Não encontrei appData/primary` | O sistema ainda não tem dados importados. |
