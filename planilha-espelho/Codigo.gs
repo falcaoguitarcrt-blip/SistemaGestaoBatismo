@@ -25,6 +25,11 @@
 var PROJECT_ID = 'batismo-8c5f8';
 var INTERVAL_MINUTES = 5; // 1, 5, 10, 15 ou 30
 var PREFIXO = 'Sistema · ';
+// Também acrescenta os dados novos nas abas originais (Batismo e Ordem Batismo NN),
+// sem alterar nenhuma linha ou coluna que já existe nelas.
+var ESCREVER_NAS_ABAS_ORIGINAIS = true;
+var COL_PRESENTE = 'PRESENTE (SISTEMA)';
+var COL_BATIZADO = 'BATIZADO (SISTEMA)';
 var FIRESTORE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID + '/databases/(default)/documents';
 
 /* ===================== Menu e agendamento ===================== */
@@ -157,6 +162,7 @@ function atualizarPlanilha(forcar) {
       props.setProperty('assinatura', assinatura);
       props.setProperty('ultimaMudanca', new Date().toISOString());
     }
+    if (ESCREVER_NAS_ABAS_ORIGINAIS) anexarNasAbasOriginais(ss, data);
     escreverSobre(ss, data, props.getProperty('ultimaMudanca'), null);
   } catch (e) {
     try { escreverSobre(planilha(), null, null, e); } catch (ignored) {}
@@ -370,7 +376,13 @@ function montarTabelas(ws) {
   (ws.turmas || []).forEach(function (t) { turmaPorNumero[String(t.number || t.id)] = t; });
   var header = ['NOME', 'IDADE', 'TELEFONE', 'TURMA', 'DATA', 'JORNADA', 'AULA P/ REPOR', 'ENTROU NO GRUPO', 'CAMISETA', 'PG CAMISETA', 'STATUS', 'PENDENCIA', 'BATIZADO', 'INVESTIGAÇÃO PERFIL (FBI)', 'ORIGEM'];
   var rows = [header];
-  people.forEach(function (p) {
+  people.forEach(function (p) { rows.push(linhaBatismo(ws, p, people, turmaPorNumero)); });
+  var tabelas = [{ nome: PREFIXO + 'Batismo', linhas: rows, colunaData: 5 }];
+  return montarOrdens(ws, tabelas);
+}
+
+/** Uma linha no formato da aba Batismo (14 colunas originais + ORIGEM). */
+function linhaBatismo(ws, p, people, turmaPorNumero) {
     var f = p.fields || [];
     var choice = shirtChoiceLabel(p);
     var shirt = choice === 'Já possui' ? 'Já tem' : (choice === 'Sim' ? (shirtSizeValue(p) || '') : (choice === 'Não' ? 'Não quer' : ''));
@@ -381,7 +393,7 @@ function montarTabelas(ws) {
     var turmaRec = turmaPorNumero[clean(p.turma)];
     var data = p.__manual ? (turmaDate(turmaRec, people.filter(function (x) { return clean(x.turma) === clean(p.turma); })) || '') : dateFromAny(f[4]);
     var turmaNum = /^\d+$/.test(clean(p.turma)) ? Number(clean(p.turma)) : clean(p.turma);
-    rows.push([
+    return [
       p.name || '',
       isBlank(p.age) ? '' : (isNaN(Number(p.age)) ? clean(p.age) : Number(p.age)),
       isBlank(p.phone) ? '' : (phoneValid(p.phone) ? phoneLabel(p.phone) : clean(p.phone)),
@@ -389,10 +401,10 @@ function montarTabelas(ws) {
       shirt, paid, clean(p.status), clean(p.pending), baptized,
       p.__manual ? '' : clean(f[13]),
       p.__manual ? 'Cadastro pelo site' : 'Planilha · linha ' + p.sourceRow
-    ]);
-  });
-  var tabelas = [{ nome: PREFIXO + 'Batismo', linhas: rows, colunaData: 5 }];
+    ];
+}
 
+function montarOrdens(ws, tabelas) {
   (ws.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); })
     .forEach(function (t) {
       var items = orderItems(ws, t);
@@ -412,6 +424,116 @@ function montarTabelas(ws) {
       tabelas.push({ nome: (PREFIXO + 'Ordem ' + t.number).slice(0, 100), linhas: od });
     });
   return tabelas;
+}
+
+/* ===================== Abas originais: só acrescentar ===================== */
+
+/**
+ * Regras de segurança desta parte:
+ *  - na aba Batismo, só escreve em linhas DEPOIS da última linha preenchida;
+ *  - nas abas Ordem Batismo NN, só acrescenta linhas no fim e só escreve nas
+ *    duas colunas próprias do script (PRESENTE (SISTEMA) e BATIZADO (SISTEMA)),
+ *    criadas à direita da última coluna usada;
+ *  - não cria nem apaga abas originais.
+ */
+function anexarNasAbasOriginais(ss, ws) {
+  var props = PropertiesService.getScriptProperties();
+  anexarCadastros(ss, ws, props);
+  (ws.turmas || []).forEach(function (t) { atualizarOrdemOriginal(ss, ws, t, props); });
+}
+
+function abaOriginal(ss, nomeNormal) {
+  var achada = null;
+  ss.getSheets().forEach(function (sh) {
+    var n = sh.getName();
+    if (!achada && n.indexOf(PREFIXO) !== 0 && normal(n) === nomeNormal) achada = sh;
+  });
+  return achada;
+}
+
+function lerLista(props, chave) {
+  try { return JSON.parse(props.getProperty(chave) || '[]'); } catch (e) { return []; }
+}
+
+function anexarCadastros(ss, ws, props) {
+  var participantes = ws.participantes || [];
+  if (!participantes.length) return;
+  var sh = abaOriginal(ss, 'batismo');
+  if (!sh) return;
+  var feitos = lerLista(props, 'anexadosBatismo');
+  var ultima = sh.getLastRow();
+  var existentes = {};
+  if (ultima > 0) sh.getRange(1, 1, ultima, 4).getValues().forEach(function (r) { existentes[normal(r[0]) + '|' + clean(r[3])] = true; });
+  var people = (ws.people || []).concat(participantes.map(manualAsPerson));
+  var turmaPorNumero = {};
+  (ws.turmas || []).forEach(function (t) { turmaPorNumero[String(t.number || t.id)] = t; });
+  var novas = [], ids = [];
+  participantes.forEach(function (p) {
+    var id = String(p.id);
+    if (feitos.indexOf(id) >= 0) return;
+    var pessoa = manualAsPerson(p);
+    if (!pessoa.name) return; // espera ter nome
+    ids.push(id);
+    var chave = normal(pessoa.name) + '|' + clean(pessoa.turma);
+    if (existentes[chave]) return; // já digitado à mão na aba
+    existentes[chave] = true;
+    novas.push(linhaBatismo(ws, pessoa, people, turmaPorNumero).slice(0, 14));
+  });
+  if (novas.length) sh.getRange(ultima + 1, 1, novas.length, 14).setValues(novas);
+  if (ids.length) props.setProperty('anexadosBatismo', JSON.stringify(feitos.concat(ids)));
+}
+
+function atualizarOrdemOriginal(ss, ws, turma, props) {
+  var items = orderItems(ws, turma);
+  if (!items.length) return;
+  var sh = abaOriginal(ss, normal('Ordem Batismo ' + turma.number));
+  if (!sh) return;
+
+  // 1) Posições novas cadastradas pelo site entram no fim (colunas A a D).
+  var chaveFeitos = 'anexadosOrdem_' + turma.id;
+  var feitos = lerLista(props, chaveFeitos);
+  var ultima = sh.getLastRow();
+  var existentes = {};
+  if (ultima > 1) sh.getRange(2, 2, ultima - 1, 2).getValues().forEach(function (r) { existentes[clean(r[0]) + '|' + normal(r[1])] = true; });
+  var novas = [], ids = [];
+  items.forEach(function (r) {
+    if (!r.__manual || r.removed || !r.name) return;
+    var id = String(r.id);
+    if (feitos.indexOf(id) >= 0) return;
+    ids.push(id);
+    var chave = clean(r.number) + '|' + normal(r.name);
+    if (existentes[chave]) return;
+    existentes[chave] = true;
+    novas.push(['', isBlank(r.number) ? '' : (Number(r.number) || clean(r.number)), r.name, clean(r.note)]);
+  });
+  if (novas.length) { sh.getRange(ultima + 1, 1, novas.length, 4).setValues(novas); ultima += novas.length; }
+  if (ids.length) props.setProperty(chaveFeitos, JSON.stringify(feitos.concat(ids)));
+  if (ultima < 2) return;
+
+  // 2) Presença e batismo do dia nas duas colunas próprias do script.
+  var largura = Math.max(sh.getLastColumn(), 1);
+  var cab = sh.getRange(1, 1, 1, largura).getValues()[0].map(clean);
+  var cP = cab.indexOf(COL_PRESENTE) + 1, cB = cab.indexOf(COL_BATIZADO) + 1;
+  var precisa = (cP ? 0 : 1) + (cB ? 0 : 1);
+  if (precisa) {
+    if (largura + precisa > sh.getMaxColumns()) sh.insertColumnsAfter(sh.getMaxColumns(), largura + precisa - sh.getMaxColumns());
+    if (!cP) { cP = ++largura; sh.getRange(1, cP).setValue(COL_PRESENTE); }
+    if (!cB) { cB = ++largura; sh.getRange(1, cB).setValue(COL_BATIZADO); }
+  }
+  var porNumero = {};
+  items.forEach(function (r) { if (!isBlank(r.number)) (porNumero[clean(r.number)] = porNumero[clean(r.number)] || []).push(r); });
+  var linhas = sh.getRange(2, 2, ultima - 1, 2).getValues();
+  var colP = [], colB = [];
+  linhas.forEach(function (l) {
+    var cands = porNumero[clean(l[0])] || [];
+    var nome = normal(l[1]);
+    var r = cands.filter(function (c) { return !nome || normal(c.name) === nome; })[0];
+    var m = r ? (ws.marks[dayId(ws, r)] || {}) : {};
+    colP.push([m.presente ? 'SIM ' + horaDe(m.presenteEm) : '']);
+    colB.push([m.batizado ? 'SIM ' + horaDe(m.batizadoEm) : '']);
+  });
+  sh.getRange(2, cP, colP.length, 1).setValues(colP);
+  sh.getRange(2, cB, colB.length, 1).setValues(colB);
 }
 
 /* ===================== Escrita na planilha ===================== */

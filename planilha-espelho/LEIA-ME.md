@@ -8,6 +8,13 @@ O script escreve, numa planilha do Google, abas que se atualizam sozinhas com os
 
 **Pode ser instalado na própria planilha Batismo.** O script só cria e reescreve abas que começam com `Sistema · `. As outras abas (Batismo, Ordem Batismo NN, GERAL etc.) nunca são alteradas, movidas ou apagadas.
 
+**Dados novos também entram nas abas originais, só acrescentando:**
+- cada cadastro novo feito no site vai para o **fim da aba Batismo**. As linhas existentes não são tocadas, e quem já estiver na aba com o mesmo nome e turma não é repetido;
+- posições novas da ordem vão para o **fim da aba Ordem Batismo NN** da turma (colunas A a D);
+- presença e batismo do dia vão para duas colunas próprias, **PRESENTE (SISTEMA)** e **BATIZADO (SISTEMA)**, criadas à direita da última coluna usada. Só essas duas colunas são reescritas pelo script.
+
+Edições de pessoas que já estão na aba (feitas pelo site) aparecem nas abas `Sistema · `, mas não alteram as linhas existentes das abas originais. Para desligar essa escrita, troque `ESCREVER_NAS_ABAS_ORIGINAIS = true` por `false`.
+
 As abas `Sistema · ` são **somente para consulta**: o que for digitado nelas é apagado na próxima atualização. Cadastros e mudanças são feitos no sistema.
 
 ## Instalação (uma vez, cerca de 5 minutos)
