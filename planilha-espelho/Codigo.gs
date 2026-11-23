@@ -1,22 +1,35 @@
 /**
  * Planilha espelho do Sistema de Gestão de Batismo
  * ------------------------------------------------
- * Lê os dados do Firebase (projeto batismo-8c5f8) e reescreve esta planilha
- * no mesmo formato da planilha original: aba " Batismo" e uma aba
- * "Ordem Batismo NN" por turma, além da aba "Sobre".
+ * Lê os dados do Firebase (projeto batismo-8c5f8) e escreve, nesta planilha,
+ * abas próprias com o prefixo "Sistema · ": "Sistema · Batismo", uma
+ * "Sistema · Ordem NN" por turma e "Sistema · Sobre".
  *
- * A planilha é SOMENTE PARA CONSULTA. Tudo que for digitado aqui é apagado
- * na próxima atualização. Cadastros e alterações são feitos no sistema.
+ * Nenhuma aba é apagada e nenhum dado existente das abas originais é alterado ou retirado, então
+ * o script pode ser instalado na planilha original sem mexer nos dados dela.
+ * As abas "Sistema · " são SOMENTE PARA CONSULTA: o que for digitado nelas é
+ * apagado na próxima atualização. Cadastros e alterações são feitos no sistema.
  *
  * Atualização instantânea (opcional): publicado como app da Web, o script
  * recebe um aviso do site logo depois de cada cadastro, edição ou marcação e
  * atualiza a planilha na hora. A atualização periódica continua como reserva.
+ *
+ * Funciona de dois jeitos:
+ *  - vinculado à planilha (Extensões → Apps Script), com menu "Batismo";
+ *  - avulso (projeto em script.google.com), com a propriedade do script
+ *    "planilhaId" apontando para a planilha. As funções são rodadas no editor.
  *
  * Instalação: veja planilha-espelho/LEIA-ME.md no repositório.
  */
 
 var PROJECT_ID = 'batismo-8c5f8';
 var INTERVAL_MINUTES = 5; // 1, 5, 10, 15 ou 30
+var PREFIXO = 'Sistema · ';
+// Se true, acrescenta dados novos do site nas abas originais (Batismo e Ordem
+// Batismo NN). DESLIGADO: as abas originais não recebem nenhuma escrita do script.
+var ESCREVER_NAS_ABAS_ORIGINAIS = false;
+var COL_PRESENTE = 'PRESENTE (SISTEMA)';
+var COL_BATIZADO = 'BATIZADO (SISTEMA)';
 var FIRESTORE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID + '/databases/(default)/documents';
 
 /* ===================== Menu e agendamento ===================== */
@@ -30,6 +43,9 @@ function onOpen() {
     .addSeparator()
     .addItem('Ativar atualização instantânea', 'ativarAtualizacaoInstantanea')
     .addItem('Desativar atualização instantânea', 'desativarAtualizacaoInstantanea')
+    .addSeparator()
+    .addItem('Usar a planilha como fonte do site', 'ativarPlanilhaComoFonte')
+    .addItem('Voltar a cadastrar pelo site', 'desativarPlanilhaComoFonte')
     .addToUi();
 }
 
@@ -37,7 +53,18 @@ function ativarAtualizacaoAutomatica() {
   desativarAtualizacaoAutomatica();
   ScriptApp.newTrigger('atualizarPlanilha').timeBased().everyMinutes(INTERVAL_MINUTES).create();
   atualizarPlanilha(true);
-  SpreadsheetApp.getActive().toast('A planilha será atualizada a cada ' + INTERVAL_MINUTES + ' minutos.', 'Batismo', 6);
+  avisar('A planilha será atualizada a cada ' + INTERVAL_MINUTES + ' minutos.');
+}
+
+/** Mostra um aviso na planilha (script vinculado) ou no registro (script avulso). */
+function avisar(msg) {
+  Logger.log(msg);
+  try { var ss = SpreadsheetApp.getActive(); if (ss) ss.toast(msg, 'Batismo', 6); } catch (ignored) {}
+}
+
+/** UI da planilha, ou null quando o script é avulso e roda pelo editor. */
+function uiOuNull() {
+  try { return SpreadsheetApp.getUi(); } catch (e) { return null; }
 }
 
 function desativarAtualizacaoAutomatica() {
@@ -49,48 +76,111 @@ function desativarAtualizacaoAutomatica() {
 /* ===================== Atualização instantânea ===================== */
 
 function ativarAtualizacaoInstantanea() {
-  var ui = SpreadsheetApp.getUi();
-  var resp = ui.prompt('Atualização instantânea',
-    'Antes, publique este script: Implantar → Nova implantação → tipo "App da Web" → ' +
-    'Executar como: Eu → Quem pode acessar: Qualquer pessoa → Implantar.\n\n' +
-    'Cole aqui o URL do app da Web (termina em /exec):', ui.ButtonSet.OK_CANCEL);
-  if (resp.getSelectedButton() !== ui.Button.OK) return;
-  var url = String(resp.getResponseText() || '').trim();
+  var ui = uiOuNull();
+  var props = PropertiesService.getScriptProperties();
+  var url;
+  if (ui) {
+    var resp = ui.prompt('Atualização instantânea',
+      'Antes, publique este script: Implantar → Nova implantação → tipo "App da Web" → ' +
+      'Executar como: Eu → Quem pode acessar: Qualquer pessoa → Implantar.\n\n' +
+      'Cole aqui o URL do app da Web (termina em /exec):', ui.ButtonSet.OK_CANCEL);
+    if (resp.getSelectedButton() !== ui.Button.OK) return;
+    url = String(resp.getResponseText() || '').trim();
+  } else {
+    // Script avulso: o URL fica na propriedade do script "urlWebApp".
+    url = String(props.getProperty('urlWebApp') || '').trim();
+  }
   if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) {
-    ui.alert('URL inválido', 'O endereço precisa começar com https://script.google.com/ e terminar em /exec. Copie o URL do "App da Web" na tela de implantação.', ui.ButtonSet.OK);
-    return;
+    var msg = 'O endereço do app da Web precisa começar com https://script.google.com/ e terminar em /exec.' + (ui ? '' : ' Grave-o na propriedade do script "urlWebApp".');
+    if (ui) { ui.alert('URL inválido', msg, ui.ButtonSet.OK); return; }
+    throw new Error(msg);
   }
   var token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
-  var props = PropertiesService.getScriptProperties();
   props.setProperty('tokenInstantaneo', token);
   props.setProperty('planilhaId', planilha().getId());
   // Grava URL e token no Firebase, onde só contas autorizadas leem. O site usa
   // esses dados para avisar a planilha depois de cada alteração.
-  firestorePatch('appData/primary', {
-    planilhaSync: { mapValue: { fields: {
-      url: { stringValue: url },
-      token: { stringValue: token },
-      ativadoEm: { timestampValue: new Date().toISOString() }
-    } } }
-  }, ['planilhaSync']);
-  ui.alert('Atualização instantânea ativada', 'A partir de agora, cada cadastro, edição ou marcação feita no site atualiza esta planilha em poucos segundos. Recarregue o site nos aparelhos que já estavam abertos.', ui.ButtonSet.OK);
+  var camposSync = {
+    url: { stringValue: url },
+    token: { stringValue: token },
+    ativadoEm: { timestampValue: new Date().toISOString() }
+  };
+  if (props.getProperty('fonte') === 'planilha') camposSync.fonte = { stringValue: 'planilha' };
+  props.setProperty('urlWebApp', url);
+  firestorePatch('appData/primary', { planilhaSync: { mapValue: { fields: camposSync } } }, ['planilhaSync']);
+  var ok = 'Atualização instantânea ativada: cada cadastro, edição ou marcação feita no site atualiza a planilha em poucos segundos. Recarregue o site nos aparelhos que já estavam abertos.';
+  if (ui) ui.alert('Atualização instantânea ativada', ok, ui.ButtonSet.OK); else Logger.log(ok);
 }
 
 function desativarAtualizacaoInstantanea() {
   PropertiesService.getScriptProperties().deleteProperty('tokenInstantaneo');
   // Sem o campo no corpo, a máscara remove planilhaSync do documento.
   firestorePatch('appData/primary', {}, ['planilhaSync']);
-  SpreadsheetApp.getActive().toast('Atualização instantânea desativada. A atualização periódica continua.', 'Batismo', 6);
+  avisar('Atualização instantânea desativada. A atualização periódica continua.');
 }
 
-/** Aviso enviado pelo site (app da Web). Não devolve nenhum dado. */
+/* ===================== Planilha como fonte do site ===================== */
+
+/**
+ * Faz o site ler os cadastros e a ordem direto da planilha (abas Batismo e
+ * Ordem Batismo NN). O site deixa de cadastrar e editar pessoas; turmas, datas
+ * e marcações do dia continuam no sistema. Requer a atualização instantânea ativa.
+ */
+function ativarPlanilhaComoFonte() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('tokenInstantaneo')) throw new Error('Ative antes a atualização instantânea (ativarAtualizacaoInstantanea).');
+  props.setProperty('fonte', 'planilha');
+  firestorePatch('appData/primary', { planilhaSync: { mapValue: { fields: { fonte: { stringValue: 'planilha' } } } } }, ['planilhaSync.fonte']);
+  avisar('O site agora lê os cadastros desta planilha. Recarregue o site nos aparelhos abertos.');
+}
+
+function desativarPlanilhaComoFonte() {
+  PropertiesService.getScriptProperties().deleteProperty('fonte');
+  firestorePatch('appData/primary', {}, ['planilhaSync.fonte']);
+  avisar('O site voltou a usar os cadastros do sistema.');
+}
+
+/** Valores crus das duas primeiras abas originais, no formato que o site importa. */
+function dadosDaPlanilha() {
+  var ss = planilha();
+  var tz = ss.getSpreadsheetTimeZone();
+  var abas = ss.getSheets().filter(function (sh) { return sh.getName().indexOf(PREFIXO) !== 0; }).slice(0, 2).map(function (sh) {
+    var lr = sh.getLastRow(), lc = sh.getLastColumn();
+    var linhas = lr && lc ? sh.getRange(1, 1, lr, lc).getValues().map(function (r) {
+      return r.map(function (v) {
+        if (v instanceof Date) {
+          var p = Utilities.formatDate(v, tz, 'yyyy-MM-dd').split('-');
+          return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - Date.UTC(1899, 11, 30)) / 86400000);
+        }
+        return v === '' ? null : v;
+      });
+    }) : [];
+    return { nome: sh.getName(), linhas: linhas };
+  });
+  return { geradoEm: new Date().toISOString(), abas: abas };
+}
+
+function respostaJson(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * App da Web. Sem o token certo, responde "negado" e não devolve nada.
+ *  - padrão: aviso do site para atualizar a planilha;
+ *  - acao=dados (só com a planilha como fonte): devolve os dados das abas originais.
+ */
 function doGet(e) { return receberAviso(e); }
 function doPost(e) { return receberAviso(e); }
 
 function receberAviso(e) {
-  var esperado = PropertiesService.getScriptProperties().getProperty('tokenInstantaneo');
+  var props = PropertiesService.getScriptProperties();
+  var esperado = props.getProperty('tokenInstantaneo');
   var recebido = e && e.parameter ? String(e.parameter.token || '') : '';
   if (!esperado || recebido !== esperado) return ContentService.createTextOutput('negado');
+  if (e.parameter.acao === 'dados') {
+    if (props.getProperty('fonte') !== 'planilha') return respostaJson({ erro: 'a planilha não está configurada como fonte do site' });
+    try { return respostaJson(dadosDaPlanilha()); } catch (err) { return respostaJson({ erro: String(err && err.message || err) }); }
+  }
   try {
     atualizarPlanilha(false);
     return ContentService.createTextOutput('ok');
@@ -100,16 +190,17 @@ function receberAviso(e) {
 }
 
 function planilha() {
-  var ss = SpreadsheetApp.getActive();
+  var ss = null;
+  try { ss = SpreadsheetApp.getActive(); } catch (ignored) {}
   if (ss) return ss;
   var id = PropertiesService.getScriptProperties().getProperty('planilhaId');
   if (id) return SpreadsheetApp.openById(id);
-  throw new Error('Planilha não encontrada. Abra a planilha e use o menu Batismo → Ativar atualização instantânea.');
+  throw new Error('Planilha não encontrada. Em script avulso, grave o ID da planilha na propriedade do script "planilhaId".');
 }
 
 function atualizarAgora() {
   atualizarPlanilha(true);
-  SpreadsheetApp.getActive().toast('Planilha atualizada com os dados do sistema.', 'Batismo', 5);
+  avisar('Planilha atualizada com os dados do sistema.');
 }
 
 /* ===================== Atualização ===================== */
@@ -129,6 +220,7 @@ function atualizarPlanilha(forcar) {
       props.setProperty('assinatura', assinatura);
       props.setProperty('ultimaMudanca', new Date().toISOString());
     }
+    if (ESCREVER_NAS_ABAS_ORIGINAIS && props.getProperty('fonte') !== 'planilha') anexarNasAbasOriginais(ss, data);
     escreverSobre(ss, data, props.getProperty('ultimaMudanca'), null);
   } catch (e) {
     try { escreverSobre(planilha(), null, null, e); } catch (ignored) {}
@@ -342,7 +434,13 @@ function montarTabelas(ws) {
   (ws.turmas || []).forEach(function (t) { turmaPorNumero[String(t.number || t.id)] = t; });
   var header = ['NOME', 'IDADE', 'TELEFONE', 'TURMA', 'DATA', 'JORNADA', 'AULA P/ REPOR', 'ENTROU NO GRUPO', 'CAMISETA', 'PG CAMISETA', 'STATUS', 'PENDENCIA', 'BATIZADO', 'INVESTIGAÇÃO PERFIL (FBI)', 'ORIGEM'];
   var rows = [header];
-  people.forEach(function (p) {
+  people.forEach(function (p) { rows.push(linhaBatismo(ws, p, people, turmaPorNumero)); });
+  var tabelas = [{ nome: PREFIXO + 'Batismo', linhas: rows, colunaData: 5 }];
+  return montarOrdens(ws, tabelas);
+}
+
+/** Uma linha no formato da aba Batismo (14 colunas originais + ORIGEM). */
+function linhaBatismo(ws, p, people, turmaPorNumero) {
     var f = p.fields || [];
     var choice = shirtChoiceLabel(p);
     var shirt = choice === 'Já possui' ? 'Já tem' : (choice === 'Sim' ? (shirtSizeValue(p) || '') : (choice === 'Não' ? 'Não quer' : ''));
@@ -353,7 +451,7 @@ function montarTabelas(ws) {
     var turmaRec = turmaPorNumero[clean(p.turma)];
     var data = p.__manual ? (turmaDate(turmaRec, people.filter(function (x) { return clean(x.turma) === clean(p.turma); })) || '') : dateFromAny(f[4]);
     var turmaNum = /^\d+$/.test(clean(p.turma)) ? Number(clean(p.turma)) : clean(p.turma);
-    rows.push([
+    return [
       p.name || '',
       isBlank(p.age) ? '' : (isNaN(Number(p.age)) ? clean(p.age) : Number(p.age)),
       isBlank(p.phone) ? '' : (phoneValid(p.phone) ? phoneLabel(p.phone) : clean(p.phone)),
@@ -361,10 +459,10 @@ function montarTabelas(ws) {
       shirt, paid, clean(p.status), clean(p.pending), baptized,
       p.__manual ? '' : clean(f[13]),
       p.__manual ? 'Cadastro pelo site' : 'Planilha · linha ' + p.sourceRow
-    ]);
-  });
-  var tabelas = [{ nome: String((ws.sourceSheetNames || [])[0] || ' Batismo'), linhas: rows, colunaData: 5 }];
+    ];
+}
 
+function montarOrdens(ws, tabelas) {
   (ws.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); })
     .forEach(function (t) {
       var items = orderItems(ws, t);
@@ -381,17 +479,131 @@ function montarTabelas(ws) {
           m.batizado ? 'SIM' : '', m.batizado ? horaDe(m.batizadoEm) : ''
         ]);
       });
-      tabelas.push({ nome: ('Ordem Batismo ' + t.number).slice(0, 31), linhas: od });
+      tabelas.push({ nome: (PREFIXO + 'Ordem ' + t.number).slice(0, 100), linhas: od });
     });
   return tabelas;
+}
+
+/* ===================== Abas originais: só acrescentar ===================== */
+
+/**
+ * Regras de segurança desta parte:
+ *  - na aba Batismo, só escreve em linhas DEPOIS da última linha preenchida;
+ *  - nas abas Ordem Batismo NN, só acrescenta linhas no fim e só escreve nas
+ *    duas colunas próprias do script (PRESENTE (SISTEMA) e BATIZADO (SISTEMA)),
+ *    criadas à direita da última coluna usada;
+ *  - não cria nem apaga abas originais.
+ */
+function anexarNasAbasOriginais(ss, ws) {
+  var props = PropertiesService.getScriptProperties();
+  anexarCadastros(ss, ws, props);
+  (ws.turmas || []).forEach(function (t) { atualizarOrdemOriginal(ss, ws, t, props); });
+}
+
+function abaOriginal(ss, nomeNormal) {
+  var achada = null;
+  ss.getSheets().forEach(function (sh) {
+    var n = sh.getName();
+    if (!achada && n.indexOf(PREFIXO) !== 0 && normal(n) === nomeNormal) achada = sh;
+  });
+  return achada;
+}
+
+function lerLista(props, chave) {
+  try { return JSON.parse(props.getProperty(chave) || '[]'); } catch (e) { return []; }
+}
+
+function anexarCadastros(ss, ws, props) {
+  var participantes = ws.participantes || [];
+  if (!participantes.length) return;
+  var sh = abaOriginal(ss, 'batismo');
+  if (!sh) return;
+  var feitos = lerLista(props, 'anexadosBatismo');
+  var ultima = sh.getLastRow();
+  var existentes = {};
+  if (ultima > 0) sh.getRange(1, 1, ultima, 4).getValues().forEach(function (r) { existentes[normal(r[0]) + '|' + clean(r[3])] = true; });
+  var people = (ws.people || []).concat(participantes.map(manualAsPerson));
+  var turmaPorNumero = {};
+  (ws.turmas || []).forEach(function (t) { turmaPorNumero[String(t.number || t.id)] = t; });
+  var novas = [], ids = [];
+  participantes.forEach(function (p) {
+    var id = String(p.id);
+    if (feitos.indexOf(id) >= 0) return;
+    var pessoa = manualAsPerson(p);
+    if (!pessoa.name) return; // espera ter nome
+    ids.push(id);
+    var chave = normal(pessoa.name) + '|' + clean(pessoa.turma);
+    if (existentes[chave]) return; // já digitado à mão na aba
+    existentes[chave] = true;
+    novas.push(linhaBatismo(ws, pessoa, people, turmaPorNumero).slice(0, 14));
+  });
+  if (novas.length) sh.getRange(ultima + 1, 1, novas.length, 14).setValues(novas);
+  if (ids.length) props.setProperty('anexadosBatismo', JSON.stringify(feitos.concat(ids)));
+}
+
+function atualizarOrdemOriginal(ss, ws, turma, props) {
+  var items = orderItems(ws, turma);
+  if (!items.length) return;
+  var sh = abaOriginal(ss, normal('Ordem Batismo ' + turma.number));
+  if (!sh) return;
+
+  // 1) Posições novas cadastradas pelo site entram no fim (colunas A a D).
+  var chaveFeitos = 'anexadosOrdem_' + turma.id;
+  var feitos = lerLista(props, chaveFeitos);
+  var ultima = sh.getLastRow();
+  var existentes = {};
+  if (ultima > 1) sh.getRange(2, 2, ultima - 1, 2).getValues().forEach(function (r) { existentes[clean(r[0]) + '|' + normal(r[1])] = true; });
+  var novas = [], ids = [];
+  items.forEach(function (r) {
+    if (!r.__manual || r.removed || !r.name) return;
+    var id = String(r.id);
+    if (feitos.indexOf(id) >= 0) return;
+    ids.push(id);
+    var chave = clean(r.number) + '|' + normal(r.name);
+    if (existentes[chave]) return;
+    existentes[chave] = true;
+    novas.push(['', isBlank(r.number) ? '' : (Number(r.number) || clean(r.number)), r.name, clean(r.note)]);
+  });
+  if (novas.length) { sh.getRange(ultima + 1, 1, novas.length, 4).setValues(novas); ultima += novas.length; }
+  if (ids.length) props.setProperty(chaveFeitos, JSON.stringify(feitos.concat(ids)));
+  if (ultima < 2) return;
+
+  // 2) Presença e batismo do dia nas duas colunas próprias do script.
+  var largura = Math.max(sh.getLastColumn(), 1);
+  var cab = sh.getRange(1, 1, 1, largura).getValues()[0].map(clean);
+  var cP = cab.indexOf(COL_PRESENTE) + 1, cB = cab.indexOf(COL_BATIZADO) + 1;
+  var precisa = (cP ? 0 : 1) + (cB ? 0 : 1);
+  if (precisa) {
+    if (largura + precisa > sh.getMaxColumns()) sh.insertColumnsAfter(sh.getMaxColumns(), largura + precisa - sh.getMaxColumns());
+    if (!cP) { cP = ++largura; sh.getRange(1, cP).setValue(COL_PRESENTE); }
+    if (!cB) { cB = ++largura; sh.getRange(1, cB).setValue(COL_BATIZADO); }
+  }
+  var porNumero = {};
+  items.forEach(function (r) { if (!isBlank(r.number)) (porNumero[clean(r.number)] = porNumero[clean(r.number)] || []).push(r); });
+  var linhas = sh.getRange(2, 2, ultima - 1, 2).getValues();
+  var colP = [], colB = [];
+  linhas.forEach(function (l) {
+    var cands = porNumero[clean(l[0])] || [];
+    var nome = normal(l[1]);
+    var r = cands.filter(function (c) { return !nome || normal(c.name) === nome; })[0];
+    var m = r ? (ws.marks[dayId(ws, r)] || {}) : {};
+    colP.push([m.presente ? 'SIM ' + horaDe(m.presenteEm) : '']);
+    colB.push([m.batizado ? 'SIM ' + horaDe(m.batizadoEm) : '']);
+  });
+  sh.getRange(2, cP, colP.length, 1).setValues(colP);
+  sh.getRange(2, cB, colB.length, 1).setValues(colB);
 }
 
 /* ===================== Escrita na planilha ===================== */
 
 function escreverTabelas(ss, tabelas) {
   var aviso = 'Espelho do sistema: não edite aqui. As alterações são feitas no sistema e esta aba é reescrita automaticamente.';
-  tabelas.forEach(function (tab, index) {
-    var sh = ss.getSheetByName(tab.nome) || ss.insertSheet(tab.nome, index);
+  tabelas.forEach(function (tab) {
+    if (tab.nome.indexOf(PREFIXO) !== 0) throw new Error('Proteção: o script só escreve em abas que começam com "' + PREFIXO + '".');
+  });
+  tabelas.forEach(function (tab) {
+    // Abas novas entram no fim, sem mudar a posição das abas existentes.
+    var sh = ss.getSheetByName(tab.nome) || ss.insertSheet(tab.nome, ss.getSheets().length);
     var filtro = sh.getFilter();
     if (filtro) filtro.remove();
     sh.clearContents();
@@ -401,30 +613,19 @@ function escreverTabelas(ss, tabelas) {
     sh.setFrozenRows(1);
     if (tab.colunaData && tab.linhas.length > 1) sh.getRange(2, tab.colunaData, tab.linhas.length - 1, 1).setNumberFormat('dd/mm/yyyy');
     if (tab.linhas.length > 1) sh.getRange(1, 1, tab.linhas.length, largura).createFilter();
-    var extra = sh.getMaxRows() - tab.linhas.length;
-    if (extra > 50) sh.deleteRows(tab.linhas.length + 26, extra - 25);
     var protecoes = sh.getProtections(SpreadsheetApp.ProtectionType.SHEET);
     if (!protecoes.length) sh.protect().setDescription(aviso).setWarningOnly(true);
   });
-  // Remove a aba vazia criada junto com a planilha nova.
-  ['Página1', 'Página 1', 'Sheet1', 'Planilha1'].forEach(function (n) {
-    var vazia = ss.getSheetByName(n);
-    if (vazia && vazia.getLastRow() === 0 && ss.getSheets().length > 1) ss.deleteSheet(vazia);
-  });
-  // Remove abas de ordem de turmas que deixaram de ter posições.
-  var nomes = tabelas.map(function (t) { return t.nome; });
-  ss.getSheets().forEach(function (sh) {
-    if (/^Ordem Batismo /.test(sh.getName()) && nomes.indexOf(sh.getName()) < 0) ss.deleteSheet(sh);
-  });
+  // Nenhuma aba é apagada por este script, nem as dele.
 }
 
 function escreverSobre(ss, data, ultimaMudanca, erro) {
-  var sh = ss.getSheetByName('Sobre') || ss.insertSheet('Sobre');
+  var sh = ss.getSheetByName(PREFIXO + 'Sobre') || ss.insertSheet(PREFIXO + 'Sobre', ss.getSheets().length);
   var tz = Session.getScriptTimeZone();
   var agora = Utilities.formatDate(new Date(), tz, 'dd/MM/yyyy HH:mm:ss');
   var linhas = [
     ['Planilha espelho · Gestão de Batismo', ''],
-    ['Somente consulta', 'Não edite as outras abas: elas são reescritas com os dados do sistema.'],
+    ['Somente consulta', 'As abas "' + PREFIXO + '…" são reescritas com os dados do sistema. As demais abas desta planilha não são alteradas.'],
     ['Última verificação', agora],
     ['Última mudança nos dados', ultimaMudanca ? Utilities.formatDate(new Date(ultimaMudanca), tz, 'dd/MM/yyyy HH:mm:ss') : '—'],
     ['Versão no Firebase', data ? data.versionId : '—'],
