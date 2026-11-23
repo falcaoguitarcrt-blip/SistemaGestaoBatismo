@@ -14,6 +14,11 @@
  * recebe um aviso do site logo depois de cada cadastro, edição ou marcação e
  * atualiza a planilha na hora. A atualização periódica continua como reserva.
  *
+ * Funciona de dois jeitos:
+ *  - vinculado à planilha (Extensões → Apps Script), com menu "Batismo";
+ *  - avulso (projeto em script.google.com), com a propriedade do script
+ *    "planilhaId" apontando para a planilha. As funções são rodadas no editor.
+ *
  * Instalação: veja planilha-espelho/LEIA-ME.md no repositório.
  */
 
@@ -40,7 +45,18 @@ function ativarAtualizacaoAutomatica() {
   desativarAtualizacaoAutomatica();
   ScriptApp.newTrigger('atualizarPlanilha').timeBased().everyMinutes(INTERVAL_MINUTES).create();
   atualizarPlanilha(true);
-  SpreadsheetApp.getActive().toast('A planilha será atualizada a cada ' + INTERVAL_MINUTES + ' minutos.', 'Batismo', 6);
+  avisar('A planilha será atualizada a cada ' + INTERVAL_MINUTES + ' minutos.');
+}
+
+/** Mostra um aviso na planilha (script vinculado) ou no registro (script avulso). */
+function avisar(msg) {
+  Logger.log(msg);
+  try { var ss = SpreadsheetApp.getActive(); if (ss) ss.toast(msg, 'Batismo', 6); } catch (ignored) {}
+}
+
+/** UI da planilha, ou null quando o script é avulso e roda pelo editor. */
+function uiOuNull() {
+  try { return SpreadsheetApp.getUi(); } catch (e) { return null; }
 }
 
 function desativarAtualizacaoAutomatica() {
@@ -52,19 +68,26 @@ function desativarAtualizacaoAutomatica() {
 /* ===================== Atualização instantânea ===================== */
 
 function ativarAtualizacaoInstantanea() {
-  var ui = SpreadsheetApp.getUi();
-  var resp = ui.prompt('Atualização instantânea',
-    'Antes, publique este script: Implantar → Nova implantação → tipo "App da Web" → ' +
-    'Executar como: Eu → Quem pode acessar: Qualquer pessoa → Implantar.\n\n' +
-    'Cole aqui o URL do app da Web (termina em /exec):', ui.ButtonSet.OK_CANCEL);
-  if (resp.getSelectedButton() !== ui.Button.OK) return;
-  var url = String(resp.getResponseText() || '').trim();
+  var ui = uiOuNull();
+  var props = PropertiesService.getScriptProperties();
+  var url;
+  if (ui) {
+    var resp = ui.prompt('Atualização instantânea',
+      'Antes, publique este script: Implantar → Nova implantação → tipo "App da Web" → ' +
+      'Executar como: Eu → Quem pode acessar: Qualquer pessoa → Implantar.\n\n' +
+      'Cole aqui o URL do app da Web (termina em /exec):', ui.ButtonSet.OK_CANCEL);
+    if (resp.getSelectedButton() !== ui.Button.OK) return;
+    url = String(resp.getResponseText() || '').trim();
+  } else {
+    // Script avulso: o URL fica na propriedade do script "urlWebApp".
+    url = String(props.getProperty('urlWebApp') || '').trim();
+  }
   if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) {
-    ui.alert('URL inválido', 'O endereço precisa começar com https://script.google.com/ e terminar em /exec. Copie o URL do "App da Web" na tela de implantação.', ui.ButtonSet.OK);
-    return;
+    var msg = 'O endereço do app da Web precisa começar com https://script.google.com/ e terminar em /exec.' + (ui ? '' : ' Grave-o na propriedade do script "urlWebApp".');
+    if (ui) { ui.alert('URL inválido', msg, ui.ButtonSet.OK); return; }
+    throw new Error(msg);
   }
   var token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
-  var props = PropertiesService.getScriptProperties();
   props.setProperty('tokenInstantaneo', token);
   props.setProperty('planilhaId', planilha().getId());
   // Grava URL e token no Firebase, onde só contas autorizadas leem. O site usa
@@ -76,14 +99,15 @@ function ativarAtualizacaoInstantanea() {
       ativadoEm: { timestampValue: new Date().toISOString() }
     } } }
   }, ['planilhaSync']);
-  ui.alert('Atualização instantânea ativada', 'A partir de agora, cada cadastro, edição ou marcação feita no site atualiza esta planilha em poucos segundos. Recarregue o site nos aparelhos que já estavam abertos.', ui.ButtonSet.OK);
+  var ok = 'Atualização instantânea ativada: cada cadastro, edição ou marcação feita no site atualiza a planilha em poucos segundos. Recarregue o site nos aparelhos que já estavam abertos.';
+  if (ui) ui.alert('Atualização instantânea ativada', ok, ui.ButtonSet.OK); else Logger.log(ok);
 }
 
 function desativarAtualizacaoInstantanea() {
   PropertiesService.getScriptProperties().deleteProperty('tokenInstantaneo');
   // Sem o campo no corpo, a máscara remove planilhaSync do documento.
   firestorePatch('appData/primary', {}, ['planilhaSync']);
-  SpreadsheetApp.getActive().toast('Atualização instantânea desativada. A atualização periódica continua.', 'Batismo', 6);
+  avisar('Atualização instantânea desativada. A atualização periódica continua.');
 }
 
 /** Aviso enviado pelo site (app da Web). Não devolve nenhum dado. */
@@ -103,16 +127,17 @@ function receberAviso(e) {
 }
 
 function planilha() {
-  var ss = SpreadsheetApp.getActive();
+  var ss = null;
+  try { ss = SpreadsheetApp.getActive(); } catch (ignored) {}
   if (ss) return ss;
   var id = PropertiesService.getScriptProperties().getProperty('planilhaId');
   if (id) return SpreadsheetApp.openById(id);
-  throw new Error('Planilha não encontrada. Abra a planilha e use o menu Batismo → Ativar atualização instantânea.');
+  throw new Error('Planilha não encontrada. Em script avulso, grave o ID da planilha na propriedade do script "planilhaId".');
 }
 
 function atualizarAgora() {
   atualizarPlanilha(true);
-  SpreadsheetApp.getActive().toast('Planilha atualizada com os dados do sistema.', 'Batismo', 5);
+  avisar('Planilha atualizada com os dados do sistema.');
 }
 
 /* ===================== Atualização ===================== */

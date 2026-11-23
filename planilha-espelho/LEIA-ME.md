@@ -42,6 +42,18 @@ Com isso, cada cadastro, edição ou marcação feita no site aparece na planilh
 
 **Ao mudar o `Codigo.gs` depois:** em **Implantar → Gerenciar implantações**, edite a implantação e escolha **Nova versão**. Assim o URL continua o mesmo e não é preciso ativar de novo.
 
+## Alternativa: script avulso (quando "Extensões → Apps Script" não abre)
+
+Com várias contas Google logadas no Chrome, o "Extensões → Apps Script" pode cair em "Página não encontrada". Nesse caso:
+
+1. Em **script.google.com** (logado na conta dona do Firebase), crie um **Novo projeto** e cole `Codigo.gs` e `appsscript.json`.
+2. No `appsscript.json`, troque `spreadsheets.currentonly` por `https://www.googleapis.com/auth/spreadsheets`. Um script avulso precisa abrir a planilha pelo ID.
+3. Em **Configurações do projeto → Propriedades do script**, crie `planilhaId` com o ID da planilha (o trecho entre `/d/` e `/edit` no endereço dela).
+4. No editor, escolha a função `ativarAtualizacaoAutomatica` e clique em **Executar**.
+5. Para a atualização instantânea: publique como App da Web (veja acima), grave o URL `/exec` na propriedade `urlWebApp` e execute `ativarAtualizacaoInstantanea`.
+
+Nesse modo não aparece o menu "Batismo" na planilha. As funções são rodadas pelo editor.
+
 ## Compartilhar com a equipe
 
 Botão **Compartilhar** → adicione as pessoas como **Leitor**. Quem tiver só leitura não consegue alterar nada. Quem for editor recebe um aviso se tentar mexer nas abas `Sistema · `.
