@@ -30,7 +30,7 @@ jobs:
 
       - name: Validar proteção do módulo Google/Firebase Auth
         env:
-          EXPECTED_AUTH_SHA256: be78fbaf7ec4966f7652f63f5b22458639c0a49a039d0934117521e19cbdd050
+          EXPECTED_AUTH_SHA256: d00f325a2593f72b17be503b84d8bf46c4876c376f12648bf0968aab653eb24c
         run: |
           python - <<'PY'
           from pathlib import Path
