@@ -25,9 +25,9 @@
 var PROJECT_ID = 'batismo-8c5f8';
 var INTERVAL_MINUTES = 5; // 1, 5, 10, 15 ou 30
 var PREFIXO = 'Sistema · ';
-// Também acrescenta os dados novos nas abas originais (Batismo e Ordem Batismo NN),
-// sem alterar nenhuma linha ou coluna que já existe nelas.
-var ESCREVER_NAS_ABAS_ORIGINAIS = true;
+// Se true, acrescenta dados novos do site nas abas originais (Batismo e Ordem
+// Batismo NN). DESLIGADO: as abas originais não recebem nenhuma escrita do script.
+var ESCREVER_NAS_ABAS_ORIGINAIS = false;
 var COL_PRESENTE = 'PRESENTE (SISTEMA)';
 var COL_BATIZADO = 'BATIZADO (SISTEMA)';
 var FIRESTORE = 'https://firestore.googleapis.com/v1/projects/' + PROJECT_ID + '/databases/(default)/documents';
@@ -43,6 +43,9 @@ function onOpen() {
     .addSeparator()
     .addItem('Ativar atualização instantânea', 'ativarAtualizacaoInstantanea')
     .addItem('Desativar atualização instantânea', 'desativarAtualizacaoInstantanea')
+    .addSeparator()
+    .addItem('Usar a planilha como fonte do site', 'ativarPlanilhaComoFonte')
+    .addItem('Voltar a cadastrar pelo site', 'desativarPlanilhaComoFonte')
     .addToUi();
 }
 
@@ -97,13 +100,14 @@ function ativarAtualizacaoInstantanea() {
   props.setProperty('planilhaId', planilha().getId());
   // Grava URL e token no Firebase, onde só contas autorizadas leem. O site usa
   // esses dados para avisar a planilha depois de cada alteração.
-  firestorePatch('appData/primary', {
-    planilhaSync: { mapValue: { fields: {
-      url: { stringValue: url },
-      token: { stringValue: token },
-      ativadoEm: { timestampValue: new Date().toISOString() }
-    } } }
-  }, ['planilhaSync']);
+  var camposSync = {
+    url: { stringValue: url },
+    token: { stringValue: token },
+    ativadoEm: { timestampValue: new Date().toISOString() }
+  };
+  if (props.getProperty('fonte') === 'planilha') camposSync.fonte = { stringValue: 'planilha' };
+  props.setProperty('urlWebApp', url);
+  firestorePatch('appData/primary', { planilhaSync: { mapValue: { fields: camposSync } } }, ['planilhaSync']);
   var ok = 'Atualização instantânea ativada: cada cadastro, edição ou marcação feita no site atualiza a planilha em poucos segundos. Recarregue o site nos aparelhos que já estavam abertos.';
   if (ui) ui.alert('Atualização instantânea ativada', ok, ui.ButtonSet.OK); else Logger.log(ok);
 }
@@ -115,14 +119,68 @@ function desativarAtualizacaoInstantanea() {
   avisar('Atualização instantânea desativada. A atualização periódica continua.');
 }
 
-/** Aviso enviado pelo site (app da Web). Não devolve nenhum dado. */
+/* ===================== Planilha como fonte do site ===================== */
+
+/**
+ * Faz o site ler os cadastros e a ordem direto da planilha (abas Batismo e
+ * Ordem Batismo NN). O site deixa de cadastrar e editar pessoas; turmas, datas
+ * e marcações do dia continuam no sistema. Requer a atualização instantânea ativa.
+ */
+function ativarPlanilhaComoFonte() {
+  var props = PropertiesService.getScriptProperties();
+  if (!props.getProperty('tokenInstantaneo')) throw new Error('Ative antes a atualização instantânea (ativarAtualizacaoInstantanea).');
+  props.setProperty('fonte', 'planilha');
+  firestorePatch('appData/primary', { planilhaSync: { mapValue: { fields: { fonte: { stringValue: 'planilha' } } } } }, ['planilhaSync.fonte']);
+  avisar('O site agora lê os cadastros desta planilha. Recarregue o site nos aparelhos abertos.');
+}
+
+function desativarPlanilhaComoFonte() {
+  PropertiesService.getScriptProperties().deleteProperty('fonte');
+  firestorePatch('appData/primary', {}, ['planilhaSync.fonte']);
+  avisar('O site voltou a usar os cadastros do sistema.');
+}
+
+/** Valores crus das duas primeiras abas originais, no formato que o site importa. */
+function dadosDaPlanilha() {
+  var ss = planilha();
+  var tz = ss.getSpreadsheetTimeZone();
+  var abas = ss.getSheets().filter(function (sh) { return sh.getName().indexOf(PREFIXO) !== 0; }).slice(0, 2).map(function (sh) {
+    var lr = sh.getLastRow(), lc = sh.getLastColumn();
+    var linhas = lr && lc ? sh.getRange(1, 1, lr, lc).getValues().map(function (r) {
+      return r.map(function (v) {
+        if (v instanceof Date) {
+          var p = Utilities.formatDate(v, tz, 'yyyy-MM-dd').split('-');
+          return Math.round((Date.UTC(+p[0], +p[1] - 1, +p[2]) - Date.UTC(1899, 11, 30)) / 86400000);
+        }
+        return v === '' ? null : v;
+      });
+    }) : [];
+    return { nome: sh.getName(), linhas: linhas };
+  });
+  return { geradoEm: new Date().toISOString(), abas: abas };
+}
+
+function respostaJson(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * App da Web. Sem o token certo, responde "negado" e não devolve nada.
+ *  - padrão: aviso do site para atualizar a planilha;
+ *  - acao=dados (só com a planilha como fonte): devolve os dados das abas originais.
+ */
 function doGet(e) { return receberAviso(e); }
 function doPost(e) { return receberAviso(e); }
 
 function receberAviso(e) {
-  var esperado = PropertiesService.getScriptProperties().getProperty('tokenInstantaneo');
+  var props = PropertiesService.getScriptProperties();
+  var esperado = props.getProperty('tokenInstantaneo');
   var recebido = e && e.parameter ? String(e.parameter.token || '') : '';
   if (!esperado || recebido !== esperado) return ContentService.createTextOutput('negado');
+  if (e.parameter.acao === 'dados') {
+    if (props.getProperty('fonte') !== 'planilha') return respostaJson({ erro: 'a planilha não está configurada como fonte do site' });
+    try { return respostaJson(dadosDaPlanilha()); } catch (err) { return respostaJson({ erro: String(err && err.message || err) }); }
+  }
   try {
     atualizarPlanilha(false);
     return ContentService.createTextOutput('ok');
@@ -162,7 +220,7 @@ function atualizarPlanilha(forcar) {
       props.setProperty('assinatura', assinatura);
       props.setProperty('ultimaMudanca', new Date().toISOString());
     }
-    if (ESCREVER_NAS_ABAS_ORIGINAIS) anexarNasAbasOriginais(ss, data);
+    if (ESCREVER_NAS_ABAS_ORIGINAIS && props.getProperty('fonte') !== 'planilha') anexarNasAbasOriginais(ss, data);
     escreverSobre(ss, data, props.getProperty('ultimaMudanca'), null);
   } catch (e) {
     try { escreverSobre(planilha(), null, null, e); } catch (ignored) {}

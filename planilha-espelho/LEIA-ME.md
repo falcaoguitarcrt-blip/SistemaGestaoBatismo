@@ -8,12 +8,17 @@ O script escreve, numa planilha do Google, abas que se atualizam sozinhas com os
 
 **Pode ser instalado na própria planilha Batismo.** O script só cria e reescreve abas que começam com `Sistema · `. As outras abas (Batismo, Ordem Batismo NN, GERAL etc.) nunca são alteradas, movidas ou apagadas.
 
-**Dados novos também entram nas abas originais, só acrescentando:**
-- cada cadastro novo feito no site vai para o **fim da aba Batismo**. As linhas existentes não são tocadas, e quem já estiver na aba com o mesmo nome e turma não é repetido;
-- posições novas da ordem vão para o **fim da aba Ordem Batismo NN** da turma (colunas A a D);
-- presença e batismo do dia vão para duas colunas próprias, **PRESENTE (SISTEMA)** e **BATIZADO (SISTEMA)**, criadas à direita da última coluna usada. Só essas duas colunas são reescritas pelo script.
+**As abas originais não recebem nenhuma escrita do script.** Ele só lê essas abas (quando a planilha é a fonte do site) e só escreve nas abas `Sistema · `. Existe um modo opcional que acrescenta cadastros novos no fim das abas originais (`ESCREVER_NAS_ABAS_ORIGINAIS`), mas ele vem desligado.
 
-Edições de pessoas que já estão na aba (feitas pelo site) aparecem nas abas `Sistema · `, mas não alteram as linhas existentes das abas originais. Para desligar essa escrita, troque `ESCREVER_NAS_ABAS_ORIGINAIS = true` por `false`.
+## Planilha como fonte do site
+
+Para cadastrar só na planilha e usar o site para consultar:
+
+1. Ative a atualização instantânea (seção abaixo).
+2. Execute a função `ativarPlanilhaComoFonte` (ou use o menu **Batismo → Usar a planilha como fonte do site**).
+3. Depois de mudar o `Codigo.gs`, publique uma **Nova versão** em **Implantar → Gerenciar implantações**.
+
+O site passa a ler as abas **Batismo** e **Ordem Batismo NN** (as duas primeiras abas da planilha) ao abrir e a cada 2 minutos. Cadastro e edição de pessoas e da ordem ficam desligados no site. Turmas, datas e marcações de presença e batismo do dia continuam no site. Para voltar atrás, execute `desativarPlanilhaComoFonte`.
 
 As abas `Sistema · ` são **somente para consulta**: o que for digitado nelas é apagado na próxima atualização. Cadastros e mudanças são feitos no sistema.
 
