@@ -17,7 +17,10 @@ const requiredContracts = [
   ['backup com ordens multi-turma', 'ordensTurma: workspace.ordensTurma || []'],
   ['backup com marcações de presença e batismo', 'marcacoesBatismo: workspace.marcacoesBatismo || {}'],
   ['persistência de cadastros manuais no Firebase', "'participantes'"],
-  ['persistência de ordens multi-turma no Firebase', "'ordensTurma'"]
+  ['persistência de ordens multi-turma no Firebase', "'ordensTurma'"],
+  ['filtro de turma no Painel', 'id="home-turma"'],
+  ['aviso à planilha espelho após salvar', 'avisarPlanilha();'],
+  ['aviso à planilha espelho após marcação do dia', '.then(avisarPlanilha)']
 ];
 
 const missing = requiredContracts.filter(([label, snippet]) => !html.includes(snippet));

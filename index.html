@@ -31,6 +31,7 @@ section{display:none}section.on{display:block}
 .card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .hero{background:linear-gradient(135deg,#ff5a1f,#ff8155);color:#fff;border:0}
 .hero small{opacity:.8}.hero h2{font-size:26px;margin:4px 0}
+.home-turma-picker{position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;font-size:13px}.home-turma-picker select{min-height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);color:#fff;padding:6px 10px;font:inherit}.home-turma-picker select option{color:#111}.home-turma-picker .btn{min-height:36px;padding:6px 12px}
 .bar{height:8px;background:var(--ln);border-radius:9px;overflow:hidden}.bar b{display:block;height:100%;background:var(--ok);border-radius:9px}
 .hero .bar{background:rgba(255,255,255,.25)}.hero .bar b{background:var(--gold)}
 .btn{display:inline-block;border:0;border-radius:12px;padding:11px 16px;font:inherit;font-weight:600;background:var(--gold);color:#2b2108;min-height:44px;cursor:pointer;transition:filter .15s ease,transform .15s ease}
@@ -520,6 +521,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
   var manualOrderEditingId = '';
   var dayState = { query: '' , page: 1, turmaId: '' };
   var pendingState = { query: '', page: 1, turma: '' };
+  var homeState = { turma: '' };
   var returnState = { query: '', page: 1, turma: '' };
   var historyState = { query: '', source: 'geral', page: 1 };
   var manualPersonEditingId = '';
@@ -1103,7 +1105,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
   function buildHome() {
     if (!appData) return;
     var home = document.getElementById('home');
-    var turmaAtual = String(appData.turmaPadrao || importedTurma());
+    if (homeState.turma && !turmaRecordFor(homeState.turma)) homeState.turma = '';
+    var turmaAtual = String(homeState.turma || appData.turmaPadrao || importedTurma());
     var turmaRecord = turmaRecordFor(turmaAtual);
     var turmaNumber = String(turmaRecord ? (turmaRecord.number || turmaRecord.id) : turmaAtual);
     var turmaLabel = turmaRecord ? (turmaRecord.name || ('Turma ' + turmaNumber)) : ('Turma ' + turmaNumber);
@@ -1146,7 +1149,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
     }
     var recent = (appData.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); }).slice(0, 5);
     home.innerHTML =
-      '<div class="card hero"><small>Turma em foco · ' + esc(turmaLabel) + '</small><h2>' + (dateIso ? 'Batismo ' + esc(formatDateBR(dateIso)) : esc(turmaLabel)) + '</h2>' +
+      '<div class="card hero"><div class="home-turma-picker"><label for="home-turma">Ver painel da</label><select id="home-turma" aria-label="Escolher a turma do painel">' + homeTurmaOptions(turmaId) + '</select>' + (homeState.turma && String(homeState.turma) !== String(appData.turmaPadrao) ? '<button type="button" class="btn o" data-home-turma-reset>Voltar à turma em foco</button>' : '') + '</div><small>' + (homeState.turma && String(homeState.turma) !== String(appData.turmaPadrao) ? 'Consultando' : 'Turma em foco') + ' · ' + esc(turmaLabel) + '</small><h2>' + (dateIso ? 'Batismo ' + esc(formatDateBR(dateIso)) : esc(turmaLabel)) + '</h2>' +
       '<p>' + esc(when) + ' · <b>' + ready + '</b> de <b>' + named.length + '</b> prontos (jornada concluída e sem pendências)</p>' +
       '<div class="bar" style="margin:12px 0;max-width:560px"><b style="width:' + pct + '%"></b></div>' +
       '<div class="bb"><button type="button" class="btn" data-go="ord">Abrir ordem e presenças →</button><button type="button" class="btn o" data-home-filter="all">Ver batizantes</button><button type="button" class="btn o" data-download-updated>⬇ Baixar planilha atualizada</button></div></div>' +
@@ -1169,9 +1172,16 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
         '<div class="card"><h2 class="t">Turmas recentes</h2>' + recent.map(function (t) {
           var tp = allPeople().filter(function (p) { return String(clean(p.turma)) === String(t.number); });
           var d = turmaDateISO(t, tp);
-          return '<div class="alert-row"><span class="n">' + esc(t.number) + '</span><div class="alert-text">' + esc(t.name || ('Turma ' + t.number)) + '<small>' + (d ? esc(formatDateBR(d)) + ' · ' : '') + tp.length + ' inscritos</small></div>' + (String(t.id) === turmaId ? chip('Em foco', 't-ok') : '<button type="button" class="btn o" data-default-turma="' + esc(t.id) + '">Focar</button>') + '</div>';
+          return '<div class="alert-row"><span class="n">' + esc(t.number) + '</span><div class="alert-text">' + esc(t.name || ('Turma ' + t.number)) + '<small>' + (d ? esc(formatDateBR(d)) + ' · ' : '') + tp.length + ' inscritos</small></div>' + (String(t.id) === turmaId ? chip('No painel', 't-ok') : '<button type="button" class="btn o" data-home-turma="' + esc(t.id) + '">Ver</button>') + '</div>';
         }).join('') + '</div>' +
       '</div>';
+    var homeSelect = document.getElementById('home-turma');
+    if (homeSelect) homeSelect.addEventListener('change', function () { homeState.turma = this.value; buildHome(); });
+  }
+  // Escolha só desta tela: não altera a turma em foco da equipe (isso continua em Turmas).
+  function homeTurmaOptions(selectedId) {
+    return (appData.turmas || []).slice().sort(function (a, b) { return String(b.number).localeCompare(String(a.number), 'pt-BR', { numeric: true }); })
+      .map(function (t) { var id = String(t.id); return '<option value="' + esc(id) + '"' + (id === String(selectedId) ? ' selected' : '') + '>' + esc(t.name || ('Turma ' + t.number)) + (String(appData.turmaPadrao) === id ? ' · em foco' : '') + '</option>'; }).join('');
   }
 
   function buildPeople() {
@@ -2307,6 +2317,9 @@ function prepJourney(person) {
       await persistTurmaRegistry(draftTurmas, 'Turma ' + number + ' criada.');
       return;
     }
+    var homeTurmaButton = event.target.closest('[data-home-turma]');
+    if (homeTurmaButton && appData) { homeState.turma = String(homeTurmaButton.dataset.homeTurma); buildHome(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    if (event.target.closest('[data-home-turma-reset]') && appData) { homeState.turma = ''; buildHome(); return; }
     var defaultTurmaButton = event.target.closest('[data-default-turma]');
     if (defaultTurmaButton && appData) {
       var draftDefault = cloneWorkspaceForEdit();
@@ -2591,6 +2604,7 @@ function withWorkspaceTimeout(promise, milliseconds) {
 function startWorkspaceVersionListener(user) {
   if (workspaceVersionUnsubscribe) workspaceVersionUnsubscribe();
   workspaceVersionUnsubscribe = onSnapshot(rootRef(), function (snap) {
+    lerConfigPlanilha(snap);
     const currentVersion = snap.exists() ? (snap.data().currentVersion || null) : null;
     if (savingWorkspaceVersionId && currentVersion === savingWorkspaceVersionId) {
       baseWorkspaceVersionId = currentVersion;
@@ -2776,6 +2790,7 @@ async function saveCloudWorkspace(payload, createVersion) {
 }
 async function loadCloudWorkspace() {
   const rootSnap = await getDoc(rootRef());
+  lerConfigPlanilha(rootSnap);
   const versionId = versionPointerValue(rootSnap);
   baseWorkspaceVersionId = versionId;
   workspaceVersionConflict = false;
@@ -2818,7 +2833,30 @@ async function loadCloudWorkspace() {
   if (!Array.isArray(workspace.ordensTurma)) workspace.ordensTurma = [];
   return workspace;
 }
-window.firebaseSaveWorkspace = saveCloudWorkspace;
+// Atualização instantânea da planilha espelho (planilha-espelho/Codigo.gs).
+// A URL e o token são gravados pelo próprio script em appData/primary.planilhaSync;
+// nada disso fica no repositório público.
+let planilhaSync = null, planilhaTimer = null;
+function lerConfigPlanilha(snap) {
+  const cfg = snap && snap.exists() ? snap.data().planilhaSync : null;
+  planilhaSync = cfg && typeof cfg.url === 'string' && /^https:\/\/script\.google\.com\//.test(cfg.url) ? cfg : null;
+}
+function avisarPlanilha() {
+  if (!planilhaSync) return;
+  clearTimeout(planilhaTimer);
+  // Espera alguns segundos para juntar várias alterações seguidas num único aviso.
+  planilhaTimer = setTimeout(function () {
+    const url = planilhaSync.url + (planilhaSync.url.indexOf('?') >= 0 ? '&' : '?') + 'token=' + encodeURIComponent(planilhaSync.token || '') + '&t=' + Date.now();
+    fetch(url, { mode: 'no-cors', cache: 'no-store', keepalive: true }).catch(function (error) {
+      console.warn('[planilha] aviso de atualização não enviado; a atualização automática periódica cobre esta alteração.', error);
+    });
+  }, 4000);
+}
+window.firebaseSaveWorkspace = async function (payload, createVersion) {
+  const result = await saveCloudWorkspace(payload, createVersion);
+  avisarPlanilha();
+  return result;
+};
 window.firebaseRefreshWorkspace = async function () {
   const workspace = await loadCloudWorkspace();
   if (!workspace) {
@@ -2838,7 +2876,7 @@ window.firebaseToggleDayMark=async function(id,fields,row){
  if(!auth.currentUser)throw new Error('Faça login para marcar.');
  const ref=doc(firestore,'marcacoesBatismo',id),uid=auth.currentUser.uid,nome=auth.currentUser.displayName||auth.currentUser.email||'Equipe';
  const turmaId=String(row&&row.__turmaId||((id.indexOf('tur_')===0)?id.split('_')[1]:'36'));const data=Object.assign({turmaId:turmaId,posicaoOuPessoaId:String(row&&(row.id||row.number||row.sourceRow)||id.split('_').slice(1).join('_')),porUid:uid,porNome:nome},fields);
- dayPending.add(id);emitDayStatus(!!dayUnsub);setDoc(ref,data,{merge:true}).catch(function(error){dayPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message}}));});return true;
+ dayPending.add(id);emitDayStatus(!!dayUnsub);setDoc(ref,data,{merge:true}).then(avisarPlanilha).catch(function(error){dayPending.delete(id);emitDayStatus(!!dayUnsub);console.error('Falha ao salvar check-in',error);window.dispatchEvent(new CustomEvent('day-checkin-error',{detail:{message:error.message}}));});return true;
 };
 window.addEventListener('day-legacy-marks',async function(event){
  try {
