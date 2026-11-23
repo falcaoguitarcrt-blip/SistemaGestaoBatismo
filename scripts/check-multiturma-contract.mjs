@@ -20,7 +20,10 @@ const requiredContracts = [
   ['persistência de ordens multi-turma no Firebase', "'ordensTurma'"],
   ['filtro de turma no Painel', 'id="home-turma"'],
   ['aviso à planilha espelho após salvar', 'avisarPlanilha();'],
-  ['aviso à planilha espelho após marcação do dia', '.then(avisarPlanilha)']
+  ['aviso à planilha espelho após marcação do dia', '.then(avisarPlanilha)'],
+  ['planilha como fonte: leitura da planilha', 'async function carregarDaPlanilha()'],
+  ['planilha como fonte: cadastro bloqueado', 'if(bloqueadoPelaPlanilha())return;'],
+  ['planilha como fonte: edição bloqueada', 'if (bloqueadoPelaPlanilha()) return;']
 ];
 
 const missing = requiredContracts.filter(([label, snippet]) => !html.includes(snippet));

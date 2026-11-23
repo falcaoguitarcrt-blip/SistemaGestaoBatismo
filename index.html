@@ -31,6 +31,7 @@ section{display:none}section.on{display:block}
 .card{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .hero{background:linear-gradient(135deg,#ff5a1f,#ff8155);color:#fff;border:0}
 .hero small{opacity:.8}.hero h2{font-size:26px;margin:4px 0}
+.planilha-fonte-aviso{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;padding:10px 14px;border-radius:12px;border:1px solid var(--ln);background:var(--card);font-size:13px}.planilha-fonte-aviso.erro{border-color:#c0392b}.planilha-fonte-aviso .btn{min-height:34px;padding:6px 12px}
 .home-turma-picker{position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;font-size:13px}.home-turma-picker select{min-height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.35);background:rgba(0,0,0,.25);color:#fff;padding:6px 10px;font:inherit}.home-turma-picker select option{color:#111}.home-turma-picker .btn{min-height:36px;padding:6px 12px}
 .bar{height:8px;background:var(--ln);border-radius:9px;overflow:hidden}.bar b{display:block;height:100%;background:var(--ok);border-radius:9px}
 .hero .bar{background:rgba(255,255,255,.25)}.hero .bar b{background:var(--gold)}
@@ -749,6 +750,78 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
     buildAll();
     restoreTypedFields(typedFields);
     setImportMessage('Dados atualizados.', 'success');
+    carregarDaPlanilha();
+  });
+
+  /* ===== Planilha Batismo (Google Planilhas) como fonte dos cadastros =====
+   * Ligado quando appData/primary.planilhaSync.fonte === 'planilha' (definido pelo
+   * script da planilha). Os cadastros e a ordem passam a ser lidos da planilha
+   * a cada abertura e a cada 2 minutos; o site fica só para consulta desses dados.
+   * Turmas, datas, turma em foco e marcações do dia continuam no Firebase. */
+  var fontePlanilha = { carregando: false, ultima: null, erro: null };
+  function planilhaConfig() {
+    var c = window.planilhaSyncConfig;
+    return c && c.fonte === 'planilha' && c.url && c.token ? c : null;
+  }
+  function bloqueadoPelaPlanilha() {
+    if (!planilhaConfig()) return false;
+    dayToastGlobal('Os cadastros vêm da planilha Batismo. Faça essa alteração direto na planilha.');
+    return true;
+  }
+  function mostrarAvisoPlanilha() {
+    var box = document.getElementById('planilha-fonte-aviso');
+    if (!planilhaConfig()) { if (box) box.remove(); return; }
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'planilha-fonte-aviso';
+      box.className = 'planilha-fonte-aviso';
+      var main = document.querySelector('main');
+      if (main) main.insertBefore(box, main.firstChild);
+    }
+    var hora = fontePlanilha.ultima ? fontePlanilha.ultima.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—';
+    box.innerHTML = fontePlanilha.erro
+      ? '<span>⚠ Não consegui ler a planilha Batismo: ' + esc(fontePlanilha.erro) + '. Mostrando a última versão salva.</span><button type="button" class="btn o" data-planilha-recarregar>Tentar de novo</button>'
+      : '<span>📄 Dados da <b>planilha Batismo</b> · lidos às ' + esc(hora) + '. Para cadastrar ou corrigir, edite a planilha.</span><button type="button" class="btn o" data-planilha-recarregar>Atualizar agora</button>';
+    box.classList.toggle('erro', !!fontePlanilha.erro);
+    var btn = box.querySelector('[data-planilha-recarregar]');
+    if (btn) btn.addEventListener('click', function () { carregarDaPlanilha(); });
+  }
+  async function carregarDaPlanilha() {
+    var cfg = planilhaConfig();
+    if (!cfg || !appData || fontePlanilha.carregando || !window.XLSX) { mostrarAvisoPlanilha(); return; }
+    fontePlanilha.carregando = true;
+    try {
+      var url = cfg.url + (cfg.url.indexOf('?') >= 0 ? '&' : '?') + 'acao=dados&token=' + encodeURIComponent(cfg.token) + '&t=' + Date.now();
+      var resp = await fetch(url, { cache: 'no-store' });
+      var dados = await resp.json();
+      if (!dados || !Array.isArray(dados.abas) || dados.abas.length < 2) throw new Error(dados && dados.erro ? dados.erro : 'a planilha não respondeu com as abas Batismo e Ordem');
+      var wb = XLSX.utils.book_new();
+      dados.abas.forEach(function (aba) { XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aba.linhas || []), aba.nome); });
+      var buffer = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
+      var lido = normalizeWorkbook({ name: 'Planilha Batismo (Google Planilhas)', size: 0, type: '' }, buffer);
+      appData = Object.assign({}, appData, {
+        people: lido.people, order: lido.order, order35: lido.order35, rawSheets: lido.rawSheets, sheetStats: lido.sheetStats,
+        sourceSheetNames: lido.sourceSheetNames, skippedDuplicateHeaders: lido.skippedDuplicateHeaders,
+        sourceFileName: lido.sourceFileName, importedAt: dados.geradoEm || new Date().toISOString(), sourceWorkbook: null
+      });
+      fontePlanilha.ultima = new Date();
+      fontePlanilha.erro = null;
+      var typed = captureTypedFields();
+      buildAll();
+      restoreTypedFields(typed);
+      setImportMessage('Dados lidos da planilha Batismo.', 'success');
+    } catch (error) {
+      fontePlanilha.erro = (error && error.message) || String(error);
+      console.error('[planilha] falha ao ler a planilha Batismo', error);
+    } finally {
+      fontePlanilha.carregando = false;
+      mostrarAvisoPlanilha();
+    }
+  }
+  window.addEventListener('planilha-config', function () { carregarDaPlanilha(); });
+  setInterval(function () { if (document.visibilityState === 'visible') carregarDaPlanilha(); }, 120000);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible' && fontePlanilha.ultima && Date.now() - fontePlanilha.ultima.getTime() > 30000) carregarDaPlanilha();
   });
   function goTo(sectionId) {
     var button = document.querySelector('#nav [data-s="' + sectionId + '"]');
@@ -1008,6 +1081,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
   }
   async function updateShirtField(sourceRow, field, value, selectNode) {
     if (!appData) return;
+    if (bloqueadoPelaPlanilha()) { if (selectNode) buildAll(); return; }
     var target = findPerson(sourceRow);
     if (!target) { setImportMessage('Não foi possível localizar este participante.', 'error'); return; }
     var key = field === 'choice' ? 'shirtChoice' : (field === 'size' ? 'shirtSize' : 'shirtPaymentStatus');
@@ -1223,7 +1297,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;justify-conten
     document.getElementById('manual-person-box').open=false;
   }
   async function saveManualPerson(event){
-    event.preventDefault();if(!appData)return;
+    event.preventDefault();if(!appData)return;if(bloqueadoPelaPlanilha())return;
     function v(id){return document.getElementById(id).value.trim();}
     var nome=v('manual-person-name'),telefone=v('manual-person-phone'),idade=v('manual-person-age'),turma=v('manual-person-turma');
     var status=document.getElementById('manual-person-status');status.hidden=false;
@@ -1556,6 +1630,7 @@ function prepJourney(person) {
   }
   async function saveEditedRecord() {
     if (!recordEditorState || !appData) return;
+    if (bloqueadoPelaPlanilha()) return;
     var state = recordEditorState;
     var count = state.kind === 'person' ? 14 : 4;
     var fields = [];
@@ -1682,6 +1757,7 @@ function prepJourney(person) {
     var box = document.getElementById('manual-order-box'); if (box) box.scrollIntoView({ behavior: 'auto', block: 'start' });
   }
   async function removeManualOrder(id) {
+    if (bloqueadoPelaPlanilha()) return;
     var item = (appData.ordensTurma || []).find(function (r) { return r.id === id; });
     if (!item) return;
     if (!window.confirm('Remover a posição ' + (item.number || '') + (item.name ? ' (' + item.name + ')' : '') + ' da ordem?')) return;
@@ -1691,7 +1767,7 @@ function prepJourney(person) {
     catch (error) { dayToastGlobal('Não foi possível remover: ' + (error.message || 'erro')); }
   }
   async function saveManualOrder(event){
-    event.preventDefault();var t=selectedOrderTurma(),number=document.getElementById('manual-order-number').value.trim(),participantId=document.getElementById('manual-order-person').value,typedName=document.getElementById('manual-order-name').value.trim(),note=document.getElementById('manual-order-note').value.trim(),status=document.getElementById('manual-order-status');
+    event.preventDefault();if(bloqueadoPelaPlanilha())return;var t=selectedOrderTurma(),number=document.getElementById('manual-order-number').value.trim(),participantId=document.getElementById('manual-order-person').value,typedName=document.getElementById('manual-order-name').value.trim(),note=document.getElementById('manual-order-note').value.trim(),status=document.getElementById('manual-order-status');
     status.hidden=false;
     if(!number){status.className='import-status error';status.textContent='Informe o número da posição.';return;}
     var clash=currentOrderItems().find(function(r){return Number(r.number)===Number(number)&&!(r.__manual&&r.id===manualOrderEditingId);});
@@ -2177,6 +2253,7 @@ function prepJourney(person) {
 
   document.getElementById('confirm-import').addEventListener('click', async function () {
     if (!pendingImport) return;
+    if (bloqueadoPelaPlanilha()) return;
     if (!window.confirm('Confirmar importação para o Firebase?')) return;
     var button = document.getElementById('confirm-import');
     button.disabled = true;
@@ -2467,6 +2544,7 @@ function prepJourney(person) {
         selectedPersonRow = null;
         buildAll();
         goTo('home');
+        carregarDaPlanilha();
       } else {
         appData = { id: 'current', importedAt: new Date().toISOString(), sourceFileName: 'Sistema', sourceFileSize: 0, sourceWorkbook: null, rawSheets: {}, sheetStats: [], sourceSheetNames: [], people: [], order: [], order35: [], general: [], checkin: {}, turmas: [], ordensTurma: [], turmaPadrao: '', participantes: [] };
         renderEmptyWorkspace();
@@ -2840,6 +2918,9 @@ let planilhaSync = null, planilhaTimer = null;
 function lerConfigPlanilha(snap) {
   const cfg = snap && snap.exists() ? snap.data().planilhaSync : null;
   planilhaSync = cfg && typeof cfg.url === 'string' && /^https:\/\/script\.google\.com\//.test(cfg.url) ? cfg : null;
+  const antes = JSON.stringify(window.planilhaSyncConfig || null);
+  window.planilhaSyncConfig = planilhaSync;
+  if (antes !== JSON.stringify(planilhaSync)) window.dispatchEvent(new CustomEvent('planilha-config'));
 }
 function avisarPlanilha() {
   if (!planilhaSync) return;
