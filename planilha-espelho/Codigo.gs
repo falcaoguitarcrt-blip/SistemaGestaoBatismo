@@ -5,7 +5,7 @@
  * abas próprias com o prefixo "Sistema · ": "Sistema · Batismo", uma
  * "Sistema · Ordem NN" por turma e "Sistema · Sobre".
  *
- * As outras abas da planilha NUNCA são alteradas, renomeadas ou apagadas, então
+ * Nenhuma aba é apagada e nenhum dado existente das abas originais é alterado ou retirado, então
  * o script pode ser instalado na planilha original sem mexer nos dados dela.
  * As abas "Sistema · " são SOMENTE PARA CONSULTA: o que for digitado nelas é
  * apagado na próxima atualização. Cadastros e alterações são feitos no sistema.
@@ -555,18 +555,10 @@ function escreverTabelas(ss, tabelas) {
     sh.setFrozenRows(1);
     if (tab.colunaData && tab.linhas.length > 1) sh.getRange(2, tab.colunaData, tab.linhas.length - 1, 1).setNumberFormat('dd/mm/yyyy');
     if (tab.linhas.length > 1) sh.getRange(1, 1, tab.linhas.length, largura).createFilter();
-    var extra = sh.getMaxRows() - tab.linhas.length;
-    if (extra > 50) sh.deleteRows(tab.linhas.length + 26, extra - 25);
     var protecoes = sh.getProtections(SpreadsheetApp.ProtectionType.SHEET);
     if (!protecoes.length) sh.protect().setDescription(aviso).setWarningOnly(true);
   });
-  // Remove só abas de ordem criadas por este script ("Sistema · Ordem NN")
-  // cuja turma deixou de ter posições. Nenhuma outra aba é apagada.
-  var nomes = tabelas.map(function (t) { return t.nome; });
-  ss.getSheets().forEach(function (sh) {
-    var nome = sh.getName();
-    if (nome.indexOf(PREFIXO + 'Ordem ') === 0 && nomes.indexOf(nome) < 0) ss.deleteSheet(sh);
-  });
+  // Nenhuma aba é apagada por este script, nem as dele.
 }
 
 function escreverSobre(ss, data, ultimaMudanca, erro) {
