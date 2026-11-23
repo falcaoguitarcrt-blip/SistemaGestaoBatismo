@@ -24,6 +24,22 @@ Uma planilha do Google que se atualiza sozinha a cada 5 minutos com os dados do 
    - O Google pede autorização. Escolha a sua conta e clique em **Avançado → Acessar (não seguro)** → **Permitir**. O aviso aparece porque o script é seu e não passou pela verificação do Google; ele só lê o Firestore e escreve nesta planilha.
 7. Pronto. As abas aparecem em alguns segundos. Para atualizar na hora, use **Batismo → Atualizar agora**.
 
+## Atualização instantânea (recomendado, mais 3 minutos)
+
+Com isso, cada cadastro, edição ou marcação feita no site aparece na planilha em poucos segundos, sem esperar os 5 minutos. A atualização periódica continua ligada como reserva.
+
+1. No Apps Script, clique em **Implantar → Nova implantação**.
+2. Na engrenagem ao lado de "Selecione o tipo", escolha **App da Web** e preencha:
+   - **Executar como:** Eu;
+   - **Quem pode acessar:** Qualquer pessoa.
+3. Clique em **Implantar**, autorize se o Google pedir e **copie o URL do App da Web** (termina em `/exec`).
+4. Volte para a planilha e clique em **Batismo → Ativar atualização instantânea**. Cole o URL e confirme.
+5. Recarregue o site nos celulares e computadores que já estavam abertos.
+
+**Segurança:** o URL só atualiza a planilha e não devolve nenhum dado. Ele exige um código secreto gerado na ativação, guardado no Firebase (que só as contas autorizadas leem), e nunca entra neste repositório público. Para cancelar, use **Batismo → Desativar atualização instantânea**.
+
+**Ao mudar o `Codigo.gs` depois:** em **Implantar → Gerenciar implantações**, edite a implantação e escolha **Nova versão**. Assim o URL continua o mesmo e não é preciso ativar de novo.
+
 ## Compartilhar com a equipe
 
 Botão **Compartilhar** → adicione as pessoas como **Leitor**. Quem tiver só leitura não consegue alterar nada. Quem for editor recebe um aviso se tentar mexer nas abas.
@@ -34,6 +50,8 @@ Botão **Compartilhar** → adicione as pessoas como **Leitor**. Quem tiver só 
 |---|---|
 | `Firestore respondeu 403` | A conta que instalou o script não tem acesso ao projeto `batismo-8c5f8`. Reinstale com a conta dona do projeto. |
 | `Não encontrei appData/primary` | O sistema ainda não tem dados importados. |
+| Site salva, mas a planilha só muda depois de alguns minutos | A atualização instantânea não está ativa ou o site estava aberto antes da ativação. Recarregue o site; se continuar, ative de novo pelo menu. |
+| `Firestore respondeu 404 ao gravar` | O sistema ainda não tem dados importados. Importe primeiro e depois ative a atualização instantânea. |
 | Nada muda | Confira em Apps Script → **Acionadores** (ícone de relógio) se existe o acionador `atualizarPlanilha`. Se não existir, use o menu **Batismo → Ativar atualização automática** de novo. |
 
 ## Custo

@@ -8,6 +8,10 @@
  * A planilha é SOMENTE PARA CONSULTA. Tudo que for digitado aqui é apagado
  * na próxima atualização. Cadastros e alterações são feitos no sistema.
  *
+ * Atualização instantânea (opcional): publicado como app da Web, o script
+ * recebe um aviso do site logo depois de cada cadastro, edição ou marcação e
+ * atualiza a planilha na hora. A atualização periódica continua como reserva.
+ *
  * Instalação: veja planilha-espelho/LEIA-ME.md no repositório.
  */
 
@@ -23,6 +27,9 @@ function onOpen() {
     .addSeparator()
     .addItem('Ativar atualização automática', 'ativarAtualizacaoAutomatica')
     .addItem('Desativar atualização automática', 'desativarAtualizacaoAutomatica')
+    .addSeparator()
+    .addItem('Ativar atualização instantânea', 'ativarAtualizacaoInstantanea')
+    .addItem('Desativar atualização instantânea', 'desativarAtualizacaoInstantanea')
     .addToUi();
 }
 
@@ -39,6 +46,67 @@ function desativarAtualizacaoAutomatica() {
   });
 }
 
+/* ===================== Atualização instantânea ===================== */
+
+function ativarAtualizacaoInstantanea() {
+  var ui = SpreadsheetApp.getUi();
+  var resp = ui.prompt('Atualização instantânea',
+    'Antes, publique este script: Implantar → Nova implantação → tipo "App da Web" → ' +
+    'Executar como: Eu → Quem pode acessar: Qualquer pessoa → Implantar.\n\n' +
+    'Cole aqui o URL do app da Web (termina em /exec):', ui.ButtonSet.OK_CANCEL);
+  if (resp.getSelectedButton() !== ui.Button.OK) return;
+  var url = String(resp.getResponseText() || '').trim();
+  if (!/^https:\/\/script\.google\.com\/.+\/exec$/.test(url)) {
+    ui.alert('URL inválido', 'O endereço precisa começar com https://script.google.com/ e terminar em /exec. Copie o URL do "App da Web" na tela de implantação.', ui.ButtonSet.OK);
+    return;
+  }
+  var token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  var props = PropertiesService.getScriptProperties();
+  props.setProperty('tokenInstantaneo', token);
+  props.setProperty('planilhaId', planilha().getId());
+  // Grava URL e token no Firebase, onde só contas autorizadas leem. O site usa
+  // esses dados para avisar a planilha depois de cada alteração.
+  firestorePatch('appData/primary', {
+    planilhaSync: { mapValue: { fields: {
+      url: { stringValue: url },
+      token: { stringValue: token },
+      ativadoEm: { timestampValue: new Date().toISOString() }
+    } } }
+  }, ['planilhaSync']);
+  ui.alert('Atualização instantânea ativada', 'A partir de agora, cada cadastro, edição ou marcação feita no site atualiza esta planilha em poucos segundos. Recarregue o site nos aparelhos que já estavam abertos.', ui.ButtonSet.OK);
+}
+
+function desativarAtualizacaoInstantanea() {
+  PropertiesService.getScriptProperties().deleteProperty('tokenInstantaneo');
+  // Sem o campo no corpo, a máscara remove planilhaSync do documento.
+  firestorePatch('appData/primary', {}, ['planilhaSync']);
+  SpreadsheetApp.getActive().toast('Atualização instantânea desativada. A atualização periódica continua.', 'Batismo', 6);
+}
+
+/** Aviso enviado pelo site (app da Web). Não devolve nenhum dado. */
+function doGet(e) { return receberAviso(e); }
+function doPost(e) { return receberAviso(e); }
+
+function receberAviso(e) {
+  var esperado = PropertiesService.getScriptProperties().getProperty('tokenInstantaneo');
+  var recebido = e && e.parameter ? String(e.parameter.token || '') : '';
+  if (!esperado || recebido !== esperado) return ContentService.createTextOutput('negado');
+  try {
+    atualizarPlanilha(false);
+    return ContentService.createTextOutput('ok');
+  } catch (err) {
+    return ContentService.createTextOutput('erro');
+  }
+}
+
+function planilha() {
+  var ss = SpreadsheetApp.getActive();
+  if (ss) return ss;
+  var id = PropertiesService.getScriptProperties().getProperty('planilhaId');
+  if (id) return SpreadsheetApp.openById(id);
+  throw new Error('Planilha não encontrada. Abra a planilha e use o menu Batismo → Ativar atualização instantânea.');
+}
+
 function atualizarAgora() {
   atualizarPlanilha(true);
   SpreadsheetApp.getActive().toast('Planilha atualizada com os dados do sistema.', 'Batismo', 5);
@@ -48,13 +116,14 @@ function atualizarAgora() {
 
 function atualizarPlanilha(forcar) {
   var lock = LockService.getScriptLock();
-  if (!lock.tryLock(20000)) return;
+  // Espera a atualização em andamento terminar, para que a última alteração entre.
+  if (!lock.tryLock(25000)) return;
   try {
     var data = carregarDados();
     var tabelas = montarTabelas(data);
     var assinatura = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(tabelas)));
     var props = PropertiesService.getScriptProperties();
-    var ss = SpreadsheetApp.getActive();
+    var ss = planilha();
     if (forcar === true || props.getProperty('assinatura') !== assinatura) {
       escreverTabelas(ss, tabelas);
       props.setProperty('assinatura', assinatura);
@@ -62,7 +131,7 @@ function atualizarPlanilha(forcar) {
     }
     escreverSobre(ss, data, props.getProperty('ultimaMudanca'), null);
   } catch (e) {
-    try { escreverSobre(SpreadsheetApp.getActive(), null, null, e); } catch (ignored) {}
+    try { escreverSobre(planilha(), null, null, e); } catch (ignored) {}
     throw e;
   } finally {
     lock.releaseLock();
@@ -84,6 +153,22 @@ function firestoreGet(path, params) {
   if (code === 404) return null;
   if (code !== 200) throw new Error('Firestore respondeu ' + code + ': ' + res.getContentText().slice(0, 300));
   return JSON.parse(res.getContentText());
+}
+
+function firestorePatch(path, fields, mask) {
+  var query = mask.map(function (m) { return 'updateMask.fieldPaths=' + encodeURIComponent(m); }).join('&') + '&currentDocument.exists=true';
+  var res = UrlFetchApp.fetch(FIRESTORE + '/' + path + '?' + query, {
+    method: 'patch',
+    contentType: 'application/json',
+    payload: JSON.stringify({ fields: fields }),
+    headers: {
+      Authorization: 'Bearer ' + ScriptApp.getOAuthToken(),
+      'X-Goog-User-Project': PROJECT_ID
+    },
+    muteHttpExceptions: true
+  });
+  var code = res.getResponseCode();
+  if (code !== 200) throw new Error('Firestore respondeu ' + code + ' ao gravar: ' + res.getContentText().slice(0, 300));
 }
 
 function listarDocumentos(path) {
